@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /app
+Disallow: /admin
+Disallow: /signin
+Disallow: /login
+Disallow: /signup
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /api
+
+Allow: /
+
+Sitemap: https://virtixai.com/sitemap.xml
