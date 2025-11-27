@@ -8,25 +8,26 @@ export default function ContactUs() {
 
   const onFinish = async (values) => {
     try {
-      const website = values['Website'];
+      const name = values['Name'];
       const workEmail = values['Work email'];
-      const teamSize = values['Team size'];
+      const company = values['Company'];
+      const industry = values['Industry'];
       const helpMessage = values['How can we help?'];
 
-      const inferredName = workEmail ? workEmail.split('@')[0] : '';
+      const inferredName = name ? name : workEmail.split('@')[0];
 
       const payload = {
         name: inferredName,
         email: workEmail,
-        company: website,
-        industry: String(teamSize || ''),
+        company: company,
+        industry: industry,
         message: helpMessage,
       };
 
       const res = await postData('api/billing/contact/submit/', payload, false);
 
       if (res?.data?.ok) {
-        message.success(`Thanks! Request ID: ${res?.data?.id}`);
+        message.success(`Thanks! You request ID: ${res?.data?.id}`);
         form.resetFields();
       } else if (res?.error) {
         const errors = res?.errors;
@@ -61,8 +62,8 @@ export default function ContactUs() {
             >
               <Row gutter={16}>
                 <Col className="gutter-row" span={12}>
-                  <Form.Item name="Website" label="Website" rules={[{ required: true }]}>
-                    <Input placeholder='Website' />
+                  <Form.Item name="Name" label="Name" rules={[{ required: true }]}>
+                    <Input placeholder='Name' />
                   </Form.Item>
                 </Col>
                 <Col className="gutter-row" span={12}>
@@ -70,15 +71,20 @@ export default function ContactUs() {
                     <Input placeholder='Work email' />
                   </Form.Item>
                 </Col>
-                <Col className="gutter-row" span={24}>
-                  <Form.Item name="Team size" label="Team size" rules={[{ required: true }]}>
-                    <Input placeholder='Team size' />
+                <Col className="gutter-row" span={12}>
+                  <Form.Item name="Company" label="Company" rules={[{ required: false }]}>
+                    <Input placeholder='Company' />
+                  </Form.Item>
+                </Col>
+                <Col className="gutter-row" span={12}>
+                  <Form.Item name="Industry" label="Industry" rules={[{ required: false }]}>
+                    <Input placeholder='Industry' />
                   </Form.Item>
                 </Col>
 
                 <Col className="gutter-row" span={24}>
                   <Form.Item name="How can we help?" label="How can we help?" rules={[{ required: true }]}>
-                    <TextArea rows={4} placeholder="How can we help?" maxLength={6} />
+                    <TextArea rows={4} placeholder="How can we help?" minLength={6} />
                   </Form.Item>
                 </Col>
               </Row>
