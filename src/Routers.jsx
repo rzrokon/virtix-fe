@@ -40,7 +40,7 @@ export default function Routers() {
           <Route path='/reset-password' element={<ResetPassword />} />
         </Route>
         <Route path='/' element={<CreateAgentLayout />}>
-          <Route path='/create-agent' element={<CreateAgent />} />
+          <Route path='/home' element={<CreateAgent />} />
           <Route path='/profile' element={<UserProfile />} />
         </Route>
         <Route path='/:id/dashboard' element={<PrivateLayout />}>

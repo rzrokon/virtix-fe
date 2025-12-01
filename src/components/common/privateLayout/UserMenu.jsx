@@ -20,9 +20,9 @@ export default function UserMenu() {
     {
       key: 'create-agent',
       icon: <SettingOutlined />,
-      label: 'Create Agent',
+      label: 'My Agents',
       onClick: () => {
-        window.location = `/create-agent`
+        window.location = `/home`
       }
     },
     {
