@@ -104,7 +104,7 @@ export default function PrivateLayout() {
               { key: '6', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
               // { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
               
-              { key: '8', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Manage Leads</Link> },
+              { key: '8', icon: <Users />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> },
               
               { key: '9', icon: <Settings />, label: 'Bookings',
                 children: [
