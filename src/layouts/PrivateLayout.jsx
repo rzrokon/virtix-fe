@@ -1,4 +1,7 @@
 import {
+  AppstoreAddOutlined,
+  AppstoreOutlined,
+  HomeOutlined,
   LeftOutlined,
   RightOutlined
 } from '@ant-design/icons';
@@ -53,15 +56,18 @@ export default function PrivateLayout() {
     <Layout>
       <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer }} className='!pl-4' >
         <Button
-          type="text"
-          icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          size='large'
+          type="default"
+          onClick={() => {window.location = `/home`}}
+          size='large' 
           style={{
             fontSize: '16px',
+            padding: '0 5px',
           }}
           className='!bg-gray-200 rounded-lg mr-4'
-        />
+        >
+          <img src="/assets/logo/favicon.png" alt="icon" style={{ width: 30, verticalAlign: 'middle' }} />
+        </Button>
+
         <div className="demo-logo font-semibold text-2xl">
           {loading ? 'Loading...' : (agent?.agent_name || 'Agent name')}
         </div>
@@ -71,22 +77,54 @@ export default function PrivateLayout() {
         </div>
       </Header>
       <Layout>
-        <Sider width={200} style={{ background: colorBgContainer }} trigger={null} collapsible collapsed={collapsed}>
+        <Sider width={250} style={{ background: "#000B41" }} trigger={null} collapsible collapsed={collapsed}>
           <Menu
-            className='!mt-6'
+            className='my-app-menu !mt-6 '
             mode="inline"
             defaultSelectedKeys={['1']}
             defaultOpenKeys={['sub1']}
-            style={{ height: '100%', borderInlineEnd: 0 }}
+            style={{ height: '100%', borderInlineEnd: 0, background: "#000B41"  }}
             items={[
               { key: '1', icon: <LayoutDashboard />, label: <Link to={`/${id}/dashboard`}>Dashboard</Link> },
-              // { key: '2', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
+              { key: '2', icon: <Settings />, label: 'Agent Settings',
+                children: [
+                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> General Info </Link> ), },
+                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Chat Widget </Link> ), },
+                  { key: 'settings-channels', label: ( <Link to={`/${id}/dashboard/agent-configuration`}> Config Features </Link> ), },
+                ],
+              },
+              
+              
+              
               { key: '3', icon: <SquareChartGantt />, label: <Link to={`/${id}/dashboard/manage-prompts`}>Manage Prompts</Link> },
               { key: '4', icon: <Files />, label: <Link to={`/${id}/dashboard/manage-files`}>Manage Documents</Link> },
-              { key: '5', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
-              { key: '8', icon: <Lightbulb />, label: <Link to={`/${id}/dashboard/knowledge`}>Knowledge</Link> },
-              { key: '6', icon: <Settings />, label: <Link to={`/${id}/dashboard/agent-settings`}>Agent Settings</Link> },
-              { key: '7', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/report`}>Reports</Link> },
+              
+              { key: '5', icon: <Lightbulb />, label: <Link to={`/${id}/dashboard/knowledge`}>Knowledge</Link> },
+              
+              { key: '6', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
+              // { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
+              
+              { key: '8', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Manage Leads</Link> },
+              
+              { key: '9', icon: <Settings />, label: 'Bookings',
+                children: [
+                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> Manage Bookings </Link> ), },
+                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Booking Windows </Link> ), },
+                ],
+              },
+
+              { key: '10', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Manage Complaints</Link> },
+              
+
+              { key: '11', icon: <Settings />, label: 'Product & Orders',
+                children: [
+                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> Manage Products </Link> ), },
+                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Manage Orders </Link> ), },
+                  { key: 'settings-channels', label: ( <Link to={`/${id}/dashboard/agent-configuration`}> Manage Offers </Link> ), },
+                ],
+              },
+
+              { key: '12', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/report`}>Reports</Link> },
             ]}
           />
         </Sider>

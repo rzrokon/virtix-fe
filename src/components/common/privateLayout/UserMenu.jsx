@@ -1,4 +1,4 @@
-import { DownOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, DashboardOutlined, DownOutlined, LockOutlined, LogoutOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, message, Space } from "antd";
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../contexts/UserContext';
@@ -18,11 +18,27 @@ export default function UserMenu() {
       }
     },
     {
+      key: 'change-password',
+      icon: <LockOutlined />,
+      label: 'Change Passowrd',
+      onClick: () => {
+        window.location = `/change-password`
+      }
+    },
+    {
       key: 'create-agent',
-      icon: <SettingOutlined />,
+      icon: <RobotOutlined />,
       label: 'My Agents',
       onClick: () => {
         window.location = `/home`
+      }
+    },
+    {
+      key: 'create-agent',
+      icon: <DashboardOutlined />,
+      label: 'Active Plan',
+      onClick: () => {
+        window.location = `/active-plan`
       }
     },
     {

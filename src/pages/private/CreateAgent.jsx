@@ -3,6 +3,7 @@ import {
   AppstoreOutlined,
   CloseOutlined,
   MoreOutlined,
+  RobotOutlined,
   UnorderedListOutlined,
   UploadOutlined,
   UserOutlined
@@ -232,8 +233,8 @@ export default function CreateAgent() {
                   <div className="mb-4">
                     <Avatar
                       size={64}
-                      icon={<UserOutlined />}
-                      className="bg-gray-100 text-gray-400"
+                      icon={<RobotOutlined />}
+                      className="bg-purple-600 text-gray-400"
                     />
                   </div>
 
