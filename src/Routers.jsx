@@ -20,6 +20,7 @@ import ManagePrompts from './pages/private/ManagePrompts.jsx';
 import ManageLeads from './pages/private/ManageLeads.jsx';
 import ManageBookings from './pages/private/ManageBookings.jsx';
 import ManageBookingWindows from './pages/private/ManageBookingWindows.jsx';
+import ManageComplaints from './pages/private/ManageComplaints.jsx';
 import Contact from './pages/public/Contact.jsx';
 import Features from './pages/public/Features.jsx';
 import Home from './pages/public/Home.jsx';
@@ -58,6 +59,7 @@ export default function Routers() {
           <Route path="/:id/dashboard/leads" element={<ManageLeads />} />
           <Route path="/:id/dashboard/bookings" element={<ManageBookings />} />
           <Route path="/:id/dashboard/booking-windows" element={<ManageBookingWindows />} />
+          <Route path="/:id/dashboard/complaints" element={<ManageComplaints />} />
         </Route>
       </Routes>
     </BrowserRouter>

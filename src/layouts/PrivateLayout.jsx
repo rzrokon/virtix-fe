@@ -123,7 +123,7 @@ export default function PrivateLayout() {
                 ],
               },
 
-              { key: '10', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Manage Complaints</Link> },
+              { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> },
               
 
               { key: '11', icon: <Settings />, label: 'Product & Orders',

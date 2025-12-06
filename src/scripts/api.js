@@ -51,3 +51,8 @@ export const GET_BOOKING_WINDOWS = 'api/ops/booking-windows/';
 export const CREATE_BOOKING_WINDOW = 'api/ops/booking-windows/';
 export const UPDATE_BOOKING_WINDOW = 'api/ops/booking-windows/';
 export const DELETE_BOOKING_WINDOW = 'api/ops/booking-windows/';
+
+// Complaints
+export const GET_COMPLAINTS = 'api/ops/complaints/';
+export const UPDATE_COMPLAINT = 'api/ops/complaints/';
+export const DELETE_COMPLAINT = 'api/ops/complaints/';
