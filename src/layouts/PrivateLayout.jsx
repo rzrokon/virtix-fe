@@ -1,13 +1,14 @@
 import {
   AppstoreAddOutlined,
   AppstoreOutlined,
+  CalendarOutlined,
   HomeOutlined,
   LeftOutlined,
   RightOutlined
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import Cookies from 'js-cookie';
-import { ClipboardMinus, Files, LayoutDashboard, Lightbulb, Settings, SquareChartGantt, Users } from 'lucide-react';
+import { ClipboardMinus, Files, LayoutDashboard, Lightbulb, Settings, SquareChartGantt, User, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
@@ -104,12 +105,21 @@ export default function PrivateLayout() {
               { key: '6', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
               // { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
               
-              { key: '8', icon: <Users />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> },
+              { key: '8', icon: <User />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> },
               
-              { key: '9', icon: <Settings />, label: 'Bookings',
+              {
+                key: 'bookings',
+                icon: <CalendarOutlined />, // or any icon you like (import from antd or lucide)
+                label: 'Bookings',
                 children: [
-                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> Manage Bookings </Link> ), },
-                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Booking Windows </Link> ), },
+                  {
+                    key: 'bookings-list',
+                    label: <Link to={`/${id}/dashboard/bookings`}>Manage Bookings</Link>,
+                  },
+                  {
+                    key: 'booking-windows',
+                    label: <Link to={`/${id}/dashboard/booking-windows`}>Booking Windows</Link>,
+                  },
                 ],
               },
 

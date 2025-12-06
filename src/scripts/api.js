@@ -40,3 +40,14 @@ export const START_SUBSCRIPTION = 'api/billing/me/subscription/start/'
 export const GET_LEADS = 'api/ops/leads/';
 export const UPDATE_LEAD = 'api/ops/leads/';
 export const DELETE_LEAD = 'api/ops/leads/';
+
+// Bookings
+export const GET_BOOKINGS = 'api/ops/bookings/';
+export const UPDATE_BOOKING = 'api/ops/bookings/';
+export const DELETE_BOOKING = 'api/ops/bookings/';
+
+// Booking Windows
+export const GET_BOOKING_WINDOWS = 'api/ops/booking-windows/';
+export const CREATE_BOOKING_WINDOW = 'api/ops/booking-windows/';
+export const UPDATE_BOOKING_WINDOW = 'api/ops/booking-windows/';
+export const DELETE_BOOKING_WINDOW = 'api/ops/booking-windows/';

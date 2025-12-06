@@ -18,6 +18,8 @@ import Knowledge from './pages/private/knowledge.jsx';
 import ManageFiles from './pages/private/ManageFiles.jsx';
 import ManagePrompts from './pages/private/ManagePrompts.jsx';
 import ManageLeads from './pages/private/ManageLeads.jsx';
+import ManageBookings from './pages/private/ManageBookings.jsx';
+import ManageBookingWindows from './pages/private/ManageBookingWindows.jsx';
 import Contact from './pages/public/Contact.jsx';
 import Features from './pages/public/Features.jsx';
 import Home from './pages/public/Home.jsx';
@@ -54,6 +56,8 @@ export default function Routers() {
           <Route path='/:id/dashboard/knowledge' element={<Knowledge />} />
           <Route path='/:id/dashboard/report' element={<AgentReport />} />
           <Route path="/:id/dashboard/leads" element={<ManageLeads />} />
+          <Route path="/:id/dashboard/bookings" element={<ManageBookings />} />
+          <Route path="/:id/dashboard/booking-windows" element={<ManageBookingWindows />} />
         </Route>
       </Routes>
     </BrowserRouter>
