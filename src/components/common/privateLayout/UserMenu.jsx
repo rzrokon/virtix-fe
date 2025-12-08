@@ -34,7 +34,7 @@ export default function UserMenu() {
       }
     },
     {
-      key: 'create-agent',
+      key: 'active-plan',
       icon: <DashboardOutlined />,
       label: 'Active Plan',
       onClick: () => {

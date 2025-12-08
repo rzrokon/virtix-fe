@@ -56,3 +56,20 @@ export const DELETE_BOOKING_WINDOW = 'api/ops/booking-windows/';
 export const GET_COMPLAINTS = 'api/ops/complaints/';
 export const UPDATE_COMPLAINT = 'api/ops/complaints/';
 export const DELETE_COMPLAINT = 'api/ops/complaints/';
+
+// Products
+export const GET_PRODUCTS = 'api/ops/products/';
+export const CREATE_PRODUCT = 'api/ops/products/';
+export const UPDATE_PRODUCT = 'api/ops/products/';
+export const DELETE_PRODUCT = 'api/ops/products/';
+
+// Orders
+export const GET_ORDERS = 'api/ops/orders/';
+export const UPDATE_ORDER = 'api/ops/orders/';
+export const DELETE_ORDER = 'api/ops/orders/';
+
+// Offers
+export const GET_OFFERS = 'api/ops/offers/';
+export const CREATE_OFFER = 'api/ops/offers/';
+export const UPDATE_OFFER = 'api/ops/offers/';
+export const DELETE_OFFER = 'api/ops/offers/';

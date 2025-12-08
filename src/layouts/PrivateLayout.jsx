@@ -126,11 +126,11 @@ export default function PrivateLayout() {
               { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> },
               
 
-              { key: '11', icon: <Settings />, label: 'Product & Orders',
+              { key: '11', icon: <Settings />, label: 'Commerce',
                 children: [
-                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> Manage Products </Link> ), },
-                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Manage Orders </Link> ), },
-                  { key: 'settings-channels', label: ( <Link to={`/${id}/dashboard/agent-configuration`}> Manage Offers </Link> ), },
+                  { key: 'products', icon: <AppstoreOutlined />, label: <Link to={`/${id}/dashboard/products`}>Products</Link> },
+                  { key: 'orders', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/orders`}>Orders</Link> },
+                  { key: 'offers', icon: <AppstoreAddOutlined />, label: <Link to={`/${id}/dashboard/offers`}>Offers</Link> },
                 ],
               },
 
