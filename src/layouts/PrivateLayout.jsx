@@ -2,9 +2,14 @@ import {
   AppstoreAddOutlined,
   AppstoreOutlined,
   CalendarOutlined,
+  FacebookOutlined,
   HomeOutlined,
   LeftOutlined,
-  RightOutlined
+  ProductFilled,
+  RightOutlined,
+  RobotFilled,
+  RobotOutlined,
+  UserAddOutlined
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import Cookies from 'js-cookie';
@@ -87,11 +92,12 @@ export default function PrivateLayout() {
             style={{ height: '100%', borderInlineEnd: 0, background: "#000B41"  }}
             items={[
               { key: '1', icon: <LayoutDashboard />, label: <Link to={`/${id}/dashboard`}>Dashboard</Link> },
-              { key: '2', icon: <Settings />, label: 'Agent Settings',
+              { key: '2', icon: <RobotOutlined />, label: 'Agent Settings',
                 children: [
-                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/agent-general`}> General Info </Link> ), },
-                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/agent-settings`}> Chat Widget </Link> ), },
-                  { key: 'settings-channels', label: ( <Link to={`/${id}/dashboard/agent-configuration`}> Config Features </Link> ), },
+                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/settings-general`}> General Info </Link> ), },
+                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/settings-widget`}> Chat Widget </Link> ), },
+                  { key: 'settings-feature', label: ( <Link to={`/${id}/dashboard/settings-feature`}> Config Features </Link> ), },
+                  { key: 'agent-integrations', label: ( <Link to={`/${id}/dashboard/agent-integrations`}> Integrations </Link> ), },
                 ],
               },
               
@@ -126,11 +132,11 @@ export default function PrivateLayout() {
               { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> },
               
 
-              { key: '11', icon: <Settings />, label: 'Commerce',
+              { key: '11', icon: <ProductFilled />, label: 'Commerce',
                 children: [
-                  { key: 'products', icon: <AppstoreOutlined />, label: <Link to={`/${id}/dashboard/products`}>Products</Link> },
-                  { key: 'orders', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/orders`}>Orders</Link> },
-                  { key: 'offers', icon: <AppstoreAddOutlined />, label: <Link to={`/${id}/dashboard/offers`}>Offers</Link> },
+                  { key: 'products', label: <Link to={`/${id}/dashboard/products`}>Products</Link> },
+                  { key: 'orders', label: <Link to={`/${id}/dashboard/orders`}>Orders</Link> },
+                  { key: 'offers', label: <Link to={`/${id}/dashboard/offers`}>Offers</Link> },
                 ],
               },
 
