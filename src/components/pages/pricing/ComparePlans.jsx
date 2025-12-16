@@ -1,62 +1,51 @@
-import { Table } from 'antd';
+import { Spin, Table } from 'antd';
+import { useMemo } from 'react';
 import { CheckIcon, CloseIcon } from '../../common/icons';
 
-const columns = [
-  {
-    title: 'Features',
-    dataIndex: 'name',
-    key: 'name',
-    render: text => <span>{text}</span>,
-  },
-  {
-    title: 'Free',
-    key: 'action',
-    width: 100,
-    render: (_, record) => (
-      record.free ? <CheckIcon /> : <CloseIcon />
-    ),
-  },
-  {
-    title: 'Studio',
-    key: 'action',
-    width: 100,
-    render: (_, record) => (
-      record.studio ? <CheckIcon /> : <CloseIcon />
-    ),
-  },
-  {
-    title: 'Enterprise',
-    key: 'action',
-    width: 100,
-    render: (_, record) => (
-      record.enterprise ? <CheckIcon /> : <CloseIcon />
-    ),
-  },
-];
-const data = [
-  {
-    key: '1',
-    name: 'Features name',
-    free: false,
-    studio: true,
-    enterprise: true,
-  },
-  {
-    key: '2',
-    name: 'Features name',
-    free: true,
-    studio: false,
-    enterprise: true,
-  },
-  {
-    key: '3',
-    name: 'Features name',
-    free: true,
-    studio: true,
-    enterprise: false,
-  },
-];
-export default function ComparePlans() {
+export default function ComparePlans({ plans = [], loading = false }) {
+  const { columns, data } = useMemo(() => {
+    // fallback empty
+    if (!plans?.length) {
+      return { columns: [], data: [] };
+    }
+
+    // 1) columns: Features + each plan name
+    const cols = [
+      {
+        title: 'Features',
+        dataIndex: 'name',
+        key: 'name',
+        render: text => <span>{text}</span>,
+      },
+      ...plans.map((p) => ({
+        title: p.name, // Free/Business/Enterprise based on backend
+        key: p.code,
+        width: 140,
+        render: (_, record) =>
+          record[p.code] ? <CheckIcon /> : <CloseIcon />,
+      })),
+    ];
+
+    // 2) rows based on known boolean features
+    const featureRows = [
+      { key: 'lead_gen', name: 'Lead Generation' },
+      { key: 'booking', name: 'Booking System' },
+      { key: 'complaints', name: 'Complaints Management' },
+      { key: 'products_orders', name: 'Products & Orders' },
+      { key: 'offers', name: 'Special Offers' },
+    ];
+
+    const rows = featureRows.map((f) => {
+      const row = { key: f.key, name: f.name };
+      plans.forEach((p) => {
+        row[p.code] = !!p[f.key];
+      });
+      return row;
+    });
+
+    return { columns: cols, data: rows };
+  }, [plans]);
+
   return (
     <section className="hero-section py-20">
       <div className="container ">
@@ -67,13 +56,19 @@ export default function ComparePlans() {
             </h1>
 
             <p>
-              Use Jitter for free with your entire team. Upgrade to export your files in HD, remove the Jitter watermark, unlock unlimited folders, and more.
+              Compare features across plans and choose what fits your business.
             </p>
           </div>
 
-          <Table columns={columns} dataSource={data} pagination={false} />
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Spin />
+            </div>
+          ) : (
+            <Table columns={columns} dataSource={data} pagination={false} />
+          )}
         </div>
       </div>
     </section>
-  )
+  );
 }
