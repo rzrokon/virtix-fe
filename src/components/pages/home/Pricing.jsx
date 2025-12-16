@@ -18,12 +18,26 @@ const Pricing = () => {
     const fetchPlans = async () => {
       try {
         setLoading(true);
-        const response = await getData(GET_BILLING_PLANS);
-        setPlans(response.results || response);
+
+        // ✅ Plans endpoint is public → pass no_token = true
+        const response = await getData(GET_BILLING_PLANS, true);
+
+        // ✅ API returns an array (your backend example), but keep compatibility:
+        const list = Array.isArray(response)
+          ? response
+          : (response?.results || []);
+
+        // ✅ show only public plans (optional but safe)
+        const publicPlans = list.filter(p => p.is_public);
+
+        // ✅ keep stable ordering (starter, business, enterprise)
+        publicPlans.sort((a, b) => (a.id || 0) - (b.id || 0));
+
+        setPlans(publicPlans);
+        setError(null);
       } catch (error) {
         console.error('Error fetching billing plans:', error);
         setError('Failed to load pricing plans');
-        // Fallback to default plans if API fails
         setPlans([]);
       } finally {
         setLoading(false);
@@ -34,9 +48,20 @@ const Pricing = () => {
   }, []);
 
   // Format price for display
-  const formatPrice = (priceUsd) => {
-    const price = parseFloat(priceUsd);
+  const formatPrice = (plan) => {
+    // Enterprise may be "Contact Sales" even if 0.00
+    if (plan.contact_sales_only) return 'Contact sales';
+
+    const price = parseFloat(plan.price_usd);
+    if (!price || price === 0) return 'Free';
     return `$${price}`;
+  };
+
+  // should show "/month" label?
+  const showPerMonth = (plan) => {
+    if (plan.contact_sales_only) return false;
+    const price = parseFloat(plan.price_usd);
+    return price > 0;
   };
 
   // Format number with commas
@@ -44,7 +69,7 @@ const Pricing = () => {
     if (num >= 1000000000) return `${(num / 1000000000).toFixed(1)}B`;
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-    return num.toString();
+    return num?.toString?.() ?? '0';
   };
 
   // Format bytes to readable format
@@ -65,7 +90,6 @@ const Pricing = () => {
       `${formatBytes(plan.max_index_bytes)} index capacity`,
     ];
 
-    // Add feature-based items
     const featureItems = [
       { key: 'lead_gen', label: 'Lead Generation' },
       { key: 'booking', label: 'Booking System' },
@@ -77,7 +101,7 @@ const Pricing = () => {
     featureItems.forEach(item => {
       features.push({
         text: item.label,
-        included: plan[item.key]
+        included: !!plan[item.key]
       });
     });
 
@@ -87,37 +111,39 @@ const Pricing = () => {
   // Determine if plan is popular (Business plan)
   const isPopular = (plan) => plan.code === 'business';
 
-
-
   // Handle plan selection with authentication check
   const handlePlanSelection = async (plan) => {
     const token = Cookies.get('kotha_token');
 
     // Check if user is authenticated
     if (!token) {
-      // Redirect to login page for unauthenticated users
       navigate('/signin');
       return;
     }
 
     // For contact sales plans, handle differently
     if (plan.contact_sales_only) {
-      // You can add contact sales logic here
       message.info('Please contact our sales team for enterprise plans.');
       return;
     }
 
-    // For paid plans, call the subscription API
     try {
       setSubscriptionLoading(plan.id);
 
+      // NOTE: if your subscription endpoint is protected and sometimes logs out,
+      // you’ll want to debug postData/checkRes. For now, keeping your logic.
       const response = await postData(START_SUBSCRIPTION, {
         plan_code: plan.code
       });
 
+      if (response?.error) {
+        console.error('Subscription API returned error:', response.errors);
+        message.error('Failed to start subscription. Please try again.');
+        return;
+      }
+
       if (response) {
         message.success(`Successfully subscribed to ${plan.name} plan!`);
-        // You might want to redirect to dashboard or payment confirmation
         navigate('/');
       }
     } catch (error) {
@@ -128,6 +154,7 @@ const Pricing = () => {
     }
   };
 
+  // --- your loading/error UI stays unchanged ---
   if (loading) {
     return (
       <section className="pricing py-20">
@@ -200,9 +227,13 @@ const Pricing = () => {
                   <h3 className="text-2xl leading-[140%] text-[#0C0900] font-bold">{plan.name}</h3>
                   <div className="plan-price">
                     <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
-                      {formatPrice(plan.price_usd)}
+                      {formatPrice(plan)}
                     </span>
-                    <p className="text-lg text-gray-600 ml-1">/month</p>
+
+                    {/* ✅ Only show /month for paid non-contact-sales */}
+                    {showPerMonth(plan) && (
+                      <p className="text-lg text-gray-600 ml-1">/month</p>
+                    )}
                   </div>
                 </div>
 
@@ -217,7 +248,11 @@ const Pricing = () => {
                     : ''
                     }`}
                 >
-                  {subscriptionLoading === plan.id ? 'Processing...' : 'Get started'}
+                  {subscriptionLoading === plan.id
+                    ? 'Processing...'
+                    : plan.contact_sales_only
+                      ? 'Contact sales'
+                      : 'Get started'}
                 </Button>
 
                 {/* Features List */}
