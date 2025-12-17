@@ -19,17 +19,14 @@ export default function LoginForm() {
         password: values.password
       }, true);
 
-      console.log("res", res);
+      console.log('[Login] res', res);
 
       if (res && res.data?.access) {
-        // Store tokens
         setAuthToken(res.data.access, res.data.refresh);
-
-        // Show success message
         message.success('Login successful!');
 
-        // Redirect to chat page
-        navigate('/');
+        // ✅ go to /home (it is gated)
+        navigate('/home', { replace: true });
       } else {
         message.error('Invalid response from server');
       }
@@ -44,16 +41,13 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-green-100 p-4">
-      {/* Animated blob backgrounds */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
         <div className="absolute top-40 right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
         <div className="absolute bottom-20 left-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
       </div>
 
-      {/* Login Form Card */}
       <div className="relative z-10 w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
-        {/* Header */}
         <div className="text-center mb-8">
           <Title level={2} className="!mb-2 !text-gray-900">
             Welcome Back! Please log in
@@ -65,7 +59,6 @@ export default function LoginForm() {
           </Text>
         </div>
 
-        {/* Form */}
         <Form
           name="login"
           layout="vertical"
@@ -73,19 +66,12 @@ export default function LoginForm() {
           autoComplete="off"
           requiredMark={false}
         >
-          {/* Email Field */}
           <Form.Item
             label={<span className="text-gray-700 font-medium">Email</span>}
             name="email"
             rules={[
-              {
-                required: true,
-                message: 'Please input your email!',
-              },
-              {
-                type: 'email',
-                message: 'Please enter a valid email!',
-              },
+              { required: true, message: 'Please input your email!' },
+              { type: 'email', message: 'Please enter a valid email!' },
             ]}
           >
             <Input
@@ -94,19 +80,12 @@ export default function LoginForm() {
             />
           </Form.Item>
 
-          {/* Password Field */}
           <Form.Item
             label={<span className="text-gray-700 font-medium">Password</span>}
             name="password"
             rules={[
-              {
-                required: true,
-                message: 'Please input your password!',
-              },
-              {
-                min: 6,
-                message: 'Password must be at least 6 characters!',
-              },
+              { required: true, message: 'Please input your password!' },
+              { min: 6, message: 'Password must be at least 6 characters!' },
             ]}
           >
             <Input.Password
@@ -115,20 +94,15 @@ export default function LoginForm() {
             />
           </Form.Item>
 
-          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between mb-6">
             <Form.Item name="remember" valuePropName="checked" noStyle>
               <Checkbox className="text-gray-600">Remember me</Checkbox>
             </Form.Item>
-            <Link
-              to="/forget-password"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
+            <Link to="/forget-password" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
               Forgot password?
             </Link>
           </div>
 
-          {/* Submit Button */}
           <Form.Item>
             <Button
               type="primary"
@@ -141,14 +115,10 @@ export default function LoginForm() {
           </Form.Item>
         </Form>
 
-        {/* Sign Up Link */}
         <div className="text-center mt-6">
           <Text className="text-gray-600">
             Don't have an account?{' '}
-            <Link
-              to="/signup"
-              className="text-blue-600 hover:text-blue-800 font-semibold"
-            >
+            <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-semibold">
               Sign up
             </Link>
           </Text>

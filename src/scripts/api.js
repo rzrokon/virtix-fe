@@ -35,6 +35,8 @@ export const DELETE_FILE = 'api/agent/files/'
 // Billing API endpoints
 export const GET_BILLING_PLANS = 'api/billing/plans/'
 export const START_SUBSCRIPTION = 'api/billing/me/subscription/start/'
+export const GET_MY_SUBSCRIPTION = 'api/billing/me/subscription/';
+export const CHANGE_SUBSCRIPTION = 'api/billing/me/subscription/change/';
 
 // Leads
 export const GET_LEADS = 'api/ops/leads/';
