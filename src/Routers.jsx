@@ -40,6 +40,7 @@ import Contact from './pages/public/Contact.jsx';
 import Features from './pages/public/Features.jsx';
 import Home from './pages/public/Home.jsx';
 import Pricing from './pages/public/Pricing.jsx';
+import BillingSuccess from './pages/public/BillingSuccess.jsx';
 
 export default function Routers() {
   return (
@@ -51,6 +52,7 @@ export default function Routers() {
           <Route path='/features' element={<Features />} />
           <Route path='/pricing' element={<Pricing />} />
           <Route path='/contact' element={<Contact />} />
+          <Route path='/billing/success' element={<BillingSuccess />} />
         </Route>
 
         {/* AUTH */}
