@@ -10,22 +10,6 @@ export default function UserMenu() {
 
   const items = [
     {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Profile',
-      onClick: () => {
-        window.location = `/profile`
-      }
-    },
-    {
-      key: 'change-password',
-      icon: <LockOutlined />,
-      label: 'Change Passowrd',
-      onClick: () => {
-        window.location = `/change-password`
-      }
-    },
-    {
       key: 'create-agent',
       icon: <RobotOutlined />,
       label: 'My Agents',
@@ -39,6 +23,22 @@ export default function UserMenu() {
       label: 'Active Plan',
       onClick: () => {
         window.location = `/active-plan`
+      }
+    },
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Profile',
+      onClick: () => {
+        window.location = `/profile`
+      }
+    },
+    {
+      key: 'change-password',
+      icon: <LockOutlined />,
+      label: 'Change Passowrd',
+      onClick: () => {
+        window.location = `/change-password`
       }
     },
     {

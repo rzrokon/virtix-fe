@@ -8,6 +8,7 @@ import PublicLayout from './layouts/publicLayout.jsx';
 
 import ForgetPassword from './pages/auth/ForgetPassword.jsx';
 import ResetPassword from './pages/auth/ResetPassword.jsx';
+import ChangePassword from './pages/private/ChangePassword.jsx';
 import Signin from './pages/auth/Signin.jsx';
 import Signup from './pages/auth/Signup.jsx';
 
@@ -87,9 +88,7 @@ export default function Routers() {
           <Route
             path='/profile'
             element={
-              <RequireActivePlan>
                 <UserProfile />
-              </RequireActivePlan>
             }
           />
           <Route
@@ -100,6 +99,12 @@ export default function Routers() {
               </RequireActivePlan>
             }
           />
+          <Route
+          path='/change-password'
+          element={
+              <ChangePassword />
+          }
+        />
         </Route>
 
         {/* AGENT DASHBOARD */}
