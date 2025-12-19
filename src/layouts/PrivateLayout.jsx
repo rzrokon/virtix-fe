@@ -94,8 +94,8 @@ export default function PrivateLayout() {
               { key: '1', icon: <LayoutDashboard />, label: <Link to={`/${id}/dashboard`}>Dashboard</Link> },
               { key: '2', icon: <RobotOutlined />, label: 'Agent Settings',
                 children: [
-                  { key: 'settings-general', label: ( <Link to={`/${id}/dashboard/settings-general`}> General Info </Link> ), },
-                  { key: 'settings-widget', label: ( <Link to={`/${id}/dashboard/settings-widget`}> Chat Widget </Link> ), },
+                  { key: 'agent-ifo', label: ( <Link to={`/${id}/dashboard/agent-info`}> Agent Info </Link> ), },
+                  { key: 'chat-widget', label: ( <Link to={`/${id}/dashboard/chat-widget`}> Chat Widget </Link> ), },
                   { key: 'settings-feature', label: ( <Link to={`/${id}/dashboard/settings-feature`}> Config Features </Link> ), },
                   { key: 'agent-integrations', label: ( <Link to={`/${id}/dashboard/agent-integrations`}> Integrations </Link> ), },
                 ],

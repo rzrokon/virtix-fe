@@ -13,7 +13,8 @@ import Signin from './pages/auth/Signin.jsx';
 import Signup from './pages/auth/Signup.jsx';
 
 import AgentReport from './pages/private/AgentReport.jsx';
-import AgentSettings from './pages/private/AgentSettings.jsx';
+import ChatWidget from './pages/private/ChatWidget.jsx';
+import AgentInfo from './pages/private/AgentInfo.jsx';
 import ChatHistory from './pages/private/ChatHistory.jsx';
 import CreateAgent from './pages/private/CreateAgent.jsx';
 import Customers from './pages/private/Customers.jsx';
@@ -114,7 +115,8 @@ export default function Routers() {
           <Route path='/:id/dashboard/manage-prompts' element={<ManagePrompts />} />
           <Route path='/:id/dashboard/manage-files' element={<ManageFiles />} />
           <Route path='/:id/dashboard/customers' element={<Customers />} />
-          <Route path='/:id/dashboard/agent-settings' element={<AgentSettings />} />
+          <Route path='/:id/dashboard/chat-widget' element={<ChatWidget />} />
+          <Route path='/:id/dashboard/agent-info' element={<AgentInfo />} />
           <Route path='/:id/dashboard/knowledge' element={<Knowledge />} />
           <Route path='/:id/dashboard/report' element={<AgentReport />} />
           <Route path='/:id/dashboard/leads' element={<ManageLeads />} />
