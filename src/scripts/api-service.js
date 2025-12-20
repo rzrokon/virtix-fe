@@ -45,7 +45,8 @@ export const postData = async (
   data,
   no_token,
   showError,
-  notShowAlert
+  notShowAlert,
+  suppressAuthRedirect = false
 ) => {
   const token = Cookies.get('kotha_token')
 
@@ -65,7 +66,9 @@ export const postData = async (
     return res
   } catch (error) {
     console.log('error?.response?.data', error?.response)
-    checkRes(error?.response?.status)
+    if (!suppressAuthRedirect) {
+      checkRes(error?.response?.status)
+    }
     if (error?.response?.data && Object.keys(error.response.data).length) {
       return {
         error: true,

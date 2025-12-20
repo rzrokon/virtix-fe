@@ -101,11 +101,28 @@ export default function ManageProducts() {
 
   const handleCreateProduct = async (values) => {
     setSubmitting(true);
+    const normalizeError = (errObj) => {
+      if (typeof errObj === 'string') return errObj;
+      if (errObj && typeof errObj === 'object') {
+        const flat = Object.values(errObj).flat().join(' ');
+        return flat || 'Failed to create product';
+      }
+      return 'Failed to create product';
+    };
+
     try {
-      await postData(CREATE_PRODUCT, {
+      const payload = {
         agent: agentId,
         ...values,
-      });
+      };
+      const res = await postData(CREATE_PRODUCT, payload, false, false, false, true);
+      const data = res?.data ?? res;
+
+      if (data?.error) {
+        message.error(normalizeError(data?.errors));
+        return;
+      }
+
       message.success('Product created successfully');
       setCreateModalVisible(false);
       createForm.resetFields();
@@ -121,8 +138,24 @@ export default function ManageProducts() {
   const handleEditProduct = async (values) => {
     if (!editingProduct) return;
     setSubmitting(true);
+    const normalizeError = (errObj) => {
+      if (typeof errObj === 'string') return errObj;
+      if (errObj && typeof errObj === 'object') {
+        const flat = Object.values(errObj).flat().join(' ');
+        return flat || 'Failed to update product';
+      }
+      return 'Failed to update product';
+    };
+
     try {
-      await patchData(`${UPDATE_PRODUCT}${editingProduct.id}/`, values);
+      const res = await patchData(`${UPDATE_PRODUCT}${editingProduct.id}/`, values);
+      const data = res?.data ?? res;
+
+      if (data?.error) {
+        message.error(normalizeError(data?.errors));
+        return;
+      }
+
       message.success('Product updated successfully');
       setEditModalVisible(false);
       editForm.resetFields();
