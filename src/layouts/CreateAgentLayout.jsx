@@ -103,6 +103,12 @@ export default function CreateAgentLayout() {
     }
   }, [token, navigate]);
 
+  useEffect(() => {
+    const handleOpenModal = () => setOpen(true);
+    window.addEventListener('open-create-agent', handleOpenModal);
+    return () => window.removeEventListener('open-create-agent', handleOpenModal);
+  }, []);
+
   return (
     <div>
       <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer }} className='!pl-4' >
