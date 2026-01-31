@@ -8,7 +8,6 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     />
 
-    <!-- Primary Meta Tags -->
     <title>VIRTIX AI — AI-Powered Customer Support & Business Automation Platform</title>
     <meta name="title" content="VIRTIX AI — AI-Powered Customer Support & Business Automation Platform" />
     <meta
@@ -17,37 +16,55 @@
     />
     <meta
       name="keywords"
-      content="VIRTIX AI, AI chatbot, AI customer support, AI live chat, support automation, AI agent, SaaS, SME automation, booking system, AI helpdesk, AI support bot, AI business automation"
+      content="VIRTIX AI, AI chatbot, AI customer support, AI live chat, support automation, AI agent, SaaS"
     />
     <meta name="author" content="VIRTIX AI" />
 
-    <!-- Canonical URL -->
     <link rel="canonical" href="https://virtixai.com/" />
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://virtixai.com/" />
-    <meta property="og:title" content="VIRTIX AI — Automate Support & Conversations With AI" />
-    <meta
-      property="og:description"
-      content="Launch an AI-powered assistant for support, bookings, leads, and order automation — built for SMEs, agencies, clinics, eCommerce, and enterprises."
-    />
-    <meta property="og:image" content="https://virtixai.com/og-image.jpg" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://virtixai.com/" />
-    <meta name="twitter:title" content="VIRTIX AI — AI Customer Support Platform" />
-    <meta
-      name="twitter:description"
-      content="AI chat support + leads + bookings + order automation for growing businesses."
-    />
-    <meta name="twitter:image" content="https://virtixai.com/og-image.jpg" />
-
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.png" />
+
+    <!-- ✅ Required by FB SDK -->
+    <script>
+      window.__FB_READY__ = false;
+      window.__FB_INITED__ = false;
+
+      window.fbAsyncInit = function () {
+        try {
+          window.FB.init({
+            appId: "910132044783628",
+            cookie: true,
+            xfbml: false,
+            version: "v20.0",
+          });
+          window.__FB_READY__ = true;
+          window.__FB_INITED__ = true;
+          console.log("✅ Facebook SDK initialized");
+        } catch (e) {
+          console.error("❌ FB.init failed", e);
+        }
+      };
+
+      // Robust loader (inject once, into <head>, async+defer)
+      (function loadFbSdk(d, id) {
+        if (d.getElementById(id)) return;
+
+        const js = d.createElement("script");
+        js.id = id;
+        js.async = true;
+        js.defer = true;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+
+        js.onload = () => console.log("✅ Facebook SDK script loaded");
+        js.onerror = () =>
+          console.error("❌ Failed to load Facebook SDK. Possibly blocked (adblock/CSP/proxy).");
+
+        d.getElementsByTagName("head")[0].appendChild(js);
+      })(document, "facebook-jssdk");
+    </script>
   </head>
+
   <body>
+    <div id="fb-root"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

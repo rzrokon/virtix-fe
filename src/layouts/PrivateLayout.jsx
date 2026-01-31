@@ -97,7 +97,9 @@ export default function PrivateLayout() {
                   { key: 'agent-ifo', label: ( <Link to={`/${id}/dashboard/agent-info`}> Agent Info </Link> ), },
                   { key: 'chat-widget', label: ( <Link to={`/${id}/dashboard/chat-widget`}> Chat Widget </Link> ), },
                   { key: 'feature-config', label: ( <Link to={`/${id}/dashboard/features`}> Feature Config </Link> ), },
-                  { key: 'agent-integrations', label: ( <Link to={`/${id}/dashboard/agent-integrations`}> Integrations </Link> ), },
+                  { key: 'facebook-integrations', label: <Link to={`/${id}/dashboard/facebook`}>Facebook Integrations</Link> },
+                  { key: 'instagram-integrations', label: <Link to={`/${id}/dashboard/instagram`}>Instagram Integrations</Link> },
+                  { key: 'whatsapp-integrations', label: <Link to={`/${id}/dashboard/whatsapp`}>WhatsApp Integrations</Link> },
                 ],
               },
               

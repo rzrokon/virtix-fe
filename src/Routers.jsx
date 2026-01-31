@@ -23,6 +23,9 @@ import Dashboard from './pages/private/Dashboard.jsx';
 import Knowledge from './pages/private/knowledge.jsx';
 import ManageFiles from './pages/private/ManageFiles.jsx';
 import ManagePrompts from './pages/private/ManagePrompts.jsx';
+import MetaConnectFacebook from './pages/private/MetaConnectFacebook.jsx';
+import MetaConnectInstagram from './pages/private/MetaConnectInstagram.jsx';
+import MetaConnectWhatsApp from './pages/private/MetaConnectWhatsApp.jsx';
 
 import ManageLeads from './pages/private/ManageLeads.jsx';
 import ManageBookings from './pages/private/ManageBookings.jsx';
@@ -128,6 +131,9 @@ export default function Routers() {
           <Route path='/:id/dashboard/products' element={<ManageProducts />} />
           <Route path='/:id/dashboard/offers' element={<ManageOffers />} />
           <Route path='/:id/dashboard/orders' element={<ManageOrders />} />
+          <Route path="/:id/dashboard/facebook" element={<MetaConnectFacebook />} />
+          <Route path="/:id/dashboard/instagram" element={<MetaConnectInstagram />} />
+          <Route path="/:id/dashboard/whatsapp" element={<MetaConnectWhatsApp />} />
         </Route>
       </Routes>
     </BrowserRouter>
