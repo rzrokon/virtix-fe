@@ -101,6 +101,7 @@ export default function PrivateLayout() {
                   { key: 'instagram-integrations', label: <Link to={`/${id}/dashboard/instagram`}>Instagram Integrations</Link> },
                   { key: 'whatsapp-integrations', label: <Link to={`/${id}/dashboard/whatsapp`}>WhatsApp Integrations</Link> },
                   { key: 'website-integrations', label: <Link to={`/${id}/dashboard/website`}>Website (WordPress)</Link> },
+                  { key: 'woocommerce-integrations', label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce</Link> },
                 ],
               },
               

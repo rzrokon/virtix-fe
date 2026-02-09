@@ -27,6 +27,7 @@ import MetaConnectFacebook from './pages/private/MetaConnectFacebook.jsx';
 import MetaConnectInstagram from './pages/private/MetaConnectInstagram.jsx';
 import MetaConnectWhatsApp from './pages/private/MetaConnectWhatsApp.jsx';
 import WebsiteIntegration from './pages/private/WebsiteIntegration.jsx';
+import WooCommerceIntegration from './pages/private/WooCommerceIntegration.jsx';
 
 import ManageLeads from './pages/private/ManageLeads.jsx';
 import ManageBookings from './pages/private/ManageBookings.jsx';
@@ -136,6 +137,7 @@ export default function Routers() {
           <Route path="/:id/dashboard/instagram" element={<MetaConnectInstagram />} />
           <Route path="/:id/dashboard/whatsapp" element={<MetaConnectWhatsApp />} />
           <Route path="/:id/dashboard/website" element={<WebsiteIntegration />} />
+          <Route path="/:id/dashboard/woocommerce" element={<WooCommerceIntegration />} />
         </Route>
       </Routes>
     </BrowserRouter>

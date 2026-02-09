@@ -1,5 +1,16 @@
 import { ReloadOutlined, SaveOutlined } from '@ant-design/icons';
-import { Button, Card, Divider, Form, Spin, Switch, Typography, message } from 'antd';
+import {
+  Button,
+  Card,
+  Divider,
+  Form,
+  Spin,
+  Switch,
+  Typography,
+  message,
+  Select,
+  Alert,
+} from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -7,73 +18,70 @@ import { getData, patchData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
-const BOOL_TO_API = (v) => (v ? 'true' : 'false'); // your backend accepts "true"/"false"
+const BOOL_TO_API = (v) => (v ? 'true' : 'false');
 
 export default function AgentFeatures() {
   const { id } = useParams();
-  const { currentAgentName } = useContentApi(); // must exist in your context
+  const { currentAgentName } = useContentApi();
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [featureData, setFeatureData] = useState(null);
-
-  // If currentAgentName isn't in context for some reason, we can fallback to fetching it
   const [fallbackAgentName, setFallbackAgentName] = useState(null);
 
-  const agentSlug = useMemo(() => {
-    return currentAgentName || fallbackAgentName;
-  }, [currentAgentName, fallbackAgentName]);
+  const agentSlug = useMemo(
+    () => currentAgentName || fallbackAgentName,
+    [currentAgentName, fallbackAgentName]
+  );
 
-  const featuresUrl = useMemo(() => {
-    if (!agentSlug) return null;
-    return `api/agent/${agentSlug}/features/`;
-  }, [agentSlug]);
+  const featuresUrl = agentSlug ? `api/agent/${agentSlug}/features/` : null;
 
-  const featureFields = [
+  // ---- Feature definitions ----
+  const baseFeatures = [
     {
       key: 'lead_gen',
       title: 'Lead Generation',
-      help: 'Enable lead capture (lead forms, lead list, lead routing).',
+      help: 'Capture leads via chat and forms.',
     },
     {
       key: 'booking',
-      title: 'Booking',
-      help: 'Enable booking windows and appointment booking.',
+      title: 'Bookings',
+      help: 'Enable appointment scheduling.',
     },
     {
       key: 'complaints',
       title: 'Complaints',
-      help: 'Enable complaints intake and complaint management.',
+      help: 'Accept and manage customer complaints.',
     },
     {
       key: 'products',
       title: 'Products',
-      help: 'Enable product catalog features for the agent.',
+      help: 'Enable product catalog knowledge.',
     },
     {
       key: 'products_orders',
       title: 'Orders',
-      help: 'Enable order tracking and order management.',
+      help: 'Allow customers to place orders via chat.',
     },
     {
       key: 'offers',
       title: 'Offers',
-      help: 'Enable offers/promotions module.',
+      help: 'Promotions, discounts, and campaigns.',
     },
   ];
 
+  // ---- Fetch fallback agent ----
   const fetchAgentNameFallback = async () => {
-    // Only used if context isn't set
     try {
       const agent = await getData(`api/agent/agents/${id}/`);
       if (agent?.agent_name) setFallbackAgentName(agent.agent_name);
-    } catch (e) {
-      console.error('[AgentFeatures] fallback agent fetch failed', e);
-    }
+    } catch {}
   };
 
+  // ---- Fetch features ----
   const fetchFeatures = async () => {
     if (!featuresUrl) return;
     setLoading(true);
@@ -81,92 +89,67 @@ export default function AgentFeatures() {
       const data = await getData(featuresUrl);
       setFeatureData(data);
 
-      // set initial form values
-      const init = {};
-      featureFields.forEach((f) => {
-        init[f.key] = !!data?.[f.key];
+      form.setFieldsValue({
+        ...data,
+        lead_gen: !!data.lead_gen,
+        booking: !!data.booking,
+        complaints: !!data.complaints,
+        products: !!data.products,
+        products_orders: !!data.products_orders,
+        offers: !!data.offers,
+        website_enabled: !!data.website_enabled,
+        woocommerce_enabled: !!data.woocommerce_enabled,
+        orders_provider: data.orders_provider || 'INTERNAL',
       });
-      form.setFieldsValue(init);
-    } catch (e) {
-      console.error('[AgentFeatures] fetch error', e);
-      message.error('Failed to load feature configuration');
+    } catch {
+      message.error('Failed to load agent features');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // ensure agentSlug exists
     if (!currentAgentName && id) fetchAgentNameFallback();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     if (featuresUrl) fetchFeatures();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featuresUrl]);
 
+  // ---- Save ----
   const onSave = async () => {
-    if (!featuresUrl) {
-      message.error('Agent name missing. Could not build feature API URL.');
-      return;
-    }
+    const v = form.getFieldsValue();
 
-    const values = form.getFieldsValue();
+    const payload = {
+      lead_gen: BOOL_TO_API(v.lead_gen),
+      booking: BOOL_TO_API(v.booking),
+      complaints: BOOL_TO_API(v.complaints),
+      products: BOOL_TO_API(v.products),
+      products_orders: BOOL_TO_API(v.products_orders),
+      offers: BOOL_TO_API(v.offers),
 
-    // Convert to your API format "true"/"false"
-    const payload = {};
-    featureFields.forEach((f) => {
-      payload[f.key] = BOOL_TO_API(!!values[f.key]);
-    });
+      website_enabled: BOOL_TO_API(v.website_enabled),
+      woocommerce_enabled: BOOL_TO_API(v.woocommerce_enabled),
+      orders_provider: v.orders_provider,
+    };
 
     setSaving(true);
     try {
-      // Debug logs before redirect happens
-      console.log('[AgentFeatures] PATCH url:', featuresUrl);
-      console.log('[AgentFeatures] PATCH payload:', payload);
-
       const res = await patchData(featuresUrl, payload);
-      const data = res?.data ?? res;
-
-      console.log('[AgentFeatures] response:', data);
-
-      if (res?.error) {
-        console.error('[AgentFeatures] errors:', res.errors);
-        message.error('Failed to update features');
-        return;
-      }
-
-      message.success('Features updated successfully');
-      setFeatureData(data);
-    } catch (e) {
-      console.error('[AgentFeatures] save exception:', e);
-      message.error('Failed to update features');
+      setFeatureData(res?.data ?? res);
+      message.success('Features updated');
+    } catch {
+      message.error('Failed to save features');
     } finally {
       setSaving(false);
     }
   };
 
-  if (!agentSlug) {
+  if (!agentSlug || loading) {
     return (
       <div className="p-6">
-        <Card>
-          <div className="py-8 text-center">
-            <Spin />
-            <div className="mt-3 text-gray-500 text-sm">Loading agent...</div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <Card>
-          <div className="py-10 flex justify-center">
-            <Spin />
-          </div>
+        <Card className="py-10 text-center">
+          <Spin />
         </Card>
       </div>
     );
@@ -174,21 +157,15 @@ export default function AgentFeatures() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <Card>
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex justify-between items-start gap-3">
           <div>
-            <Title level={3} className="!mb-1">
-              Feature Configuration
-            </Title>
-            <Text className="text-gray-500">
-              Turn modules on/off for this agent. Agent: <b>{agentSlug}</b>
-            </Text>
+            <Title level={3} className="!mb-1">Agent Features</Title>
+            <Text type="secondary">Agent: <b>{agentSlug}</b></Text>
           </div>
-
           <div className="flex gap-2">
-            <Button icon={<ReloadOutlined />} onClick={fetchFeatures}>
-              Refresh
-            </Button>
+            <Button icon={<ReloadOutlined />} onClick={fetchFeatures}>Refresh</Button>
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -202,26 +179,17 @@ export default function AgentFeatures() {
         </div>
       </Card>
 
-      <Card>
-        <div className="mb-2">
-          <div className="text-lg font-semibold text-gray-900">Modules</div>
-          <div className="text-sm text-gray-500">
-            Disable modules you don’t need to keep your dashboard clean.
-          </div>
-        </div>
-
-        <Divider />
-
+      {/* Core Features */}
+      <Card title="Core Capabilities">
         <Form form={form} layout="vertical">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {featureFields.map((f) => (
-              <div key={f.key} className="border border-gray-200 rounded-2xl p-4 bg-white">
-                <div className="flex items-center justify-between gap-3">
+            {baseFeatures.map((f) => (
+              <div key={f.key} className="border rounded-xl p-4">
+                <div className="flex justify-between items-center">
                   <div>
-                    <div className="text-base font-semibold text-gray-900">{f.title}</div>
-                    <div className="text-sm text-gray-500 mt-1">{f.help}</div>
+                    <div className="font-semibold">{f.title}</div>
+                    <div className="text-sm text-gray-500">{f.help}</div>
                   </div>
-
                   <Form.Item name={f.key} valuePropName="checked" className="!mb-0">
                     <Switch />
                   </Form.Item>
@@ -229,25 +197,68 @@ export default function AgentFeatures() {
               </div>
             ))}
           </div>
-
-          <Divider />
-
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="text-xs text-gray-500">
-              Last updated:{' '}
-              <b>{featureData?.updated ? new Date(featureData.updated).toLocaleString() : '-'}</b>
-            </div>
-
-            <Button
-              type="primary"
-              onClick={onSave}
-              loading={saving}
-              className="bg-[#6200FF] border-[#6200FF]"
-            >
-              Save Changes
-            </Button>
-          </div>
         </Form>
+      </Card>
+
+      {/* Integrations */}
+      <Card title="Integrations">
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Website (WordPress)"
+            name="website_enabled"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+
+          <Form.Item
+            label="WooCommerce"
+            name="woocommerce_enabled"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+
+          <Alert
+            type="info"
+            showIcon
+            message="WooCommerce allows product sync and direct order placement on your store."
+          />
+        </Form>
+      </Card>
+
+      {/* Orders routing */}
+      <Card title="Order Routing">
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Order Provider"
+            name="orders_provider"
+            dependencies={['woocommerce_enabled']}
+          >
+            <Select>
+              <Option value="INTERNAL">Internal (Virtix Orders)</Option>
+              <Option value="WOOCOMMERCE">WooCommerce Store</Option>
+            </Select>
+          </Form.Item>
+
+          <Text type="secondary">
+            • Internal: Orders stay inside Virtix dashboard  
+            <br />
+            • WooCommerce: Orders are placed directly on your store
+          </Text>
+        </Form>
+      </Card>
+
+      {/* Footer */}
+      <Card>
+        <Button
+          type="primary"
+          onClick={onSave}
+          loading={saving}
+          className="bg-[#6200FF] border-[#6200FF]"
+        >
+          Save Changes
+        </Button>
       </Card>
     </div>
   );
