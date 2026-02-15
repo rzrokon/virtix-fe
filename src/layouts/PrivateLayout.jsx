@@ -1,19 +1,6 @@
-import {
-  AppstoreAddOutlined,
-  AppstoreOutlined,
-  CalendarOutlined,
-  FacebookOutlined,
-  HomeOutlined,
-  LeftOutlined,
-  ProductFilled,
-  RightOutlined,
-  RobotFilled,
-  RobotOutlined,
-  UserAddOutlined
-} from '@ant-design/icons';
 import { Button, Layout, Menu, Modal, Progress, Radio, Tag, Typography, message, theme } from 'antd';
 import Cookies from 'js-cookie';
-import { ClipboardMinus, Files, LayoutDashboard, Lightbulb, Settings, SquareChartGantt, User, Users } from 'lucide-react';
+import { Calendar, ClipboardMinus, Files, LayoutDashboard, Lightbulb, Settings, ShoppingBag, SquareChartGantt, User, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
@@ -144,7 +131,7 @@ export default function PrivateLayout() {
             style={{ height: '100%', borderInlineEnd: 0, background: "#000B41"  }}
             items={[
               { key: '1', icon: <LayoutDashboard />, label: <Link to={`/${id}/dashboard`}>Dashboard</Link> },
-              { key: '2', icon: <RobotOutlined />, label: 'Agent Settings',
+              { key: '2', icon: <Settings />, label: 'Agent Settings',
                 children: [
                   { key: 'agent-ifo', label: ( <Link to={`/${id}/dashboard/agent-info`}> Agent Info </Link> ), },
                   { key: 'chat-widget', label: ( <Link to={`/${id}/dashboard/chat-widget`}> Chat Widget </Link> ), },
@@ -171,7 +158,7 @@ export default function PrivateLayout() {
               
               {
                 key: 'bookings',
-                icon: <CalendarOutlined />, // or any icon you like (import from antd or lucide)
+                icon: <Calendar />,
                 label: 'Bookings',
                 children: [
                   {
@@ -188,7 +175,7 @@ export default function PrivateLayout() {
               { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> },
               
 
-              { key: '11', icon: <ProductFilled />, label: 'Commerce',
+              { key: '11', icon: <ShoppingBag />, label: 'Commerce',
                 children: [
                   { key: 'products', label: <Link to={`/${id}/dashboard/products`}>Products</Link> },
                   { key: 'orders', label: <Link to={`/${id}/dashboard/orders`}>Orders</Link> },
