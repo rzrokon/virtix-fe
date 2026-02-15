@@ -36,3 +36,13 @@
 .my-app-menu > .ant-menu-item{
 padding: 20px !important;
 }
+
+.private-header{
+  padding-left: 32px!important;
+  padding-right: 32px;
+  border-bottom: 1px solid #e3e3e3;
+}
+
+.user-menu{
+  padding-right: 0;
+}

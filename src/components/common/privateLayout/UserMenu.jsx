@@ -84,7 +84,7 @@ export default function UserMenu() {
         placement="bottomRight"
         arrow
       >
-        <Button type="text" className="flex items-center">
+        <Button type="text" style={{ paddingRight: 0 }} className="flex items-center user-menu">
           <Space>
             <Avatar
               size="large"

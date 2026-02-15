@@ -60,7 +60,7 @@ export default function PrivateLayout() {
 
   return (
     <Layout>
-      <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer }} className='!pl-4' >
+      <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer, paddingRight: 16 }} className='!pl-4' >
         <Button
           type="default"
           onClick={() => {window.location = `/home`}}
@@ -79,6 +79,7 @@ export default function PrivateLayout() {
         </div>
 
         <div className='ml-auto'>
+          <Button type="primary" onClick={() => { setOpen(true) }}>Index Agent</Button>
           <UserMenu />
         </div>
       </Header>
