@@ -1,25 +1,27 @@
+import { Briefcase, Building2, ShoppingCart, Stethoscope } from 'lucide-react';
+
 const ExploreAgents = () => {
   // Repositioned as “Who it's for” to help visitors self-identify fast.
   const segments = [
     {
       title: "Online stores",
       description: "Guide shoppers, recommend products, explain pricing, and assist with orders.",
-      icon: "/assets/images/Home/image-50.png"
+      icon: ShoppingCart
     },
     {
       title: "Clinics & consultants",
-      description: "Answer FAQs, book appointments, send reminders, and reduce front-desk load.",
-      icon: "/assets/images/Home/image-53.png"
+      description: "Answer FAQs, book appointments, and reduce front-desk load.",
+      icon: Stethoscope
     },
     {
       title: "Agencies & services",
       description: "Capture and qualify leads automatically — even outside business hours.",
-      icon: "/assets/images/Home/image-56.png"
+      icon: Briefcase
     },
     {
       title: "Enterprises",
       description: "Scale support with consistent answers, analytics, and stronger controls.",
-      icon: "/assets/images/Home/image-57.png"
+      icon: Building2
     },
   ];
 
@@ -31,7 +33,7 @@ const ExploreAgents = () => {
             Built for businesses that talk to customers every day
           </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Whether you sell products, services, or expertise — VIRTIX AI helps you handle chats, leads, bookings, and support in one place.
+            Whether you sell products, services, or expertise — Virtix AI helps you handle chats, leads, bookings, and support in one place.
           </p>
         </div>
 
@@ -41,8 +43,8 @@ const ExploreAgents = () => {
               key={index}
               className="bg-[#f6f6f6] border border-[#D9D9D9] rounded-2xl p-6 flex flex-col items-center justify-center gap-4"
             >
-              <div className="agent-icon">
-                <img src={seg.icon} alt={seg.title} width={40} height={40} />
+              <div className="for-whom-icon" aria-hidden="true">
+                <seg.icon size={42} strokeWidth={1.8} />
               </div>
               <h3 className="text-lg leading-[140%] text-center text-[#0C0900] font-bold">{seg.title}</h3>
               <p className="agent-description font-normal text-base leading-[160%] text-center text-[#0C0900]">

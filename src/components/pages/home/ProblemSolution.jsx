@@ -23,7 +23,7 @@ export default function ProblemSolution() {
                 'No visibility into what customers really ask'
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[#6200FF]" />
+                  <span className="mt-2.5 h-2 w-2 rounded-full bg-[#6200FF]" />
                   <span className="text-[#0C0900] font-semibold leading-[160%]">{item}</span>
                 </div>
               ))}
@@ -31,7 +31,7 @@ export default function ProblemSolution() {
           </div>
 
           <div className="bg-[#F6F6F6] border border-[#D9D9D9] rounded-2xl p-8">
-            <h3 className="text-3xl leading-[120%] text-[#0C0900] font-bold">Meet VIRTIX AI</h3>
+            <h3 className="text-3xl leading-[120%] text-[#0C0900] font-bold">Meet Virtix AI</h3>
 
             <p className="mt-3 text-base leading-[160%] text-[#0C0900]">
               One AI agent to answer questions, capture leads, take orders, book appointments, and log complaints — 24/7.
@@ -45,7 +45,7 @@ export default function ProblemSolution() {
                 'Analytics to track outcomes'
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <ArrowRight size={18} className="mt-0.5 text-[#6200FF]" />
+                  <ArrowRight size={18} className="mt-1.25 text-[#6200FF]" />
                   <span className="text-[#0C0900] font-semibold leading-[160%]">{item}</span>
                 </div>
               ))}

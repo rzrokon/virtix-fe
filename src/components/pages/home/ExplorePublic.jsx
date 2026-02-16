@@ -5,7 +5,7 @@ export default function ExplorePublic() {
   const agents = [
     {
       title: "eCommerce Sales Assistant",
-      description: "Recommends products, answers pricing questions, and helps shoppers decide faster.",
+      description: "Recommends products, answers pricing questions and take orders.",
       icon: "/assets/images/Home/user-1.png",
       backgroundColor: "#E7D7FF"
     },
@@ -27,9 +27,9 @@ export default function ExplorePublic() {
     <section className="explore-agents py-20">
       <div className="container flex flex-col items-center justify-center gap-8">
         <div className="max-w-3xl text-center space-y-3">
-          <h2 className="text-5xl leading-[120%] text-[#0C0900] font-bold">See VIRTIX AI in action</h2>
+          <h2 className="text-5xl leading-[120%] text-[#0C0900] font-bold">See Virtix AI in action</h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Try live demo agents to experience how VIRTIX AI talks, understands your customers, and drives outcomes.
+            Try live demo agents to experience how Virtix AI talks, understands your customers, and drives outcomes.
           </p>
         </div>
 
