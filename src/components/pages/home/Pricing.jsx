@@ -11,6 +11,7 @@ const Pricing = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const navigate = useNavigate();
 
   // Fetch billing plans from API
@@ -48,17 +49,18 @@ const Pricing = () => {
   }, []);
 
   // Format price for display
-  const formatPrice = (plan) => {
+  const formatPrice = (plan, cycle) => {
     // Enterprise may be "Contact Sales" even if 0.00
     if (plan.contact_sales_only) return 'Contact sales';
 
     const price = parseFloat(plan.price_usd);
     if (!price || price === 0) return 'Free';
-    return `$${price}`;
+    const displayPrice = cycle === 'annual' ?  (price * 12 * 0.9).toFixed(0) : price;
+    return `$${displayPrice}`;
   };
 
   // should show "/month" label?
-  const showPerMonth = (plan) => {
+  const showPerMonth = (plan, cycle) => {
     if (plan.contact_sales_only) return false;
     const price = parseFloat(plan.price_usd);
     return price > 0;
@@ -204,40 +206,80 @@ const Pricing = () => {
 
   return (
     <section className="pricing py-20">
-      <div className="container growth-content flex flex-col items-center justify-center gap-8">
-        <div className="md:w-3xl space-y-4">
-          <h2 className="text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Predictable pricing scalable plans</h2>
-          <p className="font-normal text-base leading-[140%] text-[#0C0900] text-center">
-            Designed for every stage of your journey.
-          </p>
+      <div className="container flex flex-col gap-10">
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="space-y-3 max-w-2xl">
+            <h2 className="text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
+              Predictable pricing scalable plans
+            </h2>
+            <p className="font-normal text-base leading-[150%] text-[#0C0900]">
+              Designed for every stage of your journey.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-4 py-2 text-sm font-semibold rounded-full ${billingCycle === 'monthly'
+                ? 'bg-[#0C0900] text-white'
+                : 'text-gray-500 hover:text-[#0C0900]'
+                }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('annual')}
+              className={`px-4 py-2 text-sm font-semibold rounded-full ${billingCycle === 'annual'
+                ? 'bg-[#0C0900] text-white'
+                : 'text-gray-500 hover:text-[#0C0900]'
+                }`}
+            >
+              Annual
+            </button>
+          </div>
+          <div className="text-xs uppercase tracking-[0.3em] text-gray-500">
+            {billingCycle === 'annual' ? 'Annual plans' : 'Monthly plans'}
+          </div>
+          {billingCycle === 'annual' ? (
+            <div className="text-xs text-[#0C0900] font-semibold">
+              Save 10% with annual billing
+            </div>
+          ) : null}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {plans.map((plan, index) => (
             <div
               key={plan.id || index}
-              className={`relative rounded-[20px] p-8 transition-all duration-300 hover:shadow-lg ${isPopular(plan)
-                ? 'bg-[#F4EDFF] border-2 border-[#6200FF] transform scale-105'
-                : 'bg-[linear-gradient(172.42deg,#FFFFFF_4.56%,#E7D7FF_50.03%,#FFFFFF_95.51%)] border border-[#ECECEC]'
+              className={`relative rounded-3xl border p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 ${isPopular(plan)
+                ? 'bg-[#0C0900] border-[#0C0900] text-white'
+                : 'bg-white border-[#E5E7EB]'
                 }`}
             >
-              <div className="space-y-6">
-                {/* Plan Header */}
-                <div className="space-y-2">
-                  <h3 className="text-2xl leading-[140%] text-[#0C0900] font-bold">{plan.name}</h3>
-                  <div className="plan-price">
-                    <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
-                      {formatPrice(plan)}
-                    </span>
+              {isPopular(plan) && (
+                <div className="absolute -top-3 left-6 rounded-full bg-[#6200FF] px-3 py-1 text-xs font-semibold text-white">
+                  Most popular
+                </div>
+              )}
 
-                    {/* ✅ Only show /month for paid non-contact-sales */}
-                    {showPerMonth(plan) && (
-                      <p className="text-lg text-gray-600 ml-1">/month</p>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h3 className={`text-2xl leading-[140%] font-bold ${isPopular(plan) ? 'text-white' : 'text-[#0C0900]'}`}>
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-end gap-2">
+                    <span className={`text-4xl leading-[140%] font-bold ${isPopular(plan) ? 'text-white' : 'text-[#0C0900]'}`}>
+                      {formatPrice(plan, billingCycle)}
+                    </span>
+                    {showPerMonth(plan, billingCycle) && (
+                      <span className={`leading-[250%] ${isPopular(plan) ? 'text-white/60' : 'text-gray-500'}`}>
+                        {billingCycle === 'annual' ? '/year' : '/month'}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* CTA Button */}
                 <Button
                   type={isPopular(plan) ? "primary" : ''}
                   size="large"
@@ -255,24 +297,29 @@ const Pricing = () => {
                       : 'Get started'}
                 </Button>
 
-                {/* Features List */}
-                <div className="plan-features space-y-3">
-                  <h4 className="font-semibold text-[#0C0900] text-lg mb-4">What's included:</h4>
+                <div className="space-y-3">
+                  <div className={`text-xs uppercase tracking-[0.3em] ${isPopular(plan) ? 'text-white/50' : 'text-gray-500'}`}>
+                    What's included
+                  </div>
                   {getPlanFeatures(plan).map((feature, featureIndex) => (
                     <div key={featureIndex} className="flex items-start gap-3">
                       {typeof feature === 'string' ? (
                         <>
-                          <Check size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-[#0C0900] text-sm leading-relaxed">{feature}</span>
+                          <Check size={18} className={`${isPopular(plan) ? 'text-[#62F5A8]' : 'text-green-600'} mt-0.5 flex-shrink-0`} />
+                          <span className={`${isPopular(plan) ? 'text-white/85' : 'text-[#0C0900]'} text-sm leading-relaxed`}>
+                            {feature}
+                          </span>
                         </>
                       ) : (
                         <>
                           {feature.included ? (
-                            <Check size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
+                            <Check size={18} className={`${isPopular(plan) ? 'text-[#62F5A8]' : 'text-green-600'} mt-0.5 flex-shrink-0`} />
                           ) : (
-                            <X size={18} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                            <X size={18} className={`${isPopular(plan) ? 'text-white/40' : 'text-gray-400'} mt-0.5 flex-shrink-0`} />
                           )}
-                          <span className={`text-sm leading-relaxed ${feature.included ? 'text-[#0C0900]' : 'text-gray-400'
+                          <span className={`text-sm leading-relaxed ${feature.included
+                            ? (isPopular(plan) ? 'text-white/85' : 'text-[#0C0900]')
+                            : (isPopular(plan) ? 'text-white/45' : 'text-gray-400')
                             }`}>
                             {feature.text}
                           </span>
@@ -281,7 +328,6 @@ const Pricing = () => {
                     </div>
                   ))}
                 </div>
-
               </div>
             </div>
           ))}

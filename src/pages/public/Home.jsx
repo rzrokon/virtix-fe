@@ -13,8 +13,8 @@ function Home() {
   const Interaction = {
     title: 'AI-powered customer interactions — 24/7',
     description:
-      'VIRTIX AI helps your business respond instantly, take action automatically, and scale conversations without increasing support headcount.',
-    image: '/assets/images/Home/image-4.png',
+      'Virtix AI helps your business respond instantly, take action automatically, and scale conversations without increasing support headcount.',
+    image: '/assets/images/Home/customer-interaction.png',
     features: [
       '24/7 instant replies that never miss a customer.',
       'Accurate answers grounded in your own business data.',

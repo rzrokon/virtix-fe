@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function ProblemSolution() {
   return (
@@ -30,10 +30,13 @@ export default function ProblemSolution() {
             </div>
           </div>
 
-          <div className="bg-[#F6F6F6] border border-[#D9D9D9] rounded-2xl p-8">
-            <h3 className="text-3xl leading-[120%] text-[#0C0900] font-bold">Meet Virtix AI</h3>
+          <div className="rounded-2xl border border-black/10 bg-gradient-to-br from-white via-[#f3f7ff] to-[#eef3ff] p-8 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#6200ff]/10 blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#00d4ff]/10 blur-2xl" />
+            <p className="text-xs uppercase tracking-[0.3em] text-[#6200ff] font-semibold">Solution</p>
+            <h3 className="mt-3 text-3xl leading-[120%] text-[#0C0900] font-bold">Meet Virtix AI</h3>
 
-            <p className="mt-3 text-base leading-[160%] text-[#0C0900]">
+            <p className="mt-4 text-base leading-[160%] text-[#0C0900]">
               One AI agent to answer questions, capture leads, take orders, book appointments, and log complaints — 24/7.
             </p>
 
@@ -45,7 +48,9 @@ export default function ProblemSolution() {
                 'Analytics to track outcomes'
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <ArrowRight size={18} className="mt-1.25 text-[#6200FF]" />
+                  <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
+                    <CheckCircle2 size={16} />
+                  </span>
                   <span className="text-[#0C0900] font-semibold leading-[160%]">{item}</span>
                 </div>
               ))}

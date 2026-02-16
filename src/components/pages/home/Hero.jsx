@@ -7,12 +7,12 @@ const Hero = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex-2 space-y-4">
             <h1 className="text-5xl leading-[120%] text-[#0C0900] font-semibold">
-              Turn customer conversations into sales, bookings, and support — automatically
+              Turn customer conversations into sales, bookings and support — automatically
             </h1>
 
             <p className="font-normal text-xl leading-relaxed text-gray-600">
               Virtix AI is a conversation-first AI platform that helps businesses handle customer chats 24/7 — answering
-              questions, capturing leads, taking orders, booking appointments, and managing complaints without growing a
+              questions, capturing leads, taking orders, booking appointments and managing complaints without growing a
               large support team.
             </p>
 

@@ -25,7 +25,7 @@ export default function BuildAgent() {
   return (
     <section className="py-20 bg-[#000B41]">
       <div className="container flex flex-col gap-12">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:center lg:justify-between gap-6">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-white/60 font-semibold">Fast track</p>
             <h2 className="text-4xl md:text-5xl font-bold text-white">Build an AI agent in 3 steps</h2>
