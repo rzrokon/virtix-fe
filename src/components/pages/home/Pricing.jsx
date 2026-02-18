@@ -231,7 +231,7 @@ const Pricing = () => {
               type="button"
               onClick={() => setBillingCycle('annual')}
               className={`px-4 py-2 text-sm font-semibold rounded-full ${billingCycle === 'annual'
-                ? 'bg-[#0C0900] text-white'
+                ? 'bg-[#000b41] text-white'
                 : 'text-gray-500 hover:text-[#0C0900]'
                 }`}
             >
@@ -253,7 +253,7 @@ const Pricing = () => {
             <div
               key={plan.id || index}
               className={`relative rounded-3xl border p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 ${isPopular(plan)
-                ? 'bg-[#0C0900] border-[#0C0900] text-white'
+                ? 'bg-[#000b41] border-[#0C0900] text-white'
                 : 'bg-white border-[#E5E7EB]'
                 }`}
             >

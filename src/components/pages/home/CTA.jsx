@@ -4,7 +4,7 @@ const CTA = () => {
   return (
     <section className="cta py-20">
       <div className="container">
-        <div className="relative overflow-hidden rounded-[32px] bg-[#0C0900] px-6 py-12 md:px-12 md:py-14 text-white">
+        <div className="relative overflow-hidden rounded-[32px] bg-[#000b41] px-6 py-12 md:px-12 md:py-14 text-white">
           <div className="absolute -top-20 -right-16 h-48 w-48 rounded-full bg-[#6200FF]/40 blur-3xl" />
           <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-[#00d4ff]/30 blur-3xl" />
 
