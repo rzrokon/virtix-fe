@@ -25,33 +25,44 @@ export default function ExplorePublic() {
 
   return (
     <section className="explore-agents py-20">
-      <div className="container flex flex-col items-center justify-center gap-8">
-        <div className="max-w-3xl text-center space-y-3">
-          <h2 className="text-5xl leading-[120%] text-[#0C0900] font-bold">See Virtix AI in action</h2>
+      <div className="container flex flex-col items-center gap-10">
+        <div className="text-center space-y-3 max-w-3xl">
+          <p className="text-xs uppercase tracking-[0.3em] text-[#6200ff] font-semibold">Live demos</p>
+          <h2 className="text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
+            See Virtix AI in action
+          </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
             Try live demo agents to experience how Virtix AI talks, understands your customers, and drives outcomes.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
           {agents.map((agent, index) => (
             <div
               key={index}
-              style={{ backgroundColor: agent.backgroundColor }}
-              className="border border-[#D9D9D9] rounded-2xl flex flex-col items-center justify-center gap-4 relative"
+              className="group rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_32px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 hover:border-[#6200FF]/40 hover:shadow-[0_18px_40px_rgba(98,0,255,0.12)]"
             >
-              <div className="agent-icon">
-                <img src={agent.icon} alt={agent.title} />
+              <div className="flex items-center gap-4">
+                <div
+                  className="h-12 w-12 rounded-2xl flex items-center justify-center"
+                  style={{ backgroundColor: agent.backgroundColor }}
+                >
+                  <img src={agent.icon} alt={agent.title} className="h-8 w-8" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-[#0C0900]">{agent.title}</h3>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Demo agent</p>
+                </div>
+                <span className="text-[11px] font-semibold text-[#6200ff] bg-[#6200ff]/10 px-2.5 py-1 rounded-full">
+                  Live
+                </span>
               </div>
 
-              <div className="bg-gray-500/50 absolute bottom-0 text-white flex flex-col items-center justify-center gap-4 p-6 w-full rounded-b-2xl">
-                <h3 className="text-lg leading-[140%] text-center font-bold">{agent.title}</h3>
-                <p className="agent-description font-normal text-base leading-[140%] text-center">{agent.description}</p>
+              <p className="mt-4 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
 
-                <Button type="primary" className="w-full">
-                  Try Agent <ArrowRight size={16} />
-                </Button>
-              </div>
+              <Button type="primary" className="mt-6 w-full flex items-center justify-center gap-2">
+                Try Agent <ArrowRight size={16} />
+              </Button>
             </div>
           ))}
         </div>

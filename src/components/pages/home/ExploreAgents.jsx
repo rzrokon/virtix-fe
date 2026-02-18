@@ -4,23 +4,23 @@ const ExploreAgents = () => {
   // Repositioned as “Who it's for” to help visitors self-identify fast.
   const segments = [
     {
-      title: "Online stores",
-      description: "Guide shoppers, recommend products, explain pricing, and assist with orders.",
+      title: "eCommerce",
+      description: "Convert shoppers and guide purchases automatically.",
       icon: ShoppingCart
     },
     {
-      title: "Clinics & consultants",
-      description: "Answer FAQs, book appointments, and reduce front-desk load.",
+      title: "Clinics & Consultants",
+      description: "Automate bookings and answer common questions.",
       icon: Stethoscope
     },
     {
-      title: "Agencies & services",
-      description: "Capture and qualify leads automatically — even outside business hours.",
+      title: "Agencies & Services",
+      description: "Capture and qualify leads 24/7.",
       icon: Briefcase
     },
     {
-      title: "Enterprises",
-      description: "Scale support with consistent answers, analytics, and stronger controls.",
+      title: "Enterprise Teams",
+      description: "Scale support with control and visibility.",
       icon: Building2
     },
   ];
@@ -30,10 +30,10 @@ const ExploreAgents = () => {
       <div className="container flex flex-col items-center justify-center gap-10">
         <div className="max-w-3xl text-center space-y-3">
           <h2 className="text-5xl leading-[120%] text-[#0C0900] font-bold">
-            Built for businesses that talk to customers every day
+            Built for teams that rely on conversations
           </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Whether you sell products, services, or expertise — Virtix AI helps you handle chats, leads, bookings, and support in one place.
+            If your business depends on customer conversations, Virtix AI helps you scale them.
           </p>
         </div>
 
@@ -41,10 +41,10 @@ const ExploreAgents = () => {
           {segments.map((seg, index) => (
             <div
               key={index}
-              className="bg-[#f6f6f6] border border-[#D9D9D9] rounded-2xl p-6 flex flex-col items-center justify-center gap-4"
+              className="group rounded-2xl border border-[#E5E7EB] bg-gradient-to-br from-white via-[#f7f7ff] to-[#f0f6ff] p-6 flex flex-col items-center justify-center gap-4 transition-all duration-200 hover:-translate-y-1 hover:border-[#6200FF]/40 hover:shadow-[0_18px_40px_rgba(98,0,255,0.12)]"
             >
-              <div className="for-whom-icon" aria-hidden="true">
-                <seg.icon size={42} strokeWidth={1.8} />
+              <div className="for-whom-icon rounded-2xl bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition-transform duration-200 group-hover:scale-105" aria-hidden="true">
+                <seg.icon size={40} strokeWidth={1.8} />
               </div>
               <h3 className="text-lg leading-[140%] text-center text-[#0C0900] font-bold">{seg.title}</h3>
               <p className="agent-description font-normal text-base leading-[160%] text-center text-[#0C0900]">

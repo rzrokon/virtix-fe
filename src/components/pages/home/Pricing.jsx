@@ -66,6 +66,14 @@ const Pricing = () => {
     return price > 0;
   };
 
+  const getPlanSummary = (plan) => {
+    if (plan.contact_sales_only) return 'Custom scale, integrations, and controls.';
+    const price = parseFloat(plan.price_usd);
+    if (!price || price === 0) return 'Perfect to get started.';
+    if (plan.code === 'business') return 'For growing teams ready to automate.';
+    return null;
+  };
+
   // Format number with commas
   const formatNumber = (num) => {
     if (num >= 1000000000) return `${(num / 1000000000).toFixed(1)}B`;
@@ -162,7 +170,7 @@ const Pricing = () => {
       <section className="pricing py-20">
         <div className="container growth-content flex flex-col items-center justify-center gap-8">
           <div className="md:w-3xl space-y-4">
-            <h2 className="text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Predictable pricing scalable plans</h2>
+            <h2 className="text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Simple, scalable pricing</h2>
             <p className="font-normal text-base leading-[140%] text-[#0C0900] text-center">
               Loading pricing plans...
             </p>
@@ -210,10 +218,10 @@ const Pricing = () => {
         <div className="flex flex-col items-center text-center gap-4">
           <div className="space-y-3 max-w-2xl">
             <h2 className="text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
-              Predictable pricing scalable plans
+              Simple, scalable pricing
             </h2>
             <p className="font-normal text-base leading-[150%] text-[#0C0900]">
-              Designed for every stage of your journey.
+              No credit card required to start.
             </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
@@ -268,6 +276,11 @@ const Pricing = () => {
                   <h3 className={`text-2xl leading-[140%] font-bold ${isPopular(plan) ? 'text-white' : 'text-[#0C0900]'}`}>
                     {plan.name}
                   </h3>
+                  {getPlanSummary(plan) ? (
+                    <p className={`text-sm ${isPopular(plan) ? 'text-white/70' : 'text-[#0C0900]/70'}`}>
+                      {getPlanSummary(plan)}
+                    </p>
+                  ) : null}
                   <div className="flex items-end gap-2">
                     <span className={`text-4xl leading-[140%] font-bold ${isPopular(plan) ? 'text-white' : 'text-[#0C0900]'}`}>
                       {formatPrice(plan, billingCycle)}

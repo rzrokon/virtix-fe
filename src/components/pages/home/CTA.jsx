@@ -10,12 +10,11 @@ const CTA = () => {
 
           <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-4 max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/60 font-semibold">Get started</p>
               <h2 className="text-3xl md:text-5xl leading-[120%] font-extrabold">
                 Make customer experience your competitive edge
               </h2>
               <p className="text-base md:text-lg leading-[160%] text-white/80 font-semibold">
-                Use Virtix AI to deliver faster, smarter, and more consistent customer interactions — without increasing headcount.
+                Virtix AI helps you handle conversations at scale — without scaling headcount.
               </p>
             </div>
 

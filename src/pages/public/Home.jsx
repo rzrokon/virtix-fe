@@ -5,6 +5,8 @@ import CTA from '../../components/pages/home/CTA';
 import CustomerInteractions from '../../components/pages/home/CustomerInteractions';
 import ExploreAgents from '../../components/pages/home/ExploreAgents';
 import ExplorePublic from '../../components/pages/home/ExplorePublic';
+import ActionBlocks from '../../components/pages/home/ActionBlocks';
+import Differentiation from '../../components/pages/home/Differentiation';
 import Hero from '../../components/pages/home/Hero';
 import ProblemSolution from '../../components/pages/home/ProblemSolution';
 import Pricing from '../../components/pages/home/Pricing';
@@ -29,11 +31,13 @@ function Home() {
       <Hero />
       <ProblemSolution />
       <ExploreAgents />
+      <ActionBlocks />
+      <Differentiation />
       <ExplorePublic />
-      <BuildAgent />
-      <CustomerInteractions data={Interaction} />
-      <AiDrives />
-      <AIGrowth />
+      {/* <BuildAgent /> */}
+      {/* <CustomerInteractions data={Interaction} /> */}
+      {/* <AiDrives /> */}
+      {/* <AIGrowth /> */}
       <Pricing />
       <CTA />
     </>

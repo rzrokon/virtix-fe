@@ -44,7 +44,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
-          <p>&copy; 2024 Virtix AI. All rights reserved.</p>
+          <p>&copy; 2026 Virtix AI. All rights reserved.</p>
           <p>Built to keep conversations moving.</p>
         </div>
       </div>
