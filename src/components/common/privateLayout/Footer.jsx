@@ -34,9 +34,9 @@ const Footer = () => {
               <Link to="/" className="text-white/70 hover:text-white">About us</Link>
               
               <Link to="/features" className="text-white/70 hover:text-white">Feature</Link>
-              <Link to="/contact" className="text-white/70 hover:text-white">Terms & Conditions</Link> 
+              <Link to="/terms" className="text-white/70 hover:text-white">Terms & Conditions</Link> 
               <Link to="/pricing" className="text-white/70 hover:text-white">Pricing</Link>
-              <Link to="/contact" className="text-white/70 hover:text-white">Privacy Policy</Link> 
+              <Link to="/privacy-policy" className="text-white/70 hover:text-white">Privacy Policy</Link> 
               <Link to="/contact" className="text-white/70 hover:text-white">Contact</Link>
               <Link to="/contact" className="text-white/70 hover:text-white">How to docs</Link> 
             </div>

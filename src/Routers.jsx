@@ -49,6 +49,8 @@ import Features from './pages/public/Features.jsx';
 import Home from './pages/public/Home.jsx';
 import Pricing from './pages/public/Pricing.jsx';
 import BillingSuccess from './pages/public/BillingSuccess.jsx';
+import PrivacyPolicy from './pages/public/PrivacyPolicy.jsx';
+import Terms from './pages/public/Terms.jsx';
 
 export default function Routers() {
   return (
@@ -60,6 +62,8 @@ export default function Routers() {
           <Route path='/features' element={<Features />} />
           <Route path='/pricing' element={<Pricing />} />
           <Route path='/contact' element={<Contact />} />
+          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route path='/terms' element={<Terms />} />
           <Route path='/billing/success' element={<BillingSuccess />} />
         </Route>
 
