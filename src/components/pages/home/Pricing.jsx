@@ -1,16 +1,14 @@
-import { Button, message } from 'antd';
-import Cookies from 'js-cookie';
+import { Button } from 'antd';
 import { Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GET_BILLING_PLANS, START_SUBSCRIPTION } from '../../../scripts/api';
-import { getData, postData } from '../../../scripts/api-service';
+import { GET_BILLING_PLANS } from '../../../scripts/api';
+import { getData } from '../../../scripts/api-service';
 
 const Pricing = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
   const navigate = useNavigate();
 
@@ -122,46 +120,13 @@ const Pricing = () => {
   const isPopular = (plan) => plan.code === 'business';
 
   // Handle plan selection with authentication check
-  const handlePlanSelection = async (plan) => {
-    const token = Cookies.get('kotha_token');
-
-    // Check if user is authenticated
-    if (!token) {
-      navigate('/signin');
-      return;
-    }
-
-    // For contact sales plans, handle differently
+  const handlePlanSelection = (plan) => {
     if (plan.contact_sales_only) {
-      message.info('Please contact our sales team for enterprise plans.');
+      navigate('/contact');
       return;
     }
 
-    try {
-      setSubscriptionLoading(plan.id);
-
-      // NOTE: if your subscription endpoint is protected and sometimes logs out,
-      // you’ll want to debug postData/checkRes. For now, keeping your logic.
-      const response = await postData(START_SUBSCRIPTION, {
-        plan_code: plan.code
-      });
-
-      if (response?.error) {
-        console.error('Subscription API returned error:', response.errors);
-        message.error('Failed to start subscription. Please try again.');
-        return;
-      }
-
-      if (response) {
-        message.success(`Successfully subscribed to ${plan.name} plan!`);
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      message.error('Failed to start subscription. Please try again.');
-    } finally {
-      setSubscriptionLoading(null);
-    }
+    navigate('/signin');
   };
 
   // --- your loading/error UI stays unchanged ---
@@ -296,18 +261,13 @@ const Pricing = () => {
                 <Button
                   type={isPopular(plan) ? "primary" : ''}
                   size="large"
-                  loading={subscriptionLoading === plan.id}
                   onClick={() => handlePlanSelection(plan)}
                   className={`w-full h-12 font-semibold ${isPopular(plan)
                     ? 'bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]'
                     : ''
                     }`}
                 >
-                  {subscriptionLoading === plan.id
-                    ? 'Processing...'
-                    : plan.contact_sales_only
-                      ? 'Contact sales'
-                      : 'Get started'}
+                  {plan.contact_sales_only ? 'Contact sales' : 'Get started'}
                 </Button>
 
                 <div className="space-y-3">

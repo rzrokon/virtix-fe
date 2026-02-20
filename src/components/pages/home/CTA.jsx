@@ -1,4 +1,5 @@
 import { Button } from 'antd';
+import { Link } from 'react-router-dom';
 
 const CTA = () => {
   return (
@@ -19,9 +20,11 @@ const CTA = () => {
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-auto">
-              <Button type="primary" size="large" className="w-full md:w-[260px] bg-white text-[#0C0900] border-white hover:bg-white/90">
-                Start free — no credit card
-              </Button>
+              <Link to="/signin">
+                <Button type="primary" size="large" className="w-full md:w-[260px] bg-white text-[#0C0900] border-white hover:bg-white/90">
+                  Start free — no credit card
+                </Button>
+              </Link>
               <div className="text-xs text-white/60 text-center md:text-center">
                 Launch in minutes. Cancel anytime.
               </div>
