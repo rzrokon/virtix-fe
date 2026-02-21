@@ -1,10 +1,17 @@
 import { UserOutlined } from '@ant-design/icons';
 import { Avatar, Button } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../../../contexts/UserContext';
 
 export default function AuthHeader() {
   const { user, isAuthenticated } = useUser();
+  const location = useLocation();
+
+  const isSignup = location.pathname === '/signup';
+  const isSignin = location.pathname === '/signin';
+  const authCta = isSignup
+    ? { label: 'Sign in', to: '/signin' }
+    : { label: 'Create account', to: '/signup' };
 
   return (
     <header className="bg-white shadow-sm border-b border-[#ECECEC] fixed top-0 left-0 right-0 z-50">
@@ -38,8 +45,8 @@ export default function AuthHeader() {
                 </span>
               </div>
             ) : (
-              <Link to="/signin">
-                <Button type="primary">Create account</Button>
+              <Link to={authCta.to}>
+                <Button type="primary">{authCta.label}</Button>
               </Link>
             )}
           </div>

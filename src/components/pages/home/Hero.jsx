@@ -1,6 +1,7 @@
 import { Button, Modal } from 'antd';
 import { Facebook, Globe, Instagram, MessageCircle, Phone, Play } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -24,8 +25,12 @@ const Hero = () => {
             </p>
 
             <div className="flex items-center gap-4 mt-10">
-              <Button type="primary">Start free — no credit card</Button>
-              <Button>Book a demo</Button>
+              <Link to="/signin">
+                <Button type="primary">Start free — no credit card</Button>
+              </Link>
+              <Link to="/contact">
+                <Button>Book a demo</Button>
+              </Link>
             </div>
 
             <div className="mt-10 space-y-3">
