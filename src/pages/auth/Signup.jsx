@@ -8,7 +8,7 @@ import { handleApiError, setAuthToken } from "../../scripts/helper";
 const { Title, Text } = Typography;
 
 // ✅ Your backend Google endpoint
-const GOOGLE_LOGIN_API = "/api/user/google/"; // adjust if your api-service needs full URL
+const GOOGLE_LOGIN_API = "api/user/google/"; // adjust if your api-service needs full URL
 
 export default function SignupForm() {
   const [loading, setLoading] = useState(false);
