@@ -3,7 +3,7 @@ import { message } from "antd";
 import { postData } from "../../scripts/api-service";
 import { setAuthToken } from "../../scripts/helper";
 
-const GOOGLE_AUTH = "/api/auth/google/"; // or your constant
+const GOOGLE_AUTH = "api/auth/google/"; // or your constant
 
 export default function GoogleButton({ onSuccess }) {
   useEffect(() => {
