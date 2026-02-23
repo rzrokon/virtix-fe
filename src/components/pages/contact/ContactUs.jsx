@@ -45,10 +45,10 @@ export default function ContactUs() {
     <section className="hero-section pt-40 pb-20">
       <div className="container ">
         <div className="md:w-3xl space-y-4 text-center mx-auto">
-          <h1 className="text-6xl leading-[120%] text-[#0C0900] font-semibold">
+          <h1 className="text-5xl leading-[120%] text-[#0C0900] font-semibold">
             Contact us
           </h1>
-          <p className="font-normal text-2xl leading-relaxed text-gray-600">
+          <p className="font-normal text-xl leading-relaxed text-gray-600">
             Please tell us a little bit about your company and use case, and we’ll be in touch soon.
           </p>
 
