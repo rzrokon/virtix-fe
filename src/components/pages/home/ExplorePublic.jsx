@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 export default function ExplorePublic() {
   const agents = [
     {
-      title: "eCommerce Sales Assistant",
+      title: "eCommerce Sales Agent",
       description: "Recommends products, answers pricing questions and take orders.",
       icon: "/assets/images/Home/user-1.png",
       backgroundColor: "#E7D7FF"
@@ -36,31 +36,28 @@ export default function ExplorePublic() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl mx-auto">
           {agents.map((agent, index) => (
             <div
               key={index}
-              className="group rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_32px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 hover:border-[#6200FF]/40 hover:shadow-[0_18px_40px_rgba(98,0,255,0.12)]"
+              className="group rounded-2xl border border-[#E5E7EB] bg-[#f9fafb] p-5 transition-transform duration-200 hover:-translate-y-1 hover:border-[#6200FF]/30 hover:shadow-[0_16px_32px_rgba(98,0,255,0.12)]"
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="h-12 w-12 rounded-2xl flex items-center justify-center"
+                  className="h-12 w-12 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
                   style={{ backgroundColor: agent.backgroundColor }}
                 >
                   <img src={agent.icon} alt={agent.title} className="h-8 w-8" />
                 </div>
-                <div className="flex-1">
+                <div>
                   <h3 className="text-lg font-semibold text-[#0C0900]">{agent.title}</h3>
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Demo agent</p>
+                  <p className="text-xs text-gray-500">Demo agent</p>
                 </div>
-                <span className="text-[11px] font-semibold text-[#6200ff] bg-[#6200ff]/10 px-2.5 py-1 rounded-full">
-                  Live
-                </span>
               </div>
 
-              <p className="mt-4 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
+              <p className="mt-3 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
 
-              <Button type="primary" className="mt-6 w-full flex items-center justify-center gap-2">
+              <Button type="primary" className="mt-4 w-full flex items-center justify-center gap-2">
                 Try Agent <ArrowRight size={16} />
               </Button>
             </div>
