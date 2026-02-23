@@ -181,7 +181,7 @@ const Pricing = () => {
     <section className="pricing py-20">
       <div className="container flex flex-col gap-10">
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="space-y-3 max-w-2xl">
+          <div className="space-y-3 max-w-2xl mb-5">
             <h2 className="text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
               Simple, scalable pricing
             </h2>
@@ -189,7 +189,7 @@ const Pricing = () => {
               No credit card required to start.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+          {/* <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
             <button
               type="button"
               onClick={() => setBillingCycle('monthly')}
@@ -200,25 +200,8 @@ const Pricing = () => {
             >
               Monthly
             </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle('annual')}
-              className={`px-4 py-2 text-sm font-semibold rounded-full ${billingCycle === 'annual'
-                ? 'bg-[#000b41] text-white'
-                : 'text-gray-500 hover:text-[#0C0900]'
-                }`}
-            >
-              Annual
-            </button>
-          </div>
-          <div className="text-xs uppercase tracking-[0.3em] text-gray-500">
-            {billingCycle === 'annual' ? 'Annual plans' : 'Monthly plans'}
-          </div>
-          {billingCycle === 'annual' ? (
-            <div className="text-xs text-[#0C0900] font-semibold">
-              Save 10% with annual billing
-            </div>
-          ) : null}
+          </div> */}
+          {/* <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Monthly plans</div> */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

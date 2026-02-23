@@ -1,7 +1,6 @@
-import CustomerInteractionsRevarce from "../../components/pages/feature/CustomerInteractionsRevarse";
+import FeatureSection from "../../components/pages/feature/FeatureSection";
 import Hero from "../../components/pages/feature/Hero";
 import CTA from "../../components/pages/home/CTA";
-import CustomerInteractions from "../../components/pages/home/CustomerInteractions";
 
 export default function Features() {
   const Interaction = {
@@ -63,11 +62,11 @@ export default function Features() {
   return (
     <>
       <Hero />
-      <CustomerInteractions data={Interaction} />
-      <CustomerInteractionsRevarce data={Interaction2} />
-      <CustomerInteractions data={Interaction3} />
-      <CustomerInteractionsRevarce data={Interaction4} />
-      <CustomerInteractions data={Interaction5} />
+      <FeatureSection data={Interaction} />
+      <FeatureSection data={Interaction2} reverse />
+      <FeatureSection data={Interaction3} />
+      <FeatureSection data={Interaction4} reverse />
+      <FeatureSection data={Interaction5} />
       {/* <Pricing /> */}
       <CTA />
     </>
