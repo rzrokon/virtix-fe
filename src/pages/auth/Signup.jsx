@@ -101,7 +101,10 @@ export default function SignupForm() {
       if (res) {
         message.success("Account created successfully! Please check your email for verification.");
         form.resetFields();
-        setTimeout(() => navigate("/signin"), 800);
+        // Redirect to signin page after successful registration
+        setTimeout(() => {
+          navigate('/check-email', { replace: true, state: { email: values.email } });
+        }, 2000);
       } else {
         message.error("Registration failed. Please try again.");
       }
