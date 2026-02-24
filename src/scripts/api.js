@@ -7,6 +7,7 @@ export const PASSWORD_RESET = 'api/user/password/reset/'
 export const PASSWORD_RESET_CONFIRM = 'api/user/password/reset/confirm/'
 export const PASSWORD_CHANGE = 'api/user/password/change/'
 export const CHANGE_PASSWORD = 'api/user/password/change/';
+export const RESEND_VERIFY_EMAIL = "api/user/resend-email/";
 
 // User Profile API endpoints
 export const GET_USER_PROFILE = 'api/user/profile/'
