@@ -47,11 +47,11 @@ export default function ExplorePublic() {
                   className="h-12 w-12 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
                   style={{ backgroundColor: agent.backgroundColor }}
                 >
-                  <img src={agent.icon} alt={agent.title} className="h-8 w-8" />
+                  <img src={agent.icon} alt={agent.title} />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-[#0C0900]">{agent.title}</h3>
-                  <p className="text-xs text-gray-500">Demo agent</p>
+                  <p className="text-xs text-gray-500">Demo AI agent</p>
                 </div>
               </div>
 
