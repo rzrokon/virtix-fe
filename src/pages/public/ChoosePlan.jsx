@@ -54,7 +54,7 @@ export default function ChoosePlan() {
 
   const startPlan = async (plan) => {
     if (plan.contact_sales_only) {
-      message.info('Please contact sales for Enterprise plan.');
+      navigate('/contact');
       return;
     }
 
@@ -140,7 +140,7 @@ export default function ChoosePlan() {
                       <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
                         {priceLabel(plan)}
                       </span>
-                      {parseFloat(plan.price_usd) > 0 ? (
+                      {!plan.contact_sales_only && parseFloat(plan.price_usd) > 0 ? (
                         <p className="text-lg text-gray-600 ml-1">/month</p>
                       ) : null}
                     </div>
@@ -155,7 +155,11 @@ export default function ChoosePlan() {
                       popular ? 'bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]' : ''
                     }`}
                   >
-                    {starting === plan.code ? 'Processing...' : (parseFloat(plan.price_usd) > 0 ? 'Continue to payment' : 'Activate Free')}
+                    {starting === plan.code
+                      ? 'Processing...'
+                      : plan.contact_sales_only
+                        ? 'Contact sales'
+                        : (parseFloat(plan.price_usd) > 0 ? 'Continue to payment' : 'Activate Free')}
                   </Button>
 
                   <div className="plan-features space-y-3">
