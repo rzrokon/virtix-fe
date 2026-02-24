@@ -28,7 +28,7 @@ export default function SignupForm() {
         form.resetFields();
         // Redirect to signin page after successful registration
         setTimeout(() => {
-          navigate('/signin');
+          navigate('/check-email', { replace: true, state: { email: values.email } });
         }, 2000);
       } else {
         message.error('Registration failed. Please try again.');

@@ -11,6 +11,8 @@ import ResetPassword from './pages/auth/ResetPassword.jsx';
 import ChangePassword from './pages/private/ChangePassword.jsx';
 import Signin from './pages/auth/Signin.jsx';
 import Signup from './pages/auth/Signup.jsx';
+import CheckEmail from './pages/auth/CheckEmail.jsx';
+import VerifyEmail from './pages/auth/VerifyEmail.jsx';
 
 import AgentReport from './pages/private/AgentReport.jsx';
 import ChatWidget from './pages/private/ChatWidget.jsx';
@@ -52,6 +54,7 @@ import BillingSuccess from './pages/public/BillingSuccess.jsx';
 import PrivacyPolicy from './pages/public/PrivacyPolicy.jsx';
 import Terms from './pages/public/Terms.jsx';
 
+
 export default function Routers() {
   return (
     <BrowserRouter>
@@ -73,6 +76,8 @@ export default function Routers() {
           <Route path='/signup' element={<Signup />} />
           <Route path='/forget-password' element={<ForgetPassword />} />
           <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path="/check-email" element={<CheckEmail />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
         </Route>
 
         {/* PRIVATE ROOT AREA (logged-in pages) */}
