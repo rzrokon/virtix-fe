@@ -1,6 +1,8 @@
+// PasswordReset.jsx
+
 import { Button, Form, Input, Typography, message } from 'antd';
-import { useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PASSWORD_RESET_CONFIRM } from '../../scripts/api';
 import { postData } from '../../scripts/api-service';
 import { handleApiError } from '../../scripts/helper';
@@ -8,23 +10,39 @@ import { handleApiError } from '../../scripts/helper';
 const { Title, Text } = Typography;
 
 function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-  const uid = searchParams.get('uid');
-  const [loading, setLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ supports BOTH:
+  // 1) /reset-password/:uid/:token
+  // 2) /reset-password?uid=...&token=...
+  const params = useParams();
+  const [searchParams] = useSearchParams();
+
+  const uid = useMemo(() => params.uid || searchParams.get('uid') || '', [params.uid, searchParams]);
+  const token = useMemo(() => params.token || searchParams.get('token') || '', [params.token, searchParams]);
+
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const onFinish = async (values) => {
+    if (!uid || !token) {
+      message.error('Invalid or expired reset link.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await postData(PASSWORD_RESET_CONFIRM, {
-        uid: uid || 'NA',
-        token: token,
-        new_password1: values.password,
-        new_password2: values.confirmPassword
-      }, true);
-      
+      const res = await postData(
+        PASSWORD_RESET_CONFIRM,
+        {
+          uid,
+          token,
+          new_password1: values.password,
+          new_password2: values.confirmPassword,
+        },
+        true
+      );
+
       if (res) {
         setIsSubmitted(true);
         message.success('Password reset successful! You can now sign in with your new password.');
@@ -40,28 +58,69 @@ function ResetPassword() {
     }
   };
 
-  if (isSubmitted) {
+  // Invalid link UI
+  if (!uid || !token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-green-100 p-4">
-        {/* Animated blob backgrounds */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
           <div className="absolute top-40 right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
           <div className="absolute bottom-20 left-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
         </div>
 
-        <div className="relative z-10 w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
-          {/* Header */}
+        <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
+          <div className="text-center mb-6">
+            <Title level={2} className="!mb-2 !text-gray-900">
+              Invalid reset link
+            </Title>
+            <Text className="text-gray-500 text-sm">
+              This password reset link is missing, expired, or invalid.
+            </Text>
+          </div>
+
+          <div className="space-y-4">
+            <Button
+              type="primary"
+              size="large"
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-0 rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => navigate('/forget-password')}
+            >
+              Request a new reset link
+            </Button>
+
+            <div className="text-center">
+              <Text className="text-gray-500 text-sm">
+                <Link to="/signin" className="text-purple-600 hover:text-purple-700 font-semibold">
+                  Back to Sign In
+                </Link>
+              </Text>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Success UI
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-green-100 p-4">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
+          <div className="absolute bottom-20 left-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
           <div className="text-center mb-8">
             <Title level={2} className="!mb-2 !text-gray-900">
               Password Reset Successful
             </Title>
             <Text className="text-gray-500 text-sm">
-              Your password has been successfully reset. You can now sign in with your new password.
+              Your password has been updated. You can now sign in with your new password.
             </Text>
           </div>
 
-          {/* Success Icon */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
               <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,58 +129,43 @@ function ResetPassword() {
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="space-y-4">
-            <Button
-              type="primary"
-              size="large"
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-0 rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => navigate('/signin')}
-            >
-              Go to Sign In
-            </Button>
-          </div>
+          <Button
+            type="primary"
+            size="large"
+            className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-0 rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate('/signin')}
+          >
+            Go to Sign In
+          </Button>
         </div>
       </div>
     );
   }
 
+  // Default reset form UI
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-green-100 p-4">
-      {/* Animated blob backgrounds */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
         <div className="absolute top-40 right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
         <div className="absolute bottom-20 left-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
       </div>
 
-      {/* Reset Password Form Card */}
-      <div className="relative z-10 w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
-        {/* Header */}
+      <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
         <div className="text-center mb-8">
           <Title level={2} className="!mb-2 !text-gray-900">
             Reset Password
           </Title>
-          <Text className="text-gray-500 text-sm">
-            Enter your new password below.
-          </Text>
+          <Text className="text-gray-500 text-sm">Enter your new password below.</Text>
         </div>
 
-        {/* Form */}
-        <Form
-          name="resetPassword"
-          layout="vertical"
-          onFinish={onFinish}
-          autoComplete="off"
-          requiredMark={false}
-        >
-          {/* Password Field */}
+        <Form name="resetPassword" layout="vertical" onFinish={onFinish} autoComplete="off" requiredMark={false}>
           <Form.Item
             label={<span className="text-gray-700 font-medium">New Password</span>}
             name="password"
             rules={[
               { required: true, message: 'Please input your new password!' },
-              { min: 6, message: 'Password must be at least 6 characters!' }
+              { min: 6, message: 'Password must be at least 6 characters!' },
             ]}
             className="mb-4"
           >
@@ -132,7 +176,6 @@ function ResetPassword() {
             />
           </Form.Item>
 
-          {/* Confirm Password Field */}
           <Form.Item
             label={<span className="text-gray-700 font-medium">Confirm New Password</span>}
             name="confirmPassword"
@@ -141,9 +184,7 @@ function ResetPassword() {
               { required: true, message: 'Please confirm your new password!' },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
+                  if (!value || getFieldValue('password') === value) return Promise.resolve();
                   return Promise.reject(new Error('Passwords do not match!'));
                 },
               }),
@@ -157,7 +198,6 @@ function ResetPassword() {
             />
           </Form.Item>
 
-          {/* Submit Button */}
           <Form.Item className="mb-6">
             <Button
               type="primary"
@@ -171,13 +211,9 @@ function ResetPassword() {
           </Form.Item>
         </Form>
 
-        {/* Back to Login */}
         <div className="text-center">
           <Text className="text-gray-500 text-sm">
-            <Link 
-              to="/signin"
-              className="text-purple-600 hover:text-purple-700 font-semibold"
-            >
+            <Link to="/signin" className="text-purple-600 hover:text-purple-700 font-semibold">
               Back to Sign In
             </Link>
           </Text>

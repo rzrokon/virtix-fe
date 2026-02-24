@@ -76,6 +76,7 @@ export default function Routers() {
           <Route path='/signup' element={<Signup />} />
           <Route path='/forget-password' element={<ForgetPassword />} />
           <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
           <Route path="/check-email" element={<CheckEmail />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
         </Route>

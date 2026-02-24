@@ -23,7 +23,7 @@ function ForgetPassword() {
       if (res) {
         setEmail(values.email);
         setEmailSent(true);
-        message.success('Password reset email sent successfully! Please check your email.');
+        message.success("If an account exists for this email, a reset link has been sent.");
       } else {
         message.error('Failed to send reset email. Please try again.');
       }
