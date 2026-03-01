@@ -32,7 +32,7 @@ export default function ExplorePublic() {
             See Virtix AI in action
           </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Try live demo agents to experience how Virtix AI talks, understands your customers, and drives outcomes.
+            Try live demo agents to experience how Virtix AI talks, understands your customers and drives outcomes.
           </p>
         </div>
 
@@ -55,9 +55,9 @@ export default function ExplorePublic() {
                 </div>
               </div>
 
-              <p className="mt-3 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
+              <p className="mt-5 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
 
-              <Button type="primary" className="mt-4 w-full flex items-center justify-center gap-2">
+              <Button type="primary" className="mt-7 w-full flex items-center justify-center gap-2">
                 Try Agent <ArrowRight size={16} />
               </Button>
             </div>

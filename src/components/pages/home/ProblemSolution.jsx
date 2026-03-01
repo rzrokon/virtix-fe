@@ -25,7 +25,7 @@ export default function ProblemSolution() {
                   'No visibility into what customers actually want'
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <span className="mt-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
                       <CheckCircle2 size={16} />
                     </span>
                     <span className="text-[#0C0900] font-semibold leading-[160%]">{item}</span>
@@ -54,12 +54,12 @@ export default function ProblemSolution() {
             <div className="mt-6 space-y-3">
               {[
                 'Instant, on-brand answers from your data',
-                'Built-in lead capture, orders, and bookings',
+                'Built-in lead capture, orders and bookings',
                 'Human handover with full context',
                 'Clear analytics to track outcomes'
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
+                  <span className="mt-05 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
                     <ArrowRight size={16} />
                   </span>
                   <span className="text-[#0C0900] font-semibold leading-[160%]">{item}</span>

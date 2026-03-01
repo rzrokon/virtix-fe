@@ -26,9 +26,9 @@ const Differentiation = () => {
             {points.map((point) => (
               <div
                 key={point}
-                className="flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#D8CCFF] hover:shadow-[0_16px_32px_rgba(98,0,255,0.18)]"
               >
-                <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff]">
+                <span className="mt-0 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6200ff]/10 text-[#6200ff] transition-all duration-300 ease-out group-hover:scale-110 group-hover:bg-[#6200ff]/15">
                   <CheckCircle2 size={16} />
                 </span>
                 <p className="font-semibold leading-[150%] text-[#0C0900]">{point}</p>

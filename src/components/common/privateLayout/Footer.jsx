@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Youtube } from "lucide-react";
+import { FacebookFilled, InstagramFilled, LinkedinFilled, XOutlined, YoutubeFilled } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -10,20 +10,23 @@ const Footer = () => {
             <img src="/assets/logo/Virtix_AI_Logo_White.png" alt="Virtix AI" className="h-10" />
             <p className="text-sm leading-relaxed text-white/70">
               Virtix AI is a conversation-first support platform that lets SMEs and enterprises handle chat, complaints,
-              bookings, orders, and leads with AI agents – without hiring a big support team.
+              bookings, orders and leads with AI agents – without hiring a big support team.
             </p>
             <div className="flex items-center gap-4 text-white/70">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on Twitter" className="hover:text-white">
-                <Twitter size={16} />
+              <a href="https://x.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on X" className="hover:text-white">
+                <XOutlined className="text-base" />
               </a>
               <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on LinkedIn" className="hover:text-white">
-                <Linkedin size={16} />
+                <LinkedinFilled className="text-base" />
               </a>
-              <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on GitHub" className="hover:text-white">
-                <Github size={16} />
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on Facebook" className="hover:text-white">
+                <FacebookFilled className="text-base" />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on Instagram" className="hover:text-white">
+                <InstagramFilled className="text-base" />
               </a>
               <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="Virtix AI on YouTube" className="hover:text-white">
-                <Youtube size={16} />
+                <YoutubeFilled className="text-base" />
               </a>
             </div>
           </div>

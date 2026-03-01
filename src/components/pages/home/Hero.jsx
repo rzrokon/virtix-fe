@@ -16,7 +16,7 @@ const Hero = () => {
             </h1>
 
             <p className="font-normal text-xl leading-relaxed text-gray-600">
-              Virtix AI handles sales questions, captures leads, books appointments, and manages support 24/7 — without growing your team.
+              Virtix AI handles sales questions, captures leads, books appointments and manages support 24/7 — without growing your team.
             </p>
 
 
@@ -44,9 +44,12 @@ const Hero = () => {
                 ].map((channel) => (
                   <span
                     key={channel.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-2 text-sm font-semibold text-[#0C0900] shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                    className="group inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-2 text-sm font-semibold text-[#0C0900] shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-[#D8CCFF] hover:shadow-[0_14px_28px_rgba(98,0,255,0.2)]"
                   >
-                    <channel.Icon size={16} className={channel.color} />
+                    <channel.Icon
+                      size={16}
+                      className={`${channel.color} transition-transform duration-300 ease-out group-hover:scale-110`}
+                    />
                     {channel.label}
                   </span>
                 ))}
