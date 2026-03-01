@@ -65,7 +65,7 @@ const Pricing = () => {
   };
 
   const getPlanSummary = (plan) => {
-    if (plan.contact_sales_only) return 'Custom scale, integrations, and controls.';
+    if (plan.contact_sales_only) return 'Custom scale, integrations and controls.';
     const price = parseFloat(plan.price_usd);
     if (!price || price === 0) return 'Perfect to get started.';
     if (plan.code === 'business') return 'For growing teams ready to automate.';
