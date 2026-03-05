@@ -1,11 +1,11 @@
 import { Button, Layout, Menu, Modal, Progress, Radio, Tag, Typography, message, theme } from 'antd';
 import Cookies from 'js-cookie';
-import { Calendar, ClipboardMinus, Files, LayoutDashboard, Lightbulb, Settings, ShoppingBag, SquareChartGantt, User, Users } from 'lucide-react';
+import { Calendar, ClipboardMinus, Files, LayoutDashboard, Lightbulb, Plug, Settings, ShoppingBag, SquareChartGantt, User, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
 import { useContentApi } from '../contexts/ContentApiContext';
-import { getAgentById, postData } from '../scripts/api-service';
+import { getAgentById, getData, postData } from '../scripts/api-service';
 const { Header, Content, Sider } = Layout;
 
 export default function PrivateLayout() {
@@ -16,6 +16,7 @@ export default function PrivateLayout() {
   const [indexFresh, setIndexFresh] = useState(true);
   const [indexing, setIndexing] = useState(false);
   const [indexProgress, setIndexProgress] = useState(0);
+  const [featureFlags, setFeatureFlags] = useState(null);
   const { id } = useParams();
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -23,6 +24,33 @@ export default function PrivateLayout() {
   const token = Cookies.get('kotha_token')
   const { setCurrentAgentName } = useContentApi();
   const { Text } = Typography;
+  const toBool = (value) => value === true || value === 'true' || value === 1;
+  const isFeatureEnabled = (key) => {
+    if (!featureFlags) return true;
+    return toBool(featureFlags[key]);
+  };
+
+  const showLeadMenu = isFeatureEnabled('lead_gen');
+  const showBookingsMenu = isFeatureEnabled('booking');
+  const showComplaintsMenu = isFeatureEnabled('complaints');
+  const showCommerceMenu = isFeatureEnabled('products');
+  const showWebsiteIntegration = isFeatureEnabled('website_enabled');
+  const showWooIntegration = isFeatureEnabled('woocommerce_enabled');
+
+  const fetchFeatureConfig = async (agentName) => {
+    if (!agentName) {
+      setFeatureFlags(null);
+      return;
+    }
+
+    try {
+      const featureData = await getData(`api/agent/${agentName}/features/`);
+      setFeatureFlags(featureData || null);
+    } catch (error) {
+      console.error('Error fetching feature config:', error);
+      setFeatureFlags(null);
+    }
+  };
 
   // Fetch agent data by ID using api-service
   const fetchAgent = async () => {
@@ -34,6 +62,7 @@ export default function PrivateLayout() {
       setAgent(agentData);
       // Store agent_name in context
       setCurrentAgentName(agentData?.agent_name || null);
+      await fetchFeatureConfig(agentData?.agent_name);
     } catch (error) {
       console.error('Error fetching agent:', error);
     } finally {
@@ -131,17 +160,21 @@ export default function PrivateLayout() {
             style={{ height: '100%', borderInlineEnd: 0, background: "#000B41"  }}
             items={[
               { key: '1', icon: <LayoutDashboard />, label: <Link to={`/${id}/dashboard`}>Dashboard</Link> },
-              { key: '2', icon: <Settings />, label: 'Agent Settings',
+              { key: 'agent-settings', icon: <Settings />, label: 'Agent Settings',
                 children: [
-                  { key: 'agent-ifo', label: ( <Link to={`/${id}/dashboard/agent-info`}> Agent Info </Link> ), },
+                  { key: 'agent-info', label: ( <Link to={`/${id}/dashboard/agent-info`}> Agent Info </Link> ), },
                   { key: 'chat-widget', label: ( <Link to={`/${id}/dashboard/chat-widget`}> Chat Widget </Link> ), },
                   { key: 'feature-config', label: ( <Link to={`/${id}/dashboard/features`}> Feature Config </Link> ), },
+                ],
+              },
+              { key: 'integrations', icon: <Plug />, label: 'Integrations',
+                children: [
                   { key: 'facebook-integrations', label: <Link to={`/${id}/dashboard/facebook`}>Facebook Integrations</Link> },
                   { key: 'instagram-integrations', label: <Link to={`/${id}/dashboard/instagram`}>Instagram Integrations</Link> },
                   { key: 'whatsapp-integrations', label: <Link to={`/${id}/dashboard/whatsapp`}>WhatsApp Integrations</Link> },
-                  { key: 'website-integrations', label: <Link to={`/${id}/dashboard/website`}>Website (WordPress)</Link> },
-                  { key: 'woocommerce-integrations', label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce</Link> },
-                ],
+                  showWebsiteIntegration ? { key: 'website-integrations', label: <Link to={`/${id}/dashboard/website`}>Website (WordPress)</Link> } : null,
+                  showWooIntegration ? { key: 'woocommerce-integrations', label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce</Link> } : null,
+                ].filter(Boolean),
               },
               
               
@@ -154,9 +187,9 @@ export default function PrivateLayout() {
               { key: '6', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
               // { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
               
-              { key: '8', icon: <User />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> },
+              showLeadMenu ? { key: '8', icon: <User />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> } : null,
               
-              {
+              showBookingsMenu ? {
                 key: 'bookings',
                 icon: <Calendar />,
                 label: 'Bookings',
@@ -170,21 +203,21 @@ export default function PrivateLayout() {
                     label: <Link to={`/${id}/dashboard/booking-windows`}>Booking Windows</Link>,
                   },
                 ],
-              },
+              } : null,
 
-              { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> },
+              showComplaintsMenu ? { key: 'complaints', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link> } : null,
               
 
-              { key: '11', icon: <ShoppingBag />, label: 'Commerce',
+              showCommerceMenu ? { key: '11', icon: <ShoppingBag />, label: 'Commerce',
                 children: [
                   { key: 'products', label: <Link to={`/${id}/dashboard/products`}>Products</Link> },
                   { key: 'orders', label: <Link to={`/${id}/dashboard/orders`}>Orders</Link> },
                   { key: 'offers', label: <Link to={`/${id}/dashboard/offers`}>Offers</Link> },
                 ],
-              },
+              } : null,
 
               { key: '12', icon: <ClipboardMinus />, label: <Link to={`/${id}/dashboard/report`}>Reports</Link> },
-            ]}
+            ].filter(Boolean)}
           />
         </Sider>
         <Layout style={{ padding: '24px 24px' }}>

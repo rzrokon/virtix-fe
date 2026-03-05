@@ -28,7 +28,7 @@ export default function UserMenu() {
     {
       key: 'profile',
       icon: <UserOutlined />,
-      label: 'Profile',
+      label: 'Edit Profile',
       onClick: () => {
         window.location = `/profile`
       }
