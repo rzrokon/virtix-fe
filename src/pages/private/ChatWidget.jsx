@@ -19,14 +19,20 @@ import {
   Slider,
   Switch,
   Tabs,
+  Tooltip,
+  Tag,
 } from 'antd';
-import { Paperclip, Send, X } from 'lucide-react';
+import { Paperclip, Send, X, Lock } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getData, postData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
+import { GET_MY_SUBSCRIPTION } from '../../scripts/api';
 
 const { TextArea } = Input;
+
+// Plans that are allowed to remove branding
+const BRANDING_REMOVAL_PLANS = ['business', 'enterprise'];
 
 // ─── Presets ──────────────────────────────────────────────────────────────────
 const PRESETS = [
@@ -117,6 +123,7 @@ export default function AgentSettings() {
   const [imgLoading, setImgLoading] = useState(false);
   const [copied, setCopied]         = useState(false);
   const [position, setPosition]     = useState('right');
+  const [planCode, setPlanCode]     = useState(null); // current user plan code
   const [theme, setTheme]           = useState({ ...DEFAULT_THEME });
   const [content, setContent]       = useState({
     headerTitle: 'Virtix AI',
@@ -197,6 +204,23 @@ export default function AgentSettings() {
       catch { setWidgetKey(''); }
     })();
   }, [id]);
+
+  // Fetch subscription to determine plan
+  useEffect(() => {
+    (async () => {
+      try {
+        const sub = await getData(GET_MY_SUBSCRIPTION);
+        const code = sub?.subscription?.plan?.code || null;
+        setPlanCode(code);
+        // Force branding on if downgraded from a paid plan
+        if (code && !BRANDING_REMOVAL_PLANS.includes(code)) {
+          setContent(p => ({ ...p, showBranding: true }));
+        }
+      } catch { /* silently ignore — default to locked */ }
+    })();
+  }, []);
+
+  const canRemoveBranding = BRANDING_REMOVAL_PLANS.includes(planCode);
 
   const snippet = buildSnippet({
     agentName: currentAgentName || 'your-agent-name',
@@ -318,12 +342,32 @@ export default function AgentSettings() {
                 <label className="text-sm text-gray-500 block mb-1">Welcome Message</label>
                 <TextArea rows={3} value={content.welcomeMessage} onChange={e => setContentKey('welcomeMessage', e.target.value)} placeholder="Hi there! 👋" />
               </div>
-              <div className="flex items-center justify-between pt-1">
+              <div className={`flex items-center justify-between pt-1 rounded-lg px-3 py-2.5 -mx-3 ${!canRemoveBranding ? 'bg-gray-50 border border-gray-200' : ''}`}>
                 <div>
-                  <p className="text-sm text-gray-700">Show "Powered by Virtix AI"</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Branding badge in widget footer</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-700">Show "Powered by Virtix AI"</p>
+                    {!canRemoveBranding && (
+                      <Tooltip title="Upgrade to Business or Enterprise to remove branding">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full cursor-default">
+                          <Lock size={10} />
+                          Business+
+                        </span>
+                      </Tooltip>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {canRemoveBranding
+                      ? 'Branding badge in widget footer'
+                      : 'Available on Business & Enterprise plans'}
+                  </p>
                 </div>
-                <Switch checked={content.showBranding} onChange={v => setContentKey('showBranding', v)} />
+                <Tooltip title={!canRemoveBranding ? 'Upgrade to Business or Enterprise to remove branding' : ''}>
+                  <Switch
+                    checked={content.showBranding}
+                    onChange={v => canRemoveBranding && setContentKey('showBranding', v)}
+                    disabled={!canRemoveBranding}
+                  />
+                </Tooltip>
               </div>
             </div>
           </div>
