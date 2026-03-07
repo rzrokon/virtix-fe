@@ -2,6 +2,7 @@ import { CloseOutlined, LoadingOutlined, MenuOutlined, PlusOutlined } from '@ant
 import { Button, Card, ColorPicker, Divider, Input, Upload, message } from "antd";
 import { Paperclip, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { getData, postData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
 const { TextArea } = Input;
@@ -12,7 +13,10 @@ const { TextArea } = Input;
  * AgentSettings - fixed upload to get base64 client-side and avoid auto upload
  */
 export default function AgentSettings() {
+  const { id } = useParams();
+  const { currentAgentName } = useContentApi();
   const [loading, setLoading] = useState(false);
+  const [widgetKey, setWidgetKey] = useState('');
   const [imageUrl, setImageUrl] = useState(undefined);
   const [messages, setMessages] = useState([
     { id: 1, text: 'I have a question' },
@@ -136,6 +140,32 @@ export default function AgentSettings() {
     }
   };
 
+  useEffect(() => {
+    const fetchWidgetKey = async () => {
+      if (!id) return;
+      try {
+        const data = await getData(`api/agent/agents/${id}/`);
+        setWidgetKey(data?.widget_key || '');
+      } catch {
+        setWidgetKey('');
+      }
+    };
+
+    fetchWidgetKey();
+  }, [id]);
+
+  const embedSnippet = widgetKey ? `<!--Start of Vertix AI Script-->
+<script>
+  window.VirtixWidget = {
+    baseUrl: "https://api.virtixai.com",
+    agent: "${currentAgentName || 'kotha'}",
+    widgetKey: "${widgetKey}",
+    position: "right" // right|left
+  };
+</script>
+<script async src="https://virtixai.com/widget/v1/virtix-widget.js"></script>
+<!--End of Vertix AI Script-->` : '// widget_key not available yet';
+
   return (
     <div className="">
       <Card>
@@ -150,19 +180,7 @@ export default function AgentSettings() {
           <Button type="primary" className="absolute right-0" onClick={copyEmbed}>Copy</Button>
           <pre className="bg-gray-100 p-4 rounded text-sm font-mono">
             <code ref={codeRef}>
-              {`<!--Start of Vertix AI Script-->
-<script type="text/javascript">
-var Vertix_API=Vertix AI||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.Vertix.AI/6899fb7a70cc1a1922c4067a/1j2cnsm9p';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Vertix AI Script-->`}
+              {embedSnippet}
             </code>
           </pre>
         </div>
