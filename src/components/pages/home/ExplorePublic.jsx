@@ -7,19 +7,22 @@ export default function ExplorePublic() {
       title: "eCommerce Sales Agent",
       description: "Recommends products, answers pricing questions and take orders.",
       icon: "/assets/images/Home/user-1.png",
-      backgroundColor: "#E7D7FF"
+      backgroundColor: "#E7D7FF",
+      link: "https://virtixai.xyz/ecommerce/index.html"
     },
     {
       title: "Support Knowledge Agent",
       description: "Answers FAQs from docs and policies with consistent, on-brand responses.",
       icon: "/assets/images/Home/user-2.png",
-      backgroundColor: "#CBEED8"
+      backgroundColor: "#CBEED8",
+      link: "https://virtixai.xyz/agency/index.html"
     },
     {
       title: "Bookings & Leads Agent",
       description: "Captures lead details and books appointments automatically — 24/7.",
       icon: "/assets/images/Home/user-3.png",
-      backgroundColor: "#F7EBD6"
+      backgroundColor: "#F7EBD6",
+      link: "https://virtixai.xyz/healthcare/index.html"
     },
   ];
 
@@ -57,7 +60,13 @@ export default function ExplorePublic() {
 
               <p className="mt-5 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
 
-              <Button type="primary" className="mt-7 w-full flex items-center justify-center gap-2">
+              <Button
+                type="primary"
+                href={agent.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-7 w-full flex items-center justify-center gap-2"
+              >
                 Try Agent <ArrowRight size={16} />
               </Button>
             </div>
