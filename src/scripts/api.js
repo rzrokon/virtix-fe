@@ -77,3 +77,18 @@ export const GET_OFFERS = 'api/ops/offers/';
 export const CREATE_OFFER = 'api/ops/offers/';
 export const UPDATE_OFFER = 'api/ops/offers/';
 export const DELETE_OFFER = 'api/ops/offers/';
+
+export const HANDOVER_CONVERSATIONS = (agentName) =>
+  `api/agent/support/${agentName}/handover/conversations/`;
+
+export const HANDOVER_MESSAGES = (conversationId) =>
+  `api/agent/support/conversations/${conversationId}/messages/`;
+
+export const HANDOVER_ACCEPT = (conversationId) =>
+  `api/agent/support/conversations/${conversationId}/accept/`;
+
+export const HANDOVER_REPLY = (conversationId) =>
+  `api/agent/support/conversations/${conversationId}/reply/`;
+
+export const HANDOVER_CLOSE = (conversationId) =>
+  `api/agent/support/conversations/${conversationId}/close/`;

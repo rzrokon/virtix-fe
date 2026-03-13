@@ -167,6 +167,7 @@ export default function PrivateLayout() {
                   { key: 'feature-config', label: ( <Link to={`/${id}/dashboard/features`}> Feature Config </Link> ), },
                 ],
               },
+              { key: 'support',label: <Link to={`/${id}/dashboard/support`}>Human Handover</Link>,},
               { key: 'integrations', icon: <Plug />, label: 'Integrations',
                 children: [
                   { key: 'facebook-integrations', label: <Link to={`/${id}/dashboard/facebook`}>Facebook Integrations</Link> },

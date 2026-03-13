@@ -55,6 +55,7 @@ import PrivacyPolicy from './pages/public/PrivacyPolicy.jsx';
 import Terms from './pages/public/Terms.jsx';
 import HelpCenter from './pages/public/HelpCenter.jsx';
 
+import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
 
 export default function Routers() {
   return (
@@ -150,6 +151,7 @@ export default function Routers() {
           <Route path="/:id/dashboard/whatsapp" element={<MetaConnectWhatsApp />} />
           <Route path="/:id/dashboard/website" element={<WebsiteIntegration />} />
           <Route path="/:id/dashboard/woocommerce" element={<WooCommerceIntegration />} />
+          <Route path='/:id/dashboard/support' element={<SupportInboxPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
