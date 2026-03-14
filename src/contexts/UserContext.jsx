@@ -25,7 +25,7 @@ export const UserProvider = ({ children }) => {
   // Function to get profile image URL
   const getProfileImageUrl = (photoPath) => {
     if (photoPath) {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.virtixai.com/';
+      const baseUrl = import.meta.env.VITE_BASE_URL;
       // Remove leading slash if present to avoid double slashes
       const cleanPhotoPath = photoPath.startsWith('/') ? photoPath.slice(1) : photoPath;
       return `${baseUrl}${cleanPhotoPath}`;

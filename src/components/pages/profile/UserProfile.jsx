@@ -128,7 +128,7 @@ const UserProfile = () => {
       formData.append('photo', file);
 
       const token = getAuthToken();
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.virtixai.com/';
+      const baseUrl = import.meta.env.VITE_BASE_URL;
       const url = `${baseUrl}${UPDATE_PROFILE_PHOTO}`;
 
       const response = await fetch(url, {
@@ -160,7 +160,7 @@ const UserProfile = () => {
   // Get profile image URL
   const getProfileImageUrl = () => {
     if (profileData?.photo) {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.virtixai.com/';
+      const baseUrl = import.meta.env.VITE_BASE_URL;
       // Remove leading slash if present to avoid double slashes
       const photoPath = profileData.photo.startsWith('/') ? profileData.photo.slice(1) : profileData.photo;
       return `${baseUrl}${photoPath}`;

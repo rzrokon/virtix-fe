@@ -23,10 +23,7 @@ const { TextArea } = Input;
 
 /** Prefer same base used by your api-service; fallback to api.virtixai.com */
 const baseUrlForMedia = () => {
-  const b =
-    import.meta.env.VITE_BASE_URL ||
-    import.meta.env.VITE_API_BASE_URL ||
-    'https://api.virtixai.com/';
+  const b = import.meta.env.VITE_BASE_URL;
   return b.endsWith('/') ? b : `${b}/`;
 };
 
