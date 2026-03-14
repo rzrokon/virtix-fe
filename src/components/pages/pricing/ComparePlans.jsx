@@ -15,6 +15,7 @@ export default function ComparePlans({ plans = [], loading = false }) {
         title: 'Features',
         dataIndex: 'name',
         key: 'name',
+        width: 220,
         render: text => <span>{text}</span>,
       },
       ...plans.map((p) => ({
@@ -48,14 +49,14 @@ export default function ComparePlans({ plans = [], loading = false }) {
 
   return (
     <section className="hero-section py-10">
-      <div className="container ">
+      <div className="container overflow-hidden">
         <div className="space-y-8 text-center ">
-          <div className='md:w-3xl mx-auto space-y-6'>
-            <h1 className="text-5xl leading-[120%] text-[#0C0900] font-semibold">
+          <div className='mx-auto max-w-3xl space-y-4 px-2'>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-semibold">
               Compare plans
             </h1>
 
-            <p>
+            <p className="text-sm sm:text-base">
               Compare features across plans and choose what fits your business.
             </p>
           </div>
@@ -65,7 +66,14 @@ export default function ComparePlans({ plans = [], loading = false }) {
               <Spin />
             </div>
           ) : (
-            <Table columns={columns} dataSource={data} pagination={false} />
+            <div className="w-full overflow-x-auto pb-2">
+              <Table
+                columns={columns}
+                dataSource={data}
+                pagination={false}
+                scroll={{ x: 680 }}
+              />
+            </div>
           )}
         </div>
       </div>

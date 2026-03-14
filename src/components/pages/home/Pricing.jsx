@@ -132,15 +132,15 @@ const Pricing = () => {
   // --- your loading/error UI stays unchanged ---
   if (loading) {
     return (
-      <section className="pricing py-20">
-        <div className="container growth-content flex flex-col items-center justify-center gap-8">
-          <div className="md:w-3xl space-y-4">
-            <h2 className="text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Simple, scalable pricing</h2>
+      <section className="pricing py-16 sm:py-20">
+        <div className="container growth-content flex flex-col items-center justify-center gap-8 overflow-hidden">
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Simple, scalable pricing</h2>
             <p className="font-normal text-base leading-[140%] text-[#0C0900] text-center">
               Loading pricing plans...
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {[1, 2, 3].map((index) => (
               <div key={index} className="rounded-[20px] p-6 bg-gray-200 animate-pulse">
                 <div className="space-y-2">
@@ -164,10 +164,10 @@ const Pricing = () => {
 
   if (error) {
     return (
-      <section className="pricing py-20">
-        <div className="container growth-content flex flex-col items-center justify-center gap-8">
-          <div className="md:w-3xl space-y-4">
-            <h2 className="text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Predictable pricing scalable plans</h2>
+      <section className="pricing py-16 sm:py-20">
+        <div className="container growth-content flex flex-col items-center justify-center gap-8 overflow-hidden">
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl leading-[120%] text-[#0C0900] font-bold text-center">Predictable pricing scalable plans</h2>
             <p className="font-normal text-base leading-[140%] text-red-600 text-center">
               {error}
             </p>
@@ -178,11 +178,11 @@ const Pricing = () => {
   }
 
   return (
-    <section className="pricing py-20">
-      <div className="container flex flex-col gap-10">
+    <section className="pricing py-16 sm:py-20">
+      <div className="container flex flex-col gap-10 overflow-hidden">
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="space-y-3 max-w-2xl mb-5">
-            <h2 className="text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
+          <div className="space-y-3 max-w-2xl mb-5 px-2">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
               Simple, scalable pricing
             </h2>
             <p className="font-normal text-base leading-[150%] text-[#0C0900]">
@@ -204,11 +204,11 @@ const Pricing = () => {
           {/* <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Monthly plans</div> */}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {plans.map((plan, index) => (
             <div
               key={plan.id || index}
-              className={`relative rounded-3xl border p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 ${isPopular(plan)
+              className={`relative min-w-0 rounded-3xl border p-6 sm:p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-transform duration-200 hover:-translate-y-1 ${isPopular(plan)
                 ? 'bg-[#000b41] border-[#0C0900] text-white'
                 : 'bg-white border-[#E5E7EB]'
                 }`}
