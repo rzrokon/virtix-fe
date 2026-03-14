@@ -133,24 +133,26 @@ export default function MetaConnectWhatsApp() {
           </div>
         ) : null}
 
-        <div className="mt-4 space-y-3">
-          <Input
-            placeholder="WABA ID (optional)"
-            value={wabaId}
-            onChange={(e) => setWabaId(e.target.value)}
-          />
-          <Input
-            placeholder="Phone Number ID (required)"
-            value={phoneNumberId}
-            onChange={(e) => setPhoneNumberId(e.target.value)}
-          />
-          <Input.Password
-            placeholder="WhatsApp Access Token (required)"
-            value={accessToken}
-            onChange={(e) => setAccessToken(e.target.value)}
-          />
+        <div className="mt-6">
+          <div className="flex flex-col gap-4">
+            <Input
+              placeholder="WABA ID (optional)"
+              value={wabaId}
+              onChange={(e) => setWabaId(e.target.value)}
+            />
+            <Input
+              placeholder="Phone Number ID (required)"
+              value={phoneNumberId}
+              onChange={(e) => setPhoneNumberId(e.target.value)}
+            />
+            <Input.Password
+              placeholder="WhatsApp Access Token (required)"
+              value={accessToken}
+              onChange={(e) => setAccessToken(e.target.value)}
+            />
+          </div>
 
-          <Button type="primary" onClick={connect} loading={connecting} disabled={!phoneNumberId || !accessToken}>
+          <Button type="primary" className="mt-2" onClick={connect} loading={connecting} disabled={!phoneNumberId || !accessToken}>
             Connect WhatsApp
           </Button>
         </div>
