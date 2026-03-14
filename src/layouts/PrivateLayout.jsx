@@ -1,6 +1,6 @@
 import { Button, Layout, Menu, Modal, Progress, Radio, Tag, Typography, message, theme } from 'antd';
 import Cookies from 'js-cookie';
-import { Calendar, ClipboardMinus, Files, LayoutDashboard, Lightbulb, Plug, Settings, ShoppingBag, SquareChartGantt, User, Users } from 'lucide-react';
+import { Calendar, ClipboardMinus, Files, LayoutDashboard, Lightbulb, MessageCircleReply, MessageSquareMore, Plug, Settings, ShoppingBag, SquareChartGantt, User, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
@@ -167,7 +167,6 @@ export default function PrivateLayout() {
                   { key: 'feature-config', label: ( <Link to={`/${id}/dashboard/features`}> Feature Config </Link> ), },
                 ],
               },
-              { key: 'support',label: <Link to={`/${id}/dashboard/support`}>Human Handover</Link>,},
               { key: 'integrations', icon: <Plug />, label: 'Integrations',
                 children: [
                   { key: 'facebook-integrations', label: <Link to={`/${id}/dashboard/facebook`}>Facebook Integrations</Link> },
@@ -186,7 +185,8 @@ export default function PrivateLayout() {
               { key: '5', icon: <Lightbulb />, label: <Link to={`/${id}/dashboard/knowledge`}>Knowledge</Link> },
               
               { key: '6', icon: <Users />, label: <Link to={`/${id}/dashboard/customers`}>Customers</Link> },
-              // { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
+              { key: 'support', icon: <MessageSquareMore />, label: <Link to={`/${id}/dashboard/support`}>Support Inbox</Link> },
+              { key: '7', icon: <MessageCircleReply />, label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link> },
               
               showLeadMenu ? { key: '8', icon: <User />, label: <Link to={`/${id}/dashboard/leads`}>Manage Leads</Link> } : null,
               

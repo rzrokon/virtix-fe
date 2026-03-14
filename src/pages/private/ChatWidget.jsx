@@ -60,7 +60,7 @@ const DEFAULT_THEME = {
 };
 
 // ─── Snippet builder ──────────────────────────────────────────────────────────
-const buildSnippet = ({ agentName, widgetKey, position, theme, content, quickReplies }) => {
+const buildSnippet = ({ agentName, widgetKey, position, theme, content, quickReplies, showHumanHandover }) => {
   const t = theme;
   const qr = quickReplies.length
     ? `\n    quickReplies: [\n${quickReplies.map(q => `      "${q}"`).join(',\n')},\n    ],`
@@ -72,7 +72,8 @@ const buildSnippet = ({ agentName, widgetKey, position, theme, content, quickRep
     baseUrl:   "https://api.virtixai.com",
     agent:     "${agentName || 'your-agent-name'}",
     widgetKey: "${widgetKey || 'your-widget-key'}",
-    position:  "${position}", // right|left
+    position:  "${position}",
+    showHumanHandover: ${showHumanHandover},
 
     theme: {
       themeColor:      "${t.themeColor}",
@@ -138,6 +139,7 @@ export default function AgentSettings() {
   const [newReply, setNewReply]   = useState('');
   const [draggedItem, setDraggedItem] = useState(null);
   const [previewMode, setPreviewMode] = useState('widget');
+  const [showHumanHandover, setShowHumanHandover] = useState(false);
   const codeRef = useRef(null);
 
   const setThemeKey   = (k, v) => setTheme(p => ({ ...p, [k]: v }));
@@ -229,6 +231,7 @@ export default function AgentSettings() {
     theme,
     content,
     quickReplies: quickReplies.map(r => r.text),
+    showHumanHandover,
   });
 
   const tabItems = [
@@ -368,6 +371,17 @@ export default function AgentSettings() {
                     disabled={!canRemoveBranding}
                   />
                 </Tooltip>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <p className="text-sm text-gray-700">Show "Talk to a human" button</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Lets visitors request a human agent</p>
+                </div>
+                <Switch
+                  checked={showHumanHandover}
+                  onChange={setShowHumanHandover}
+                />
               </div>
             </div>
           </div>

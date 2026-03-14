@@ -95,6 +95,9 @@ export default function ChatHistory() {
   useEffect(() => {
     if (id && customerId) {
       fetchConversations();
+    } else {
+      setConversations([]);
+      setMessages([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, customerId]);
@@ -119,7 +122,11 @@ export default function ChatHistory() {
           <h2 className="text-lg font-semibold text-gray-800">Conversations</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
+          {!customerId ? (
+            <div className="flex items-center justify-center h-full px-6 text-center text-gray-500">
+              Select a customer from the Customers page to view chat history.
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center h-full"><Spin /></div>
           ) : (
             conversations.map((conversation, index) => (
@@ -201,7 +208,9 @@ export default function ChatHistory() {
 
         {/* Chat Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messagesLoading ? (
+          {!customerId ? (
+            <div className="text-center text-gray-500">Open chat history from a customer record first.</div>
+          ) : messagesLoading ? (
             <div className="flex items-center justify-center h-full"><Spin /></div>
           ) : messages.length === 0 ? (
             <div className="text-center text-gray-500">No messages to display</div>
