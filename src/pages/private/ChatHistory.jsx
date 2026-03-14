@@ -1,158 +1,232 @@
-
-import React, { useState, useEffect } from 'react';
-import { Button, Avatar, Spin, message as antdMessage } from 'antd';
-import { ArrowLeftOutlined, ReloadOutlined, FilterOutlined, ExportOutlined } from '@ant-design/icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Avatar, Button, DatePicker, Empty, Input, Spin, Tag, message as antdMessage } from 'antd';
+import { ArrowLeftOutlined, ExportOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import { useParams } from 'react-router-dom';
 import { getData } from '../../scripts/api-service';
+
+const { RangePicker } = DatePicker;
+
+const getConversationId = (item) => item?.id ?? item?.conversation ?? item?.conversation_id ?? null;
+
+const formatDateTime = (value) => {
+  if (!value) return '';
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return value;
+  }
+};
+
+const sanitizeAudio = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  return url.replace(/[`\s]/g, '');
+};
+
+const mapConversationMeta = (item) => ({
+  id: getConversationId(item),
+  title: item?.conversation_title || item?.title || `Conversation #${getConversationId(item) ?? 'Unknown'}`,
+  customerId: item?.customer ?? item?.customer_id ?? null,
+  customerLabel: item?.customer_email || item?.email || `Customer ${item?.customer ?? item?.customer_id ?? 'Unknown'}`,
+  updatedAt: item?.date || item?.updated_at || item?.created_at || item?.timestamp || null,
+});
+
+const mapMessageRows = (item, conversationId) => {
+  const when = item?.date || item?.created_at || item?.timestamp || null;
+  const senderType = String(item?.sender_type || '').toUpperCase();
+  const userText = item?.user_query ?? item?.prompt ?? '';
+  const botText = item?.response ?? item?.message ?? '';
+  const queryAudio = sanitizeAudio(item?.query_audio);
+  const responseAudio = sanitizeAudio(item?.response_audio);
+  const baseId = item?.id ?? `${conversationId}-${when ?? Math.random()}`;
+
+  if (senderType === 'CUSTOMER' && !botText) {
+    return [{
+      id: `${baseId}-u`,
+      text: userText,
+      isBot: false,
+      time: formatDateTime(when),
+      audioUrl: queryAudio || undefined,
+    }].filter((msg) => msg.text || msg.audioUrl);
+  }
+
+  if (senderType === 'BOT' && !userText) {
+    return [{
+      id: `${baseId}-b`,
+      text: botText,
+      isBot: true,
+      time: formatDateTime(when),
+      audioUrl: responseAudio || undefined,
+    }].filter((msg) => msg.text || msg.audioUrl);
+  }
+
+  return [
+    {
+      id: `${baseId}-u`,
+      text: userText,
+      isBot: false,
+      time: formatDateTime(when),
+      audioUrl: queryAudio || undefined,
+    },
+    {
+      id: `${baseId}-b`,
+      text: botText,
+      isBot: true,
+      time: formatDateTime(when),
+      audioUrl: responseAudio || undefined,
+    },
+  ].filter((msg) => msg.text || msg.audioUrl);
+};
 
 export default function ChatHistory() {
   const { id, customerId } = useParams();
   const [conversations, setConversations] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedConversation, setSelectedConversation] = useState(0);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+    date_after: '',
+    date_before: '',
+  });
 
-  const fetchConversations = async () => {
-    try {
-      setLoading(true);
-      const res = await getData(`api/agent/conversations/?agent=${id}&customer=${customerId}`);
-      const items = res?.results || res || [];
-      setConversations(items);
-      if (items.length === 0) {
-        antdMessage.info('No conversations found');
-        setMessages([]);
-      } else {
-        const idx = Math.min(selectedConversation, items.length - 1);
-        await fetchMessages(items[idx]);
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      antdMessage.error('Failed to load conversations');
-      setMessages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const selectedConversationId = selectedConversation?.id || null;
 
-  const sanitizeAudio = (url) => {
-    if (!url || typeof url !== 'string') return '';
-    return url.replace(/[`\s]/g, '');
-  };
+  const visibleMessages = useMemo(() => messages.flatMap((item) => mapMessageRows(item, selectedConversationId)), [messages, selectedConversationId]);
 
-  const toChatMessages = (item) => {
-    const when = item?.date || item?.created_at || item?.timestamp || null;
-    const time = when ? new Date(when).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const userText = item?.user_query ?? item?.prompt ?? '';
-    const botText = item?.response ?? '';
-    const queryAudio = sanitizeAudio(item?.query_audio);
-    const responseAudio = sanitizeAudio(item?.response_audio);
-
-    const userMsg = {
-      id: `${item?.id ?? Math.random()}-u`,
-      text: userText,
-      isBot: false,
-      time,
-      audioUrl: queryAudio || undefined,
-    };
-    const botMsg = {
-      id: `${item?.id ?? Math.random()}-b`,
-      text: botText,
-      isBot: true,
-      time,
-      audioUrl: responseAudio || undefined,
-    };
-    // Only include messages that have at least text or audio
-    return [userMsg, botMsg].filter((m) => (m.text && m.text.length) || m.audioUrl);
-  };
-
-  const fetchMessages = async (conversation) => {
-    if (!conversation) {
+  const fetchMessages = async (conversation, currentFilters = filters) => {
+    const conversationId = getConversationId(conversation);
+    if (!id || !conversationId) {
       setMessages([]);
       return;
     }
+
     try {
-      setMessagesLoading(true);
-      const convId = conversation.id ?? conversation.conversation; // prefer numeric id
-      if (!convId) {
-        setMessages([]);
-        return;
-      }
-      const url = `api/agent/messages/?agent=${id}&customer=${customerId}&conversation=${convId}&ordering=-date`;
-      const res = await getData(url);
-      const list = res?.results || res || [];
-      const mapped = Array.isArray(list) ? list.flatMap((m) => toChatMessages(m)) : [];
-      setMessages(mapped);
+      setLoadingMessages(true);
+      const params = new URLSearchParams();
+      params.set('agent', id);
+      params.set('conversation', conversationId);
+      params.set('ordering', '-date');
+
+      const resolvedCustomerId = conversation?.customerId || conversation?.customer || conversation?.customer_id || customerId;
+      if (resolvedCustomerId) params.set('customer', resolvedCustomerId);
+      if (currentFilters.search) params.set('search', currentFilters.search);
+      if (currentFilters.date_after) params.set('date_after', currentFilters.date_after);
+      if (currentFilters.date_before) params.set('date_before', currentFilters.date_before);
+
+      const res = await getData(`api/agent/messages/?${params.toString()}`);
+      const rows = Array.isArray(res?.results) ? res.results : Array.isArray(res) ? res : [];
+      setMessages(rows);
     } catch (error) {
       console.error('Error fetching messages:', error);
       antdMessage.error('Failed to load messages');
       setMessages([]);
     } finally {
-      setMessagesLoading(false);
+      setLoadingMessages(false);
+    }
+  };
+
+  const fetchConversations = async () => {
+    if (!id) return;
+
+    try {
+      setLoadingConversations(true);
+      const params = new URLSearchParams();
+      params.set('agent', id);
+      params.set('ordering', '-date');
+      if (customerId) params.set('customer', customerId);
+
+      const res = await getData(`api/agent/conversations/?${params.toString()}`);
+      const rows = Array.isArray(res?.results) ? res.results : Array.isArray(res) ? res : [];
+      const mapped = rows.map(mapConversationMeta).filter((item) => item.id);
+      setConversations(mapped);
+
+      let nextSelected = null;
+      if (selectedConversationId) {
+        nextSelected = mapped.find((item) => String(item.id) === String(selectedConversationId)) || null;
+      }
+      if (!nextSelected) {
+        nextSelected = mapped[0] || null;
+      }
+
+      setSelectedConversation(nextSelected);
+      if (nextSelected) {
+        await fetchMessages(nextSelected, filters);
+      } else {
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      antdMessage.error('Failed to load conversations');
+      setConversations([]);
+      setMessages([]);
+    } finally {
+      setLoadingConversations(false);
     }
   };
 
   useEffect(() => {
-    if (id && customerId) {
-      fetchConversations();
-    } else {
-      setConversations([]);
-      setMessages([]);
-    }
+    setSelectedConversation(null);
+    setMessages([]);
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, customerId]);
 
-  useEffect(() => {
-    const selected = conversations && conversations.length > 0 ? conversations[selectedConversation] : null;
-    if (selected) {
-      fetchMessages(selected);
-    } else {
-      setMessages([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedConversation]);
+  const handleSelectConversation = async (conversation) => {
+    setSelectedConversation(conversation);
+    await fetchMessages(conversation);
+  };
 
-  const selected = conversations && conversations.length > 0 ? conversations[selectedConversation] : null;
+  const applyFilters = async () => {
+    await fetchMessages(selectedConversation, filters);
+  };
+
+  const resetFilters = async () => {
+    const next = { search: '', date_after: '', date_before: '' };
+    setFilters(next);
+    await fetchMessages(selectedConversation, next);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar - Conversation List */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">Conversations</h2>
+          <Tag color="blue">{conversations.length}</Tag>
         </div>
+
         <div className="flex-1 overflow-y-auto">
-          {!customerId ? (
-            <div className="flex items-center justify-center h-full px-6 text-center text-gray-500">
-              Select a customer from the Customers page to view chat history.
-            </div>
-          ) : loading ? (
+          {loadingConversations ? (
             <div className="flex items-center justify-center h-full"><Spin /></div>
+          ) : conversations.length === 0 ? (
+            <div className="h-full flex items-center justify-center p-6">
+              <Empty description="No conversations found" />
+            </div>
           ) : (
-            conversations.map((conversation, index) => (
+            conversations.map((conversation) => (
               <div
-                key={conversation.id || conversation.conversation_id || index}
-                onClick={() => setSelectedConversation(index)}
+                key={conversation.id}
+                onClick={() => handleSelectConversation(conversation)}
                 className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  selectedConversation === index ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  String(selectedConversationId) === String(conversation.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <Avatar size={40} className="flex-shrink-0">
-                    {String(conversation.conversation_title || 'C').charAt(0).toUpperCase()}
+                    {String(conversation.title || 'C').charAt(0).toUpperCase()}
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {conversation.conversation_title || `Conversation #${conversation.id ?? index + 1}`}
-                      </h3>
-                      <span className="text-xs text-gray-500 ml-2">
-                        {conversation.date ? new Date(conversation.date).toLocaleString() : ''}
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">{conversation.title}</h3>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        {formatDateTime(conversation.updatedAt)}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 truncate mt-1">
-                      {conversation.conversation_id ? `ID: ${conversation.conversation_id}` : `Agent: ${conversation.agent_name || id}`}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-1">{conversation.customerLabel}</p>
                   </div>
                 </div>
               </div>
@@ -161,86 +235,97 @@ export default function ChatHistory() {
         </div>
       </div>
 
-      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button 
-                type="text" 
-                icon={<ArrowLeftOutlined />} 
-                className="text-gray-600"
-                onClick={() => window.history.back()}
-              />
-              <h1 className="text-xl font-semibold text-gray-900">
-                {selected ? (selected.conversation_title || `Conversation #${selected.id}`) : `Customer ${customerId}`}
-              </h1>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center space-x-4">
+                <Button
+                  type="text"
+                  icon={<ArrowLeftOutlined />}
+                  className="text-gray-600"
+                  onClick={() => window.history.back()}
+                />
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900">
+                    {selectedConversation?.title || 'Chat History'}
+                  </h1>
+                  <p className="text-sm text-gray-500 mb-0">
+                    {selectedConversation?.customerLabel || (customerId ? `Customer ${customerId}` : 'All customers')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button type="default" icon={<ReloadOutlined />} onClick={fetchConversations}>
+                  Refresh
+                </Button>
+                <Button type="default" icon={<ExportOutlined />} disabled>
+                  Export
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button 
-                type="default" 
-                icon={<ReloadOutlined />}
-                className="text-gray-600"
-                onClick={fetchConversations}
-              >
-                Refresh
-              </Button>
-              <Button 
-                type="default" 
-                icon={<FilterOutlined />}
-                className="text-gray-600"
-                disabled
-              >
-                Filter
-              </Button>
-              <Button 
-                type="default" 
-                icon={<ExportOutlined />}
-                className="text-gray-600"
-                disabled
-              >
-                Export
-              </Button>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Input
+                allowClear
+                value={filters.search}
+                prefix={<SearchOutlined />}
+                placeholder="Search selected conversation"
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+                onPressEnter={applyFilters}
+              />
+
+              <RangePicker
+                className="w-full"
+                value={filters.date_after && filters.date_before ? [dayjs(filters.date_after), dayjs(filters.date_before)] : null}
+                onChange={(_, dateStrings) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    date_after: dateStrings[0] || '',
+                    date_before: dateStrings[1] || '',
+                  }))
+                }
+              />
+
+              <div className="flex gap-2">
+                <Button type="primary" onClick={applyFilters} disabled={!selectedConversationId}>
+                  Apply
+                </Button>
+                <Button onClick={resetFilters} disabled={!selectedConversationId}>
+                  Reset
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Chat Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {!customerId ? (
-            <div className="text-center text-gray-500">Open chat history from a customer record first.</div>
-          ) : messagesLoading ? (
+          {loadingMessages ? (
             <div className="flex items-center justify-center h-full"><Spin /></div>
-          ) : messages.length === 0 ? (
-            <div className="text-center text-gray-500">No messages to display</div>
+          ) : !selectedConversation ? (
+            <div className="h-full flex items-center justify-center">
+              <Empty description="Select a conversation" />
+            </div>
+          ) : visibleMessages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <Empty description="No messages to display" />
+            </div>
           ) : (
-            messages.map((m) => (
-              <div key={m.id} className={`flex ${m.isBot ? 'justify-start' : 'justify-end'}`}>
+            visibleMessages.map((item) => (
+              <div key={item.id} className={`flex ${item.isBot ? 'justify-start' : 'justify-end'}`}>
                 <div className="max-w-xs lg:max-w-md">
-                  {m.isBot ? (
-                    <div className="bg-gray-100 text-gray-800 rounded-2xl px-4 py-2">
-                      {m.text && <p className="text-sm whitespace-pre-wrap">{m.text}</p>}
-                      {m.audioUrl && (
-                        <audio controls className="mt-2 w-64">
-                          <source src={m.audioUrl} />
-                          Your browser does not support the audio element.
-                        </audio>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="bg-black text-white rounded-2xl px-4 py-2">
-                      {m.text && <p className="text-sm whitespace-pre-wrap">{m.text}</p>}
-                      {m.audioUrl && (
-                        <audio controls className="mt-2 w-64">
-                          <source src={m.audioUrl} />
-                          Your browser does not support the audio element.
-                        </audio>
-                      )}
-                    </div>
-                  )}
-                  <div className={`text-xs text-gray-500 mt-1 ${m.isBot ? 'text-left' : 'text-right'}`}>
-                    {m.time}
+                  <div className={`${item.isBot ? 'bg-gray-100 text-gray-800' : 'bg-black text-white'} rounded-2xl px-4 py-2`}>
+                    {item.text && <p className="text-sm whitespace-pre-wrap">{item.text}</p>}
+                    {item.audioUrl && (
+                      <audio controls className="mt-2 w-64">
+                        <source src={item.audioUrl} />
+                        Your browser does not support the audio element.
+                      </audio>
+                    )}
+                  </div>
+                  <div className={`text-xs text-gray-500 mt-1 ${item.isBot ? 'text-left' : 'text-right'}`}>
+                    {item.time}
                   </div>
                 </div>
               </div>
