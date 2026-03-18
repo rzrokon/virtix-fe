@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+import ScrollToTop from './components/common/ScrollToTop.jsx';
 import UserProfile from './components/pages/profile/UserProfile.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import CreateAgentLayout from './layouts/CreateAgentLayout.jsx';
@@ -60,6 +61,7 @@ import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
 export default function Routers() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* PUBLIC WEBSITE */}
         <Route path='/' element={<PublicLayout />}>
