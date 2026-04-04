@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const [videoOpen, setVideoOpen] = useState(false);
+  const youtubeEmbedUrl = 'https://www.youtube.com/embed/IZcjJMuH86w?autoplay=1&rel=0';
 
   return (
     <section className="hero-section pt-40 pb-20">
@@ -82,16 +83,19 @@ const Hero = () => {
         onCancel={() => setVideoOpen(false)}
         width={900}
         centered
+        destroyOnHidden
       >
         <div className="aspect-video w-full">
-          <video
-            className="h-full w-full rounded-lg"
-            controls
-            autoPlay
-            poster="/assets/images/image-1.png"
-          >
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
-          </video>
+          {videoOpen ? (
+            <iframe
+              className="h-full w-full rounded-lg"
+              src={youtubeEmbedUrl}
+              title="Virtix AI product video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          ) : null}
         </div>
       </Modal>
     </section>
