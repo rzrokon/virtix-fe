@@ -61,7 +61,7 @@ const Hero = () => {
 
           <div className="flex-1">
             <div className="relative">
-              <img src="/assets/images/image-1.png" alt="hero" />
+              <img src="/assets/images/virtix-widget.png" alt="Virtix AI website widget" />
               <button
                 type="button"
                 aria-label="Play product video"
