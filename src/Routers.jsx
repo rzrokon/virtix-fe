@@ -50,6 +50,7 @@ import RequireActivePlan from './components/common/RequireActivePlan';
 import Contact from './pages/public/Contact.jsx';
 import Features from './pages/public/Features.jsx';
 import Home from './pages/public/Home.jsx';
+import About from './pages/public/About.jsx';
 import Pricing from './pages/public/Pricing.jsx';
 import BillingSuccess from './pages/public/BillingSuccess.jsx';
 import PrivacyPolicy from './pages/public/PrivacyPolicy.jsx';
@@ -66,6 +67,7 @@ export default function Routers() {
         {/* PUBLIC WEBSITE */}
         <Route path='/' element={<PublicLayout />}>
           <Route path='/' element={<Home />} />
+          <Route path='/about' element={<About />} />
           <Route path='/features' element={<Features />} />
           <Route path='/pricing' element={<Pricing />} />
           <Route path='/contact' element={<Contact />} />
