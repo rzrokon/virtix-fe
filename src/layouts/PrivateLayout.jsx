@@ -359,7 +359,7 @@ export default function PrivateLayout() {
               fontSize: '16px',
               padding: '0 5px',
             }}
-            className='!bg-gray-200 rounded-lg mr-4'
+            className='!bg-gray-200 rounded-lg'
           >
             <img src="/assets/logo/favicon.png" alt="icon" style={{ width: 30, verticalAlign: 'middle' }} />
           </Button>
