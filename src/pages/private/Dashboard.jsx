@@ -320,19 +320,19 @@ export default function Dashboard() {
             className="rounded-[28px] border border-slate-200 shadow-sm"
             styles={{ body: { padding: 24 } }}
           >
-            <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Trend</p>
                 <h2 className="mt-2 text-xl font-semibold text-slate-950">Conversation Volume</h2>
                 <p className="mt-1 text-sm text-slate-500">Shows how chat activity changes across the selected range.</p>
               </div>
-              <div className="flex flex-col items-end gap-3">
-                <div className="rounded-2xl bg-[#eef4ff] p-3 text-[#1d4ed8]">
+              <div className="flex flex-col gap-3 sm:items-end">
+                <div className="hidden rounded-2xl bg-[#eef4ff] p-3 text-[#1d4ed8] sm:block">
                   <TrendingUp className="h-5 w-5" strokeWidth={1.8} />
                 </div>
-                <div>
-                  {/* <p className="mb-2 text-right text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">View Range</p> */}
+                <div className="w-full sm:w-auto">
                   <Radio.Group
+                    className="dashboard-range-group"
                     options={TIME_RANGE_OPTIONS}
                     onChange={(e) => setDays(e.target.value)}
                     value={days}
@@ -352,7 +352,7 @@ export default function Dashboard() {
             className="h-full rounded-[28px] border border-slate-200 shadow-sm"
             styles={{ body: { padding: 24 } }}
           >
-            <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 {/* <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Quality</p> */}
                 <h2 className="mt-2 text-xl font-semibold text-slate-950">Sentiment Breakdown</h2>
@@ -403,7 +403,7 @@ export default function Dashboard() {
         className="rounded-[28px] border border-slate-200 shadow-sm"
         styles={{ body: { padding: 24 } }}
       >
-        <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             {/* <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Knowledge</p> */}
             <h2 className="mt-2 text-xl font-semibold text-slate-950">Top Asked Question</h2>

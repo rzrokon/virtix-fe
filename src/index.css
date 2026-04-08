@@ -31,6 +31,88 @@ body {
   min-height: 100vh;
 }
 
+.private-layout-shell {
+  min-height: 100vh;
+}
+
+.private-layout__body,
+.private-layout__content-shell {
+  min-width: 0;
+}
+
+.private-layout__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding-right: 16px;
+}
+
+.private-layout__header-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  gap: 12px;
+}
+
+.private-layout__menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.private-layout__agent-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.private-layout__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.private-layout__header-actions-wrap {
+  margin-left: auto;
+  min-width: 0;
+}
+
+.private-layout__content {
+  min-width: 0;
+}
+
+.private-layout__content-inner {
+  min-width: 0;
+}
+
+.private-layout__content-inner .ant-table-wrapper {
+  max-width: 100%;
+}
+
+.private-layout__content-inner .ant-table-content,
+.private-layout__content-inner .ant-table-body {
+  overflow-x: auto;
+}
+
+.private-layout__content-inner .ant-card,
+.private-layout__content-inner .ant-form,
+.private-layout__content-inner .ant-row {
+  min-width: 0;
+}
+
+.dashboard-range-group {
+  width: 100%;
+}
+
+.dashboard-range-group .ant-radio-button-wrapper {
+  text-align: center;
+}
+
 /* Custom Utility Classes */
 .container {
   width: 100%;
@@ -89,5 +171,52 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@media (max-width: 991px) {
+  .private-layout__header {
+    padding: 12px 16px;
+  }
+
+  .private-layout__header-main {
+    width: 100%;
+  }
+
+  .private-layout__menu-trigger {
+    margin-right: 0;
+  }
+
+  .private-layout__header-actions-wrap {
+    margin-left: auto;
+  }
+
+  .private-layout__header-actions {
+    gap: 8px;
+  }
+
+  .private-layout__header-actions > * {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .private-layout__agent-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  .private-layout__content-inner > div[class*='p-6'] {
+    padding: 0;
+  }
+
+  .dashboard-range-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-range-group .ant-radio-button-wrapper {
+    width: 100%;
+    padding-inline: 0;
   }
 }

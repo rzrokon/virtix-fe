@@ -1,4 +1,4 @@
-import { Button, Layout, Menu, Modal, Progress, Radio, Tag, Typography, message, theme } from 'antd';
+import { Button, Drawer, Grid, Layout, Menu, Modal, Progress, Radio, Tag, Typography, message, theme } from 'antd';
 import Cookies from 'js-cookie';
 import {
   BarChart3,
@@ -7,6 +7,7 @@ import {
   Files,
   LayoutDashboard,
   Lightbulb,
+  Menu as MenuIcon,
   MessageCircleReply,
   MessageSquareMore,
   Plug,
@@ -26,6 +27,7 @@ const { Header, Content, Sider } = Layout;
 
 export default function PrivateLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [indexModalOpen, setIndexModalOpen] = useState(false);
@@ -39,6 +41,8 @@ export default function PrivateLayout() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.lg;
 
   const token = Cookies.get('kotha_token');
   const { setCurrentAgentName } = useContentApi();
@@ -304,66 +308,116 @@ export default function PrivateLayout() {
     },
   ].filter(Boolean);
 
+  const headerActionGroup = (
+    <div className="private-layout__header-actions">
+      <Button type="primary" onClick={() => { setIndexModalOpen(true); }}>
+        Index Agent
+      </Button>
+      <UserMenu />
+    </div>
+  );
+
+  const sidebarMenu = (
+    <Menu
+      className='my-app-menu !mt-6'
+      mode="inline"
+      defaultSelectedKeys={['dashboard']}
+      style={{ height: '100%', borderInlineEnd: 0, background: '#000B41' }}
+      items={menuItems}
+      onClick={() => {
+        if (isMobile) {
+          setMobileMenuOpen(false);
+        }
+      }}
+    />
+  );
+
   return (
-    <Layout>
+    <Layout className="private-layout-shell">
       <Header
-        style={{ display: 'flex', alignItems: 'center', background: colorBgContainer, paddingRight: 16 }}
-        className='!pl-4'
+        style={{ background: colorBgContainer }}
+        className='private-layout__header !pl-4'
       >
-        <Button
-          type="default"
-          onClick={() => {
-            window.location = `/home`;
-          }}
-          size='large'
-          style={{
-            fontSize: '16px',
-            padding: '0 5px',
-          }}
-          className='!bg-gray-200 rounded-lg mr-4'
-        >
-          <img src="/assets/logo/favicon.png" alt="icon" style={{ width: 30, verticalAlign: 'middle' }} />
-        </Button>
+        <div className="private-layout__header-main">
+          {isMobile ? (
+            <Button
+              type="text"
+              icon={<MenuIcon size={22} />}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              className="private-layout__menu-trigger"
+            />
+          ) : null}
 
-        <div className="demo-logo font-semibold text-2xl">
-          {loading ? 'Loading...' : (agent?.agent_name || 'Agent name')}
-        </div>
-
-        <div className='ml-auto'>
-          <Button type="primary" onClick={() => { setIndexModalOpen(true); }}>
-            Index Agent
+          <Button
+            type="default"
+            onClick={() => {
+              window.location = `/home`;
+            }}
+            size='large'
+            style={{
+              fontSize: '16px',
+              padding: '0 5px',
+            }}
+            className='!bg-gray-200 rounded-lg mr-4'
+          >
+            <img src="/assets/logo/favicon.png" alt="icon" style={{ width: 30, verticalAlign: 'middle' }} />
           </Button>
-          <UserMenu />
+
+          <div className="private-layout__agent-title demo-logo font-semibold text-2xl">
+            {loading ? 'Loading...' : (agent?.agent_name || 'Agent name')}
+          </div>
+
+          <div className="private-layout__header-actions-wrap">
+            {headerActionGroup}
+          </div>
         </div>
       </Header>
 
-      <Layout>
-        <Sider
-          width={250}
-          style={{ background: '#000B41' }}
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-        >
-          <Menu
-            className='my-app-menu !mt-6'
-            mode="inline"
-            defaultSelectedKeys={['dashboard']}
-            style={{ height: '100%', borderInlineEnd: 0, background: '#000B41' }}
-            items={menuItems}
-          />
-        </Sider>
+      <Layout className="private-layout__body">
+        {!isMobile ? (
+          <Sider
+            width={250}
+            style={{ background: '#000B41' }}
+            trigger={null}
+            collapsible
+            collapsed={collapsed}
+            className="private-layout__sider"
+          >
+            {sidebarMenu}
+          </Sider>
+        ) : null}
 
-        <Layout style={{ padding: '24px 24px' }}>
+        <Drawer
+          title={loading ? 'Loading...' : (agent?.agent_name || 'Agent name')}
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={isMobile && mobileMenuOpen}
+          width={280}
+          styles={{
+            body: { padding: 0, background: '#000B41' },
+            header: { paddingInline: 16, paddingBlock: 14 },
+          }}
+        >
+          {sidebarMenu}
+        </Drawer>
+
+        <Layout
+          className="private-layout__content-shell"
+          style={{ padding: isMobile ? '16px' : '24px 24px' }}
+        >
           <Content
+            className="private-layout__content"
             style={{
-              padding: 24,
+              padding: isMobile ? 16 : 24,
               minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
             }}
           >
-            <Outlet />
+            <div className="private-layout__content-inner">
+              <Outlet />
+            </div>
           </Content>
         </Layout>
       </Layout>
