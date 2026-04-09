@@ -1,13 +1,13 @@
 import {
   AppstoreOutlined,
   CloseOutlined,
+  DeleteOutlined,
   EditOutlined,
   MoreOutlined,
   ReloadOutlined,
   RobotOutlined,
   SearchOutlined,
   UnorderedListOutlined,
-  UploadOutlined
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -27,7 +27,6 @@ import {
   Statistic,
   Tag,
   Typography,
-  Upload,
   message
 } from 'antd';
 import { useEffect, useState } from 'react';
@@ -58,12 +57,6 @@ export default function CreateAgent() {
   const [editForm] = Form.useForm();
   const [updating, setUpdating] = useState(false);
 
-  // Upload configuration for edit modal
-  const uploadProps = {
-    beforeUpload: () => false, // Prevent auto upload
-    showUploadList: true,
-  };
-
   const handleEditAgent = async (values) => {
     if (!selectedAgent) return;
 
@@ -71,18 +64,9 @@ export default function CreateAgent() {
     try {
       const formData = new FormData();
 
-      // Add text fields
       formData.append('agent_name', values.agent_name);
       formData.append('agent_heading', values.agent_heading);
       formData.append('agent_description', values.agent_description);
-
-      // Add file uploads if they exist
-      if (values.logo_light && values.logo_light.fileList && values.logo_light.fileList[0]) {
-        formData.append('logo_light', values.logo_light.fileList[0].originFileObj);
-      }
-      if (values.logo_dark && values.logo_dark.fileList && values.logo_dark.fileList[0]) {
-        formData.append('logo_dark', values.logo_dark.fileList[0].originFileObj);
-      }
 
       const response = await patchData(`${UPDATE_AGENT}${selectedAgent.id}/`, formData);
 
@@ -359,8 +343,8 @@ export default function CreateAgent() {
                         menu={{
                           items: [
                             { key: '1', label: <Space><EditOutlined /> Edit Agent</Space> },
-                            { key: '3', label: 'Index Agent' },
-                            { key: '2', label: 'Delete Agent' }
+                            { key: '3', label: <Space><ReloadOutlined /> Index Agent</Space> },
+                            { key: '2', label: <Space><DeleteOutlined /> Delete Agent</Space> }
                           ],
                           onClick: (e) => handleMenuClick(e, agent),
                         }}
@@ -431,8 +415,8 @@ export default function CreateAgent() {
                         menu={{
                           items: [
                             { key: '1', label: <Space><EditOutlined /> Edit Agent</Space> },
-                            { key: '3', label: 'Index Agent' },
-                            { key: '2', label: 'Delete Agent' }
+                            { key: '3', label: <Space><ReloadOutlined /> Index Agent</Space> },
+                            { key: '2', label: <Space><DeleteOutlined /> Delete Agent</Space> }
                           ],
                           onClick: (e) => handleMenuClick(e, agent),
                         }}
@@ -551,7 +535,7 @@ export default function CreateAgent() {
           onFinish={handleEditAgent}
         >
           <Form.Item
-            label="Agent name"
+            label="Agent Name (slug-safe)"
             name="agent_name"
             rules={[
               { required: true, message: 'Please enter agent name!' },
@@ -561,7 +545,7 @@ export default function CreateAgent() {
               }
             ]}
           >
-            <Input placeholder="Write" />
+            <Input placeholder="Write" readOnly />
           </Form.Item>
 
           <Form.Item
@@ -578,24 +562,6 @@ export default function CreateAgent() {
             rules={[{ required: true, message: 'Please enter agent description!' }]}
           >
             <TextArea rows={4} placeholder="Write" />
-          </Form.Item>
-
-          <Form.Item
-            label="Logo Light"
-            name="logo_light"
-          >
-            <Upload {...uploadProps} listType="picture" maxCount={1}>
-              <Button icon={<UploadOutlined />}>Upload Logo Light</Button>
-            </Upload>
-          </Form.Item>
-
-          <Form.Item
-            label="Logo Dark"
-            name="logo_dark"
-          >
-            <Upload {...uploadProps} listType="picture" maxCount={1} accept='image/png, image/jpeg, image/jpg'>
-              <Button icon={<UploadOutlined />}>Upload Logo Dark</Button>
-            </Upload>
           </Form.Item>
 
           <Form.Item label={null}>
