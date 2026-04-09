@@ -4,7 +4,6 @@ import {
   BarChart3,
   Calendar,
   ClipboardMinus,
-  Files,
   LayoutDashboard,
   Lightbulb,
   Menu as MenuIcon,
@@ -13,12 +12,11 @@ import {
   Plug,
   Settings,
   ShoppingBag,
-  SquareChartGantt,
   User,
   Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
 import { useContentApi } from '../contexts/ContentApiContext';
 import { getAgentById, getData, postData } from '../scripts/api-service';
@@ -26,7 +24,7 @@ import { getAgentById, getData, postData } from '../scripts/api-service';
 const { Header, Content, Sider } = Layout;
 
 export default function PrivateLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +35,38 @@ export default function PrivateLayout() {
   const [featureFlags, setFeatureFlags] = useState(null);
 
   const { id } = useParams();
+  const location = useLocation();
+
+  const getSelectedKey = () => {
+    const pathname = location.pathname;
+    if (pathname === `/${id}/dashboard`) return 'dashboard';
+    const segment = pathname.split('/').pop();
+    const map = {
+      'agent-info': 'agent-info',
+      'features': 'feature-config',
+      'contents': 'contents',
+      'documents': 'documents',
+      'manage-prompts': 'prompts',
+      'website': 'website-integrations',
+      'woocommerce': 'woocommerce-integrations',
+      'chat-widget': 'chat-widget',
+      'facebook': 'facebook-integrations',
+      'instagram': 'instagram-integrations',
+      'whatsapp': 'whatsapp-integrations',
+      'customers': 'customers',
+      'chat-history': 'chat-history',
+      'support': 'support',
+      'leads': 'leads',
+      'bookings': 'bookings-list',
+      'booking-windows': 'booking-windows',
+      'complaints': 'complaints',
+      'products': 'products',
+      'orders': 'orders',
+      'offers': 'offers',
+      'report': 'reports',
+    };
+    return map[segment] || 'dashboard';
+  };
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -321,7 +351,7 @@ export default function PrivateLayout() {
     <Menu
       className='my-app-menu !mt-6'
       mode="inline"
-      defaultSelectedKeys={['dashboard']}
+      selectedKeys={[getSelectedKey()]}
       style={{ height: '100%', borderInlineEnd: 0, background: '#000B41' }}
       items={menuItems}
       onClick={() => {

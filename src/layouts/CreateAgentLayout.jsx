@@ -65,7 +65,7 @@ export default function CreateAgentLayout() {
 
   return (
     <div>
-      <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer }} className='!pl-4, private-header' >
+      <Header style={{ display: 'flex', alignItems: 'center', background: colorBgContainer }} className='!pl-4 private-header' >
         <Link to="/" className="flex items-center space-x-4">
           <div className="flex-shrink-0">
             <img

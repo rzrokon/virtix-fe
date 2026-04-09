@@ -1,4 +1,4 @@
-import { CreditCardOutlined, DashboardOutlined, DownOutlined, LockOutlined, LogoutOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { DashboardOutlined, DownOutlined, LockOutlined, LogoutOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, message, Space } from "antd";
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../contexts/UserContext';
@@ -6,40 +6,28 @@ import { logoutUser } from '../../../scripts/api-service';
 
 export default function UserMenu() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, clearUser } = useUser();
+  const { user, clearUser } = useUser();
 
   const items = [
     {
       key: 'create-agent',
       icon: <RobotOutlined />,
       label: 'My Agents',
-      onClick: () => {
-        window.location = `/home`
-      }
     },
     {
       key: 'active-plan',
       icon: <DashboardOutlined />,
       label: 'Active Plan',
-      onClick: () => {
-        window.location = `/active-plan`
-      }
     },
     {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Edit Profile',
-      onClick: () => {
-        window.location = `/profile`
-      }
     },
     {
       key: 'change-password',
       icon: <LockOutlined />,
-      label: 'Change Passowrd',
-      onClick: () => {
-        window.location = `/change-password`
-      }
+      label: 'Change Password',
     },
     {
       type: 'divider',
@@ -52,14 +40,17 @@ export default function UserMenu() {
     },
   ];
 
-
   const handleMenuClick = ({ key }) => {
     if (key === 'logout') {
       handleLogout();
+    } else if (key === 'create-agent') {
+      navigate('/home');
+    } else if (key === 'active-plan') {
+      navigate('/active-plan');
     } else if (key === 'profile') {
       navigate('/profile');
-    } else if (key === 'dashboard') {
-      navigate('/dashboard');
+    } else if (key === 'change-password') {
+      navigate('/change-password');
     }
   };
 
