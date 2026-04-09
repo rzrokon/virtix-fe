@@ -78,6 +78,24 @@ const mapMessageRows = (item, conversationId) => {
   ].filter((msg) => msg.text || msg.audioUrl);
 };
 
+const escapeCsvValue = (value) => {
+  const normalized = value == null ? '' : String(value);
+  return `"${normalized.replace(/"/g, '""')}"`;
+};
+
+const downloadCsv = (filename, rows) => {
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function ChatHistory() {
   const { id, customerId } = useParams();
   const [conversations, setConversations] = useState([]);
@@ -191,6 +209,34 @@ export default function ChatHistory() {
     await fetchMessages(selectedConversation, next);
   };
 
+  const exportConversation = () => {
+    if (!selectedConversation || visibleMessages.length === 0) {
+      antdMessage.warning('No conversation messages available to export');
+      return;
+    }
+
+    const headers = ['conversation_id', 'customer', 'title', 'sender', 'timestamp', 'message', 'audio_url'];
+    const rows = [headers.join(',')];
+
+    visibleMessages.forEach((item) => {
+      rows.push(
+        [
+          selectedConversation.id,
+          selectedConversation.customerId ?? '',
+          selectedConversation.title ?? '',
+          item.isBot ? 'BOT' : 'CUSTOMER',
+          item.time ?? '',
+          item.text ?? '',
+          item.audioUrl ?? '',
+        ].map(escapeCsvValue).join(',')
+      );
+    });
+
+    const safeConversationId = String(selectedConversation.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+    downloadCsv(`chat_history_${safeConversationId}.csv`, rows);
+    antdMessage.success('Chat history exported successfully');
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
@@ -260,7 +306,12 @@ export default function ChatHistory() {
                 <Button type="default" icon={<ReloadOutlined />} onClick={fetchConversations}>
                   Refresh
                 </Button>
-                <Button type="default" icon={<ExportOutlined />} disabled>
+                <Button
+                  type="default"
+                  icon={<ExportOutlined />}
+                  onClick={exportConversation}
+                  disabled={!selectedConversation || visibleMessages.length === 0}
+                >
                   Export
                 </Button>
               </div>

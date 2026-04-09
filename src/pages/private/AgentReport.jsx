@@ -9,6 +9,11 @@ import { useContentApi } from '../../contexts/ContentApiContext';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
+const escapeCsvValue = (value) => {
+  const normalized = value == null ? '' : String(value);
+  return `"${normalized.replace(/"/g, '""')}"`;
+};
+
 export default function AgentReport() {
   const { id } = useParams();
   const { currentAgentName } = useContentApi();
@@ -111,8 +116,7 @@ export default function AgentReport() {
     for (const item of items) {
       const row = headers.map(h => {
         const val = item[h];
-        const safe = typeof val === 'string' ? '"' + val.replace(/"/g, '""') + '"' : (val ?? '');
-        return safe;
+        return escapeCsvValue(val);
       });
       lines.push(row.join(','));
     }
@@ -126,12 +130,22 @@ export default function AgentReport() {
         return;
       }
 
-      const params = new URLSearchParams(buildQuery().toString());
-      params.set('export', 'csv');
+      const params = new URLSearchParams(buildQuery(1, 1000));
       const base = `api/agent/${currentAgentName}/report/`;
       const url = `${base}?${params.toString()}`;
       const res = await getData(url);
-      const results = res?.results || res?.data?.results || [];
+
+      const results = Array.isArray(res?.results)
+        ? res.results
+        : Array.isArray(res)
+          ? res
+          : data;
+
+      if (!results.length) {
+        message.warning('No report data available to export');
+        return;
+      }
+
       const csv = convertToCSV(results);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -142,6 +156,7 @@ export default function AgentReport() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
       message.success('Report exported successfully');
     } catch (err) {
       console.error('Error exporting report:', err);

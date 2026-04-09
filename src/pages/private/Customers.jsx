@@ -7,6 +7,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const { RangePicker } = DatePicker;
 
+const escapeCsvValue = (value) => {
+  const normalized = value == null ? '' : String(value);
+  return `"${normalized.replace(/"/g, '""')}"`;
+};
+
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -127,28 +132,38 @@ const Customers = () => {
       if (filters.date_to) params.append('date_to', filters.date_to);
       if (filters.min_messages) params.append('min_messages', filters.min_messages);
       if (filters.max_messages) params.append('max_messages', filters.max_messages);
-      params.append('export', 'csv');
+      params.append('page', '1');
+      params.append('page_size', '1000');
 
       const queryString = params.toString();
       const base = `api/agent/${currentAgentName}/customers/`;
       const url = `${base}?${queryString}`;
       
       const response = await getData(url);
-      
-      if (response && response.results) {
-        // Create and download CSV file
-        const csvContent = convertToCSV(response.results);
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url_obj = URL.createObjectURL(blob);
-        link.setAttribute('href', url_obj);
-        link.setAttribute('download', 'customers.csv');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        message.success('Customers data exported successfully');
+
+      const rows = Array.isArray(response?.results)
+        ? response.results
+        : Array.isArray(response)
+          ? response
+          : customers;
+
+      if (!rows.length) {
+        message.warning('No customer data available to export');
+        return;
       }
+
+      const csvContent = convertToCSV(rows);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const downloadUrl = URL.createObjectURL(blob);
+      link.setAttribute('href', downloadUrl);
+      link.setAttribute('download', 'customers.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+      message.success('Customers data exported successfully');
     } catch (error) {
       console.error('Error exporting customers:', error);
       message.error('Failed to export customers data');
@@ -171,7 +186,7 @@ const Customers = () => {
         new Date(customer.first_seen).toLocaleDateString(),
         new Date(customer.last_seen).toLocaleDateString()
       ];
-      csvRows.push(row.join(','));
+      csvRows.push(row.map(escapeCsvValue).join(','));
     });
     
     return csvRows.join('\n');
