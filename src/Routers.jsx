@@ -133,7 +133,7 @@ export default function Routers() {
 
         {/* AGENT DASHBOARD */}
         <Route path='/:id/dashboard' element={<PrivateLayout />}>
-          <Route path='/:id/dashboard' element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
           <Route path='/:id/dashboard/chat-history' element={<ChatHistory />} />
           <Route path='/:id/dashboard/chat-history/:customerId' element={<ChatHistory />} />
           <Route path='/:id/dashboard/manage-prompts' element={<ManagePrompts />} />

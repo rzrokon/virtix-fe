@@ -16,7 +16,7 @@ import {
   Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
 import { useContentApi } from '../contexts/ContentApiContext';
 import { getAgentById, getData, postData } from '../scripts/api-service';
@@ -36,11 +36,15 @@ export default function PrivateLayout() {
 
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [openKeys, setOpenKeys] = useState([]);
 
+  // Use segment index 3 (/id/dashboard/PAGE) so nested routes like
+  // chat-history/:customerId still resolve to 'chat-history'.
   const getSelectedKey = () => {
-    const pathname = location.pathname;
-    if (pathname === `/${id}/dashboard`) return 'dashboard';
-    const segment = pathname.split('/').pop();
+    const parts = location.pathname.split('/');
+    const segment = parts[3]; // e.g. 'chat-history', 'agent-info', undefined
+    if (!segment) return 'dashboard';
     const map = {
       'agent-info': 'agent-info',
       'features': 'feature-config',
@@ -67,6 +71,35 @@ export default function PrivateLayout() {
     };
     return map[segment] || 'dashboard';
   };
+
+  const getParentKey = (selectedKey) => {
+    const parentMap = {
+      'agent-info': 'agent',
+      'feature-config': 'agent',
+      'contents': 'knowledge',
+      'documents': 'knowledge',
+      'prompts': 'knowledge',
+      'website-integrations': 'knowledge',
+      'woocommerce-integrations': 'knowledge',
+      'chat-widget': 'integrations',
+      'facebook-integrations': 'integrations',
+      'instagram-integrations': 'integrations',
+      'whatsapp-integrations': 'integrations',
+      'bookings-list': 'bookings',
+      'booking-windows': 'bookings',
+      'products': 'commerce',
+      'orders': 'commerce',
+      'offers': 'commerce',
+    };
+    return parentMap[selectedKey] || null;
+  };
+
+  useEffect(() => {
+    const parent = getParentKey(getSelectedKey());
+    if (parent) {
+      setOpenKeys((prev) => (prev.includes(parent) ? prev : [...prev, parent]));
+    }
+  }, [location.pathname]);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -230,7 +263,7 @@ export default function PrivateLayout() {
               label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce Data</Link>,
             }
           : null,
-      ],
+      ].filter(Boolean),
     },
 
     {
@@ -352,6 +385,8 @@ export default function PrivateLayout() {
       className='my-app-menu !mt-6'
       mode="inline"
       selectedKeys={[getSelectedKey()]}
+      openKeys={openKeys}
+      onOpenChange={setOpenKeys}
       style={{ height: '100%', borderInlineEnd: 0, background: '#000B41' }}
       items={menuItems}
       onClick={() => {
@@ -381,9 +416,7 @@ export default function PrivateLayout() {
 
           <Button
             type="default"
-            onClick={() => {
-              window.location = `/home`;
-            }}
+            onClick={() => navigate('/home')}
             size='large'
             style={{
               fontSize: '16px',
