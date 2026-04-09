@@ -137,12 +137,12 @@ export default function Routers() {
           <Route path='/:id/dashboard/chat-history' element={<ChatHistory />} />
           <Route path='/:id/dashboard/chat-history/:customerId' element={<ChatHistory />} />
           <Route path='/:id/dashboard/manage-prompts' element={<ManagePrompts />} />
-          <Route path='/:id/dashboard/manage-files' element={<ManageFiles />} />
+          <Route path='/:id/dashboard/documents' element={<ManageFiles />} />
           <Route path='/:id/dashboard/customers' element={<Customers />} />
           <Route path='/:id/dashboard/chat-widget' element={<ChatWidget />} />
           <Route path='/:id/dashboard/agent-info' element={<AgentInfo />} />
           <Route path="/:id/dashboard/features" element={<AgentFeatures />} />
-          <Route path='/:id/dashboard/knowledge' element={<Knowledge />} />
+          <Route path='/:id/dashboard/contents' element={<Knowledge />} />
           <Route path='/:id/dashboard/report' element={<AgentReport />} />
           <Route path='/:id/dashboard/leads' element={<ManageLeads />} />
           <Route path='/:id/dashboard/bookings' element={<ManageBookings />} />

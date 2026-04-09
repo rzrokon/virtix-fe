@@ -457,7 +457,7 @@ export default function AgentSettings() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold">Widget Configuration</h1>
+        <h1 className="text-2xl font-bold">Website Widget Configuration</h1>
         <p className="text-gray-500 mt-1 text-sm">
           Customize your chat widget, then copy the snippet and paste it into your website.
         </p>

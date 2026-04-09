@@ -311,9 +311,9 @@ export default function AgentSettings() {
                   { required: true, message: 'Agent name is required' },
                   { pattern: /^[a-zA-Z0-9_-]+$/, message: 'Use letters, numbers, underscore or hyphen only' },
                 ]}
-                help='Used in URLs and internal identification. Example: "norahs-beauty-glam"'
+                help='Used in URLs and internal identification. Example: "my-ai-agent"'
               >
-                <Input placeholder="e.g., norahs-beauty-glam" />
+                <Input placeholder="e.g., my-ai-agent" />
               </Form.Item>
             </Col>
 
@@ -321,9 +321,9 @@ export default function AgentSettings() {
               <Form.Item
                 label="Agent Heading"
                 name="agent_heading"
-                help='Shown in UI header. Example: "Norah’s Beauty Glam"'
+                help='Shown in UI header. Example: "My AI Agent"'
               >
-                <Input placeholder="e.g., Norah’s Beauty Glam" />
+                <Input placeholder="e.g., My AI Agent" />
               </Form.Item>
             </Col>
           </Row>

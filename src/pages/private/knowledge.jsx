@@ -254,7 +254,7 @@ export default function knowledge() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <Title level={3} className="!mb-0">Knowledge</Title>
+        <Title level={3} className="!mb-0">Manage Contents</Title>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={() => fetchKnowledge(pagination.current, pagination.pageSize, filters)}>Refresh</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>New</Button>
@@ -306,7 +306,7 @@ export default function knowledge() {
 
       {/* Create Modal */}
       <Modal
-        title="Create Knowledge"
+        title="Create Content"
         open={creating}
         onOk={submitCreate}
         onCancel={() => setCreating(false)}
@@ -316,7 +316,7 @@ export default function knowledge() {
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Please enter a title' }]}> 
             <Input />
           </Form.Item>
-          <Form.Item label="Content" name="content" rules={[{ required: true, message: 'Please enter content' }]}> 
+          <Form.Item label="Content Details" name="content" rules={[{ required: true, message: 'Please enter content' }]}> 
             <Input.TextArea rows={6} />
           </Form.Item>
           <Form.Item label="Tags (comma-separated)" name="tags"> 
@@ -333,7 +333,7 @@ export default function knowledge() {
 
       {/* Edit Modal */}
       <Modal
-        title="Edit Knowledge"
+        title="Edit Content"
         open={editing}
         onOk={submitEdit}
         onCancel={() => { setEditing(false); setCurrentRecord(null); }}
@@ -343,7 +343,7 @@ export default function knowledge() {
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Please enter a title' }]}> 
             <Input />
           </Form.Item>
-          <Form.Item label="Content" name="content" rules={[{ required: true, message: 'Please enter content' }]}> 
+          <Form.Item label="Content Details" name="content" rules={[{ required: true, message: 'Please enter content' }]}> 
             <Input.TextArea rows={6} />
           </Form.Item>
           <Form.Item label="Tags (comma-separated)" name="tags"> 
@@ -360,7 +360,7 @@ export default function knowledge() {
 
       {/* Delete Confirm */}
       <Modal
-        title="Delete Knowledge"
+        title="Delete Content"
         open={deleting}
         onOk={submitDelete}
         onCancel={() => { setDeleting(false); setCurrentRecord(null); }}

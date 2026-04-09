@@ -240,7 +240,7 @@ export default function ManageFiles() {
             />
           </Tooltip>
           <Popconfirm
-            title="Delete File"
+            title="Delete Document File"
             description="Are you sure you want to delete this file?"
             onConfirm={() => handleDeleteFile(record.id)}
             okText="Yes"
@@ -265,14 +265,14 @@ export default function ManageFiles() {
       <Card>
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">
-            Manage Files
+            Manage Documents
           </h1>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setUploadModalVisible(true)}
           >
-            Upload Files
+            Upload Documents
           </Button>
         </div>
       </Card>
@@ -296,7 +296,7 @@ export default function ManageFiles() {
 
       {/* Upload Files Modal */}
       <Modal
-        title="Upload New Files"
+        title="Upload New Documents"
         open={uploadModalVisible}
         onCancel={() => {
           setUploadModalVisible(false);
@@ -321,16 +321,16 @@ export default function ManageFiles() {
           </Form.Item>
 
           <Form.Item
-            label="Select Files"
+            label="Select Document"
             required
           >
             <Dragger {...uploadProps}>
               <p className="ant-upload-drag-icon">
                 <UploadOutlined />
               </p>
-              <p className="ant-upload-text">Click or drag files to this area to upload</p>
+              <p className="ant-upload-text">Click or drag document file to this area to upload</p>
               <p className="ant-upload-hint">
-                Support for multiple file upload. You can select multiple files at once.
+                Support for multiple file upload. You can select multiple document files at once.
               </p>
             </Dragger>
           </Form.Item>
@@ -351,7 +351,7 @@ export default function ManageFiles() {
               loading={submitting}
               disabled={fileList.length === 0}
             >
-              Upload Files
+              Upload Document File
             </Button>
           </div>
         </Form>
@@ -406,7 +406,7 @@ export default function ManageFiles() {
 
       {/* Replace Files Modal */}
       <Modal
-        title={`Replace Files for: ${replacingFile?.file_name}`}
+        title={`Replace Document Files for: ${replacingFile?.file_name}`}
         open={replaceModalVisible}
         onCancel={() => {
           setReplaceModalVisible(false);
@@ -419,7 +419,7 @@ export default function ManageFiles() {
         <div className="mt-4">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select New Files
+              Select New Docuemnt Files
             </label>
             <Dragger {...replaceUploadProps}>
               <p className="ant-upload-drag-icon">
@@ -448,7 +448,7 @@ export default function ManageFiles() {
               loading={submitting}
               disabled={replaceFileList.length === 0}
             >
-              Replace Files
+              Replace Document Files
             </Button>
           </div>
         </div>

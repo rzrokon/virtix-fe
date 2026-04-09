@@ -178,11 +178,11 @@ export default function PrivateLayout() {
       children: [
         {
           key: 'contents',
-          label: <Link to={`/${id}/dashboard/knowledge`}>Contents</Link>,
+          label: <Link to={`/${id}/dashboard/contents`}>Contents</Link>,
         },
         {
           key: 'documents',
-          label: <Link to={`/${id}/dashboard/manage-files`}>Documents</Link>,
+          label: <Link to={`/${id}/dashboard/documents`}>Documents</Link>,
         },
         {
           key: 'prompts',
@@ -191,13 +191,13 @@ export default function PrivateLayout() {
         showWebsiteIntegration
           ? {
               key: 'website-integrations',
-              label: <Link to={`/${id}/dashboard/website`}>Website (WordPress)</Link>,
+              label: <Link to={`/${id}/dashboard/website`}>Website Data</Link>,
             }
           : null,
         showWooIntegration
           ? {
               key: 'woocommerce-integrations',
-              label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce Store</Link>,
+              label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce Data</Link>,
             }
           : null,
       ],

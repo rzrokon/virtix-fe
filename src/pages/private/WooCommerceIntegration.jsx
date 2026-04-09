@@ -283,7 +283,7 @@ export default function WooCommerceIntegration() {
 
       <div>
         <Title level={2} style={{ marginBottom: 0 }}>
-          WooCommerce Integration
+          WooCommerce Data Source Integration
         </Title>
         <Text type="secondary">
           Agent: <Text code>{agentName}</Text>
@@ -310,7 +310,7 @@ export default function WooCommerceIntegration() {
             onChange={(e) => setSiteUrl(e.target.value)}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
             <Input
               placeholder="Consumer Key (ck_...)"
               value={consumerKey}

@@ -204,7 +204,7 @@ export default function AgentFeatures() {
       <Card title="Integrations">
         <Form form={form} layout="vertical">
           <Form.Item
-            label="Website (WordPress)"
+            label="Website Data Source(Generic Website/WordPress)"
             name="website_enabled"
             valuePropName="checked"
           >
@@ -212,7 +212,7 @@ export default function AgentFeatures() {
           </Form.Item>
 
           <Form.Item
-            label="WooCommerce"
+            label="WooCommerce Product Data Source"
             name="woocommerce_enabled"
             valuePropName="checked"
           >
