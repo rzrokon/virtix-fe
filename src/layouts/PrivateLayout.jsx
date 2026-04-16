@@ -263,6 +263,10 @@ export default function PrivateLayout() {
               label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce Data</Link>,
             }
           : null,
+        {
+          key: 'shopify-integrations',
+          label: <Link to={`/${id}/dashboard/shopify`}>Shopify Data</Link>,
+        }
       ].filter(Boolean),
     },
 
