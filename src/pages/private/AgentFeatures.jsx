@@ -39,7 +39,6 @@ export default function AgentFeatures() {
 
   const featuresUrl = agentSlug ? `api/agent/${agentSlug}/features/` : null;
 
-  // ---- Feature definitions ----
   const baseFeatures = [
     {
       key: 'lead_gen',
@@ -73,7 +72,6 @@ export default function AgentFeatures() {
     },
   ];
 
-  // ---- Fetch fallback agent ----
   const fetchAgentNameFallback = async () => {
     try {
       const agent = await getData(`api/agent/agents/${id}/`);
@@ -81,7 +79,6 @@ export default function AgentFeatures() {
     } catch {}
   };
 
-  // ---- Fetch features ----
   const fetchFeatures = async () => {
     if (!featuresUrl) return;
     setLoading(true);
@@ -99,6 +96,7 @@ export default function AgentFeatures() {
         offers: !!data.offers,
         website_enabled: !!data.website_enabled,
         woocommerce_enabled: !!data.woocommerce_enabled,
+        shopify_enabled: !!data.shopify_enabled,
         orders_provider: data.orders_provider || 'INTERNAL',
       });
     } catch {
@@ -110,13 +108,12 @@ export default function AgentFeatures() {
 
   useEffect(() => {
     if (!currentAgentName && id) fetchAgentNameFallback();
-  }, [id]);
+  }, [id, currentAgentName]);
 
   useEffect(() => {
     if (featuresUrl) fetchFeatures();
   }, [featuresUrl]);
 
-  // ---- Save ----
   const onSave = async () => {
     const v = form.getFieldsValue();
 
@@ -130,6 +127,7 @@ export default function AgentFeatures() {
 
       website_enabled: BOOL_TO_API(v.website_enabled),
       woocommerce_enabled: BOOL_TO_API(v.woocommerce_enabled),
+      shopify_enabled: BOOL_TO_API(v.shopify_enabled),
       orders_provider: v.orders_provider,
     };
 
@@ -145,6 +143,9 @@ export default function AgentFeatures() {
     }
   };
 
+  const woocommerceEnabled = Form.useWatch('woocommerce_enabled', form);
+  const shopifyEnabled = Form.useWatch('shopify_enabled', form);
+
   if (!agentSlug || loading) {
     return (
       <div className="p-6">
@@ -157,7 +158,6 @@ export default function AgentFeatures() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <Card>
         <div className="flex justify-between items-start gap-3">
           <div>
@@ -165,7 +165,9 @@ export default function AgentFeatures() {
             <Text type="secondary">Agent: <b>{agentSlug}</b></Text>
           </div>
           <div className="flex gap-2">
-            <Button icon={<ReloadOutlined />} onClick={fetchFeatures}>Refresh</Button>
+            <Button icon={<ReloadOutlined />} onClick={fetchFeatures}>
+              Refresh
+            </Button>
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -179,13 +181,12 @@ export default function AgentFeatures() {
         </div>
       </Card>
 
-      {/* Core Features */}
       <Card title="Core Capabilities">
         <Form form={form} layout="vertical">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {baseFeatures.map((f) => (
               <div key={f.key} className="border rounded-xl p-4">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center gap-4">
                   <div>
                     <div className="font-semibold">{f.title}</div>
                     <div className="text-sm text-gray-500">{f.help}</div>
@@ -200,56 +201,134 @@ export default function AgentFeatures() {
         </Form>
       </Card>
 
-      {/* Integrations */}
       <Card title="Integrations">
         <Form form={form} layout="vertical">
-          <Form.Item
-            label="Website Data Source(Generic Website/WordPress)"
-            name="website_enabled"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border rounded-xl p-4">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <div className="font-semibold">Website Data Source</div>
+                  <div className="text-sm text-gray-500">
+                    Generic website or WordPress website content.
+                  </div>
+                </div>
+                <Form.Item
+                  name="website_enabled"
+                  valuePropName="checked"
+                  className="!mb-0"
+                >
+                  <Switch />
+                </Form.Item>
+              </div>
+            </div>
 
-          <Form.Item
-            label="WooCommerce Product Data Source"
-            name="woocommerce_enabled"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
+            <div className="border rounded-xl p-4">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <div className="font-semibold">WooCommerce Data Source</div>
+                  <div className="text-sm text-gray-500">
+                    Sync WooCommerce products and use WooCommerce for orders.
+                  </div>
+                </div>
+                <Form.Item
+                  name="woocommerce_enabled"
+                  valuePropName="checked"
+                  className="!mb-0"
+                >
+                  <Switch />
+                </Form.Item>
+              </div>
+            </div>
 
-          <Alert
-            type="info"
-            showIcon
-            message="WooCommerce allows product sync and direct order placement on your store."
-          />
+            <div className="border rounded-xl p-4">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <div className="font-semibold">Shopify Data Source</div>
+                  <div className="text-sm text-gray-500">
+                    Sync Shopify products and generate Shopify checkout links.
+                  </div>
+                </div>
+                <Form.Item
+                  name="shopify_enabled"
+                  valuePropName="checked"
+                  className="!mb-0"
+                >
+                  <Switch />
+                </Form.Item>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Alert
+              type="info"
+              showIcon
+              message="Commerce integrations"
+              description="WooCommerce and Shopify can both act as product data sources. Your selected order provider controls where checkout/order flow happens."
+            />
+          </div>
         </Form>
       </Card>
 
-      {/* Orders routing */}
       <Card title="Order Routing">
         <Form form={form} layout="vertical">
           <Form.Item
             label="Order Provider"
             name="orders_provider"
-            dependencies={['woocommerce_enabled']}
           >
             <Select>
               <Option value="INTERNAL">Internal (Virtix Orders)</Option>
-              <Option value="WOOCOMMERCE">WooCommerce Store</Option>
+              <Option value="WOOCOMMERCE" disabled={!woocommerceEnabled}>
+                WooCommerce Store
+              </Option>
+              <Option value="SHOPIFY" disabled={!shopifyEnabled}>
+                Shopify Store
+              </Option>
             </Select>
           </Form.Item>
 
           <Text type="secondary">
-            • Internal: Orders stay inside Virtix dashboard  
+            • Internal: Orders stay inside Virtix dashboard
             <br />
-            • WooCommerce: Orders are placed directly on your store
+            • WooCommerce: Orders are placed directly on your WooCommerce store
+            <br />
+            • Shopify: Checkout links are generated through Shopify
           </Text>
+
+          {(!woocommerceEnabled && !shopifyEnabled) ? (
+            <div className="mt-4">
+              <Alert
+                type="warning"
+                showIcon
+                message="No commerce provider enabled"
+                description="If you want store-based checkout, enable WooCommerce or Shopify first."
+              />
+            </div>
+          ) : null}
         </Form>
       </Card>
 
-      {/* Footer */}
+      <Card title="Current Configuration Summary">
+        <div className="space-y-2 text-sm">
+          <div>
+            <Text strong>Website:</Text>{' '}
+            <Text>{form.getFieldValue('website_enabled') ? 'Enabled' : 'Disabled'}</Text>
+          </div>
+          <div>
+            <Text strong>WooCommerce:</Text>{' '}
+            <Text>{form.getFieldValue('woocommerce_enabled') ? 'Enabled' : 'Disabled'}</Text>
+          </div>
+          <div>
+            <Text strong>Shopify:</Text>{' '}
+            <Text>{form.getFieldValue('shopify_enabled') ? 'Enabled' : 'Disabled'}</Text>
+          </div>
+          <div>
+            <Text strong>Order Provider:</Text>{' '}
+            <Text>{form.getFieldValue('orders_provider') || 'INTERNAL'}</Text>
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <Button
           type="primary"
