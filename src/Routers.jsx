@@ -55,6 +55,7 @@ import About from './pages/public/About.jsx';
 import Pricing from './pages/public/Pricing.jsx';
 import BillingSuccess from './pages/public/BillingSuccess.jsx';
 import PrivacyPolicy from './pages/public/PrivacyPolicy.jsx';
+import RefundPolicy from './pages/public/RefundPolicy.jsx';
 import Terms from './pages/public/Terms.jsx';
 import HelpCenter from './pages/public/HelpCenter.jsx';
 
@@ -74,6 +75,7 @@ export default function Routers() {
           <Route path='/contact' element={<Contact />} />
           <Route path='/help-center' element={<HelpCenter />} />
           <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route path='/refund-policy' element={<RefundPolicy />} />
           <Route path='/terms' element={<Terms />} />
           <Route path='/billing/success' element={<BillingSuccess />} />
         </Route>
