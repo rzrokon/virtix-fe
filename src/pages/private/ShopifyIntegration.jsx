@@ -82,6 +82,10 @@ export default function ShopifyIntegration() {
   const [activeOnly, setActiveOnly] = useState(true);
 
   const isConnected = useMemo(() => source?.status === "ACTIVE", [source]);
+  const hasStorefrontToken = useMemo(
+    () => !!source?.has_storefront_token,
+    [source]
+  );
 
   const loadSource = useCallback(async () => {
     if (!agentName) return;
@@ -134,25 +138,35 @@ export default function ShopifyIntegration() {
   }, [agentName, loadSource]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("status");
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get("status");
+  const checkout = params.get("checkout");
 
-    if (status === "connected") {
+  if (status === "connected") {
+    if (checkout === "not_ready") {
+      messageApi.warning(
+        "Shopify connected, but storefront checkout is not ready yet. Update Storefront API scopes, then reconnect."
+      );
+    } else {
       messageApi.success("Shopify connected successfully");
-      loadSource();
-
-      const url = new URL(window.location.href);
-      url.searchParams.delete("status");
-      window.history.replaceState({}, "", url.toString());
     }
 
-    if (status === "error") {
-      messageApi.error("Shopify connection failed");
-      const url = new URL(window.location.href);
-      url.searchParams.delete("status");
-      window.history.replaceState({}, "", url.toString());
-    }
-  }, [loadSource, messageApi]);
+    loadSource();
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("status");
+    url.searchParams.delete("checkout");
+    window.history.replaceState({}, "", url.toString());
+  }
+
+  if (status === "error") {
+    messageApi.error("Shopify connection failed");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("status");
+    url.searchParams.delete("checkout");
+    window.history.replaceState({}, "", url.toString());
+  }
+}, [loadSource, messageApi]);
 
   useEffect(() => {
     if (!agentName || !isConnected) return;
@@ -325,6 +339,15 @@ export default function ShopifyIntegration() {
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
+      {!hasStorefrontToken && isConnected ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Storefront checkout is not configured"
+          description="This Shopify store is connected, but checkout link generation is not ready yet. Update Storefront API scopes, then reconnect Shopify."
+        />
+      ) : null}
+
       <Card
         loading={loadingSource}
         title="Connect Shopify Store"
@@ -428,6 +451,9 @@ export default function ShopifyIntegration() {
               <Tag color="blue">{source.shop_domain || "-"}</Tag>
               <Tag color="purple">{source.shop_name || "Shopify Store"}</Tag>
               <Tag color="green">{source.status || "ACTIVE"}</Tag>
+              <Tag color={hasStorefrontToken ? "green" : "orange"}>
+                {hasStorefrontToken ? "Checkout Ready" : "Checkout Not Ready"}
+              </Tag>
             </div>
 
             <div className="space-y-1">
@@ -446,6 +472,10 @@ export default function ShopifyIntegration() {
               <div>
                 <Text type="secondary">Timezone:</Text>{" "}
                 <Text>{source.timezone || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Storefront Checkout:</Text>{" "}
+                <Text>{hasStorefrontToken ? "Configured" : "Not configured"}</Text>
               </div>
               <div>
                 <Text type="secondary">Last Synced:</Text>{" "}
