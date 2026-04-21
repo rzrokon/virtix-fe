@@ -2,7 +2,6 @@ import { ReloadOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
-  Divider,
   Form,
   Spin,
   Switch,
@@ -21,6 +20,7 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 const BOOL_TO_API = (v) => (v ? 'true' : 'false');
+const toBool = (v) => v === true || v === 'true' || v === 1;
 
 export default function AgentFeatures() {
   const { id } = useParams();
@@ -40,11 +40,6 @@ export default function AgentFeatures() {
   const featuresUrl = agentSlug ? `api/agent/${agentSlug}/features/` : null;
 
   const baseFeatures = [
-    {
-      key: 'lead_gen',
-      title: 'Lead Generation',
-      help: 'Capture leads via chat and forms.',
-    },
     {
       key: 'booking',
       title: 'Bookings',
@@ -88,15 +83,14 @@ export default function AgentFeatures() {
 
       form.setFieldsValue({
         ...data,
-        lead_gen: !!data.lead_gen,
-        booking: !!data.booking,
-        complaints: !!data.complaints,
-        products: !!data.products,
-        products_orders: !!data.products_orders,
-        offers: !!data.offers,
-        website_enabled: !!data.website_enabled,
-        woocommerce_enabled: !!data.woocommerce_enabled,
-        shopify_enabled: !!data.shopify_enabled,
+        booking: toBool(data.booking),
+        complaints: toBool(data.complaints),
+        products: toBool(data.products),
+        products_orders: toBool(data.products_orders),
+        offers: toBool(data.offers),
+        website_enabled: toBool(data.website_enabled),
+        woocommerce_enabled: toBool(data.woocommerce_enabled),
+        shopify_enabled: toBool(data.shopify_enabled),
         orders_provider: data.orders_provider || 'INTERNAL',
       });
     } catch {
@@ -118,7 +112,6 @@ export default function AgentFeatures() {
     const v = form.getFieldsValue();
 
     const payload = {
-      lead_gen: BOOL_TO_API(v.lead_gen),
       booking: BOOL_TO_API(v.booking),
       complaints: BOOL_TO_API(v.complaints),
       products: BOOL_TO_API(v.products),
@@ -181,8 +174,8 @@ export default function AgentFeatures() {
         </div>
       </Card>
 
-      <Card title="Core Capabilities">
-        <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical">
+        <Card title="Core Capabilities">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {baseFeatures.map((f) => (
               <div key={f.key} className="border rounded-xl p-4">
@@ -198,11 +191,9 @@ export default function AgentFeatures() {
               </div>
             ))}
           </div>
-        </Form>
-      </Card>
+        </Card>
 
-      <Card title="Integrations">
-        <Form form={form} layout="vertical">
+        <Card title="Integrations" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="border rounded-xl p-4">
               <div className="flex justify-between items-center gap-4">
@@ -212,11 +203,7 @@ export default function AgentFeatures() {
                     Generic website or WordPress website content.
                   </div>
                 </div>
-                <Form.Item
-                  name="website_enabled"
-                  valuePropName="checked"
-                  className="!mb-0"
-                >
+                <Form.Item name="website_enabled" valuePropName="checked" className="!mb-0">
                   <Switch />
                 </Form.Item>
               </div>
@@ -230,11 +217,7 @@ export default function AgentFeatures() {
                     Sync WooCommerce products and use WooCommerce for orders.
                   </div>
                 </div>
-                <Form.Item
-                  name="woocommerce_enabled"
-                  valuePropName="checked"
-                  className="!mb-0"
-                >
+                <Form.Item name="woocommerce_enabled" valuePropName="checked" className="!mb-0">
                   <Switch />
                 </Form.Item>
               </div>
@@ -248,11 +231,7 @@ export default function AgentFeatures() {
                     Sync Shopify products and generate Shopify checkout links.
                   </div>
                 </div>
-                <Form.Item
-                  name="shopify_enabled"
-                  valuePropName="checked"
-                  className="!mb-0"
-                >
+                <Form.Item name="shopify_enabled" valuePropName="checked" className="!mb-0">
                   <Switch />
                 </Form.Item>
               </div>
@@ -267,15 +246,10 @@ export default function AgentFeatures() {
               description="WooCommerce and Shopify can both act as product data sources. Your selected order provider controls where checkout/order flow happens."
             />
           </div>
-        </Form>
-      </Card>
+        </Card>
 
-      <Card title="Order Routing">
-        <Form form={form} layout="vertical">
-          <Form.Item
-            label="Order Provider"
-            name="orders_provider"
-          >
+        <Card title="Order Routing" className="mt-6">
+          <Form.Item label="Order Provider" name="orders_provider">
             <Select>
               <Option value="INTERNAL">Internal (Virtix Orders)</Option>
               <Option value="WOOCOMMERCE" disabled={!woocommerceEnabled}>
@@ -295,7 +269,7 @@ export default function AgentFeatures() {
             • Shopify: Checkout links are generated through Shopify
           </Text>
 
-          {(!woocommerceEnabled && !shopifyEnabled) ? (
+          {!woocommerceEnabled && !shopifyEnabled ? (
             <div className="mt-4">
               <Alert
                 type="warning"
@@ -305,40 +279,40 @@ export default function AgentFeatures() {
               />
             </div>
           ) : null}
-        </Form>
-      </Card>
+        </Card>
 
-      <Card title="Current Configuration Summary">
-        <div className="space-y-2 text-sm">
-          <div>
-            <Text strong>Website:</Text>{' '}
-            <Text>{form.getFieldValue('website_enabled') ? 'Enabled' : 'Disabled'}</Text>
+        <Card title="Current Configuration Summary" className="mt-6">
+          <div className="space-y-2 text-sm">
+            <div>
+              <Text strong>Website:</Text>{' '}
+              <Text>{form.getFieldValue('website_enabled') ? 'Enabled' : 'Disabled'}</Text>
+            </div>
+            <div>
+              <Text strong>WooCommerce:</Text>{' '}
+              <Text>{form.getFieldValue('woocommerce_enabled') ? 'Enabled' : 'Disabled'}</Text>
+            </div>
+            <div>
+              <Text strong>Shopify:</Text>{' '}
+              <Text>{form.getFieldValue('shopify_enabled') ? 'Enabled' : 'Disabled'}</Text>
+            </div>
+            <div>
+              <Text strong>Order Provider:</Text>{' '}
+              <Text>{form.getFieldValue('orders_provider') || 'INTERNAL'}</Text>
+            </div>
           </div>
-          <div>
-            <Text strong>WooCommerce:</Text>{' '}
-            <Text>{form.getFieldValue('woocommerce_enabled') ? 'Enabled' : 'Disabled'}</Text>
-          </div>
-          <div>
-            <Text strong>Shopify:</Text>{' '}
-            <Text>{form.getFieldValue('shopify_enabled') ? 'Enabled' : 'Disabled'}</Text>
-          </div>
-          <div>
-            <Text strong>Order Provider:</Text>{' '}
-            <Text>{form.getFieldValue('orders_provider') || 'INTERNAL'}</Text>
-          </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card>
-        <Button
-          type="primary"
-          onClick={onSave}
-          loading={saving}
-          className="bg-[#6200FF] border-[#6200FF]"
-        >
-          Save Changes
-        </Button>
-      </Card>
+        <Card className="mt-6">
+          <Button
+            type="primary"
+            onClick={onSave}
+            loading={saving}
+            className="bg-[#6200FF] border-[#6200FF]"
+          >
+            Save Changes
+          </Button>
+        </Card>
+      </Form>
     </div>
   );
 }
