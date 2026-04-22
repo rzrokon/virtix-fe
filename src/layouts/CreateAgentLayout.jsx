@@ -73,8 +73,8 @@ export default function CreateAgentLayout() {
           </div>
         </Link>
 
-        <div className='ml-auto space-x-4'>
-          <Button type="primary" onClick={() => { setOpen(true) }}>Create Agent</Button>
+        <div className='ml-auto flex items-center gap-3'>
+          <Button type="primary" onClick={() => setOpen(true)}>Create Agent</Button>
           <UserMenu />
         </div>
       </Header>
