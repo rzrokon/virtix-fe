@@ -6,20 +6,19 @@ import {
   ClipboardMinus,
   LayoutDashboard,
   Lightbulb,
-  Menu as MenuIcon,
   MessageCircleReply,
   MessageSquareMore,
   Plug,
   Settings,
   ShoppingBag,
-  User,
   Users
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import UserMenu from '../components/common/privateLayout/UserMenu';
+import PrivateHeader from '../components/common/privateLayout/PrivateHeader';
 import { useContentApi } from '../contexts/ContentApiContext';
 import { getAgentById, getData, postData } from '../scripts/api-service';
+import { GET_MY_SUBSCRIPTION } from '../scripts/api';
 
 const { Header, Content, Sider } = Layout;
 
@@ -33,18 +32,18 @@ export default function PrivateLayout() {
   const [indexing, setIndexing] = useState(false);
   const [indexProgress, setIndexProgress] = useState(0);
   const [featureFlags, setFeatureFlags] = useState(null);
+  const [planCaps, setPlanCaps] = useState(null);
 
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [openKeys, setOpenKeys] = useState([]);
 
-  // Use segment index 3 (/id/dashboard/PAGE) so nested routes like
-  // chat-history/:customerId still resolve to 'chat-history'.
   const getSelectedKey = () => {
     const parts = location.pathname.split('/');
-    const segment = parts[3]; // e.g. 'chat-history', 'agent-info', undefined
+    const segment = parts[3];
     if (!segment) return 'dashboard';
+
     const map = {
       'agent-info': 'agent-info',
       'features': 'feature-config',
@@ -53,6 +52,7 @@ export default function PrivateLayout() {
       'manage-prompts': 'prompts',
       'website': 'website-integrations',
       'woocommerce': 'woocommerce-integrations',
+      'shopify': 'shopify-integrations',
       'chat-widget': 'chat-widget',
       'facebook': 'facebook-integrations',
       'instagram': 'instagram-integrations',
@@ -69,6 +69,7 @@ export default function PrivateLayout() {
       'offers': 'offers',
       'report': 'reports',
     };
+
     return map[segment] || 'dashboard';
   };
 
@@ -76,21 +77,27 @@ export default function PrivateLayout() {
     const parentMap = {
       'agent-info': 'agent',
       'feature-config': 'agent',
+
       'contents': 'knowledge',
       'documents': 'knowledge',
       'prompts': 'knowledge',
       'website-integrations': 'knowledge',
       'woocommerce-integrations': 'knowledge',
+      'shopify-integrations': 'knowledge',
+
       'chat-widget': 'integrations',
       'facebook-integrations': 'integrations',
       'instagram-integrations': 'integrations',
       'whatsapp-integrations': 'integrations',
+
       'bookings-list': 'bookings',
       'booking-windows': 'bookings',
+
       'products': 'commerce',
       'orders': 'commerce',
       'offers': 'commerce',
     };
+
     return parentMap[selectedKey] || null;
   };
 
@@ -104,26 +111,13 @@ export default function PrivateLayout() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.lg;
 
   const token = Cookies.get('kotha_token');
   const { setCurrentAgentName } = useContentApi();
   const { Text } = Typography;
-
-  const toBool = (value) => value === true || value === 'true' || value === 1;
-
-  const isFeatureEnabled = (key) => {
-    if (!featureFlags) return true;
-    return toBool(featureFlags[key]);
-  };
-
-  const showLeadMenu = isFeatureEnabled('lead_gen');
-  const showBookingsMenu = isFeatureEnabled('booking');
-  const showComplaintsMenu = isFeatureEnabled('complaints');
-  const showCommerceMenu = isFeatureEnabled('products');
-  const showWebsiteIntegration = isFeatureEnabled('website_enabled');
-  const showWooIntegration = isFeatureEnabled('woocommerce_enabled');
 
   const fetchFeatureConfig = async (agentName) => {
     if (!agentName) {
@@ -134,8 +128,7 @@ export default function PrivateLayout() {
     try {
       const featureData = await getData(`api/agent/${agentName}/features/`);
       setFeatureFlags(featureData || null);
-    } catch (error) {
-      console.error('Error fetching feature config:', error);
+    } catch {
       setFeatureFlags(null);
     }
   };
@@ -145,12 +138,15 @@ export default function PrivateLayout() {
 
     try {
       setLoading(true);
-      const agentData = await getAgentById(id);
+      const [agentData, subData] = await Promise.all([
+        getAgentById(id),
+        getData(GET_MY_SUBSCRIPTION).catch(() => null),
+      ]);
       setAgent(agentData);
       setCurrentAgentName(agentData?.agent_name || null);
+      if (subData?.subscription?.plan) setPlanCaps(subData.subscription.plan);
       await fetchFeatureConfig(agentData?.agent_name);
-    } catch (error) {
-      console.error('Error fetching agent:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -158,14 +154,34 @@ export default function PrivateLayout() {
 
   useEffect(() => {
     if (!token) {
-      window.location = '/';
+      navigate('/');
     } else {
       fetchAgent();
     }
   }, [token, id]);
 
+  const toBool = (v) => v === true || v === 'true' || v === 1;
+
+  const showBookingsMenu = featureFlags ? toBool(featureFlags.booking) : true;
+  const showComplaintsMenu = featureFlags ? toBool(featureFlags.complaints) : true;
+
+  const websiteSourceType = featureFlags?.website_source_type || 'NONE';
+  const ecommerceMode = featureFlags?.ecommerce_mode || 'NONE';
+
+  const showWebsiteIntegration =
+    websiteSourceType === 'GENERIC' || websiteSourceType === 'WORDPRESS';
+
+  const showWooIntegration = ecommerceMode === 'WOOCOMMERCE';
+  const showShopifyIntegration = ecommerceMode === 'SHOPIFY';
+  const showCommerceMenu = ecommerceMode === 'INTERNAL';
+
+  const fetchIndexEndpoint = useMemo(() => {
+    if (!agent?.agent_name) return null;
+    return `api/agent/${agent.agent_name}/index/`;
+  }, [agent]);
+
   const handleIndexAgent = async () => {
-    if (!agent?.agent_name) {
+    if (!agent?.agent_name || !fetchIndexEndpoint) {
       message.error('Agent not ready yet. Please try again.');
       return;
     }
@@ -178,7 +194,7 @@ export default function PrivateLayout() {
     }, 300);
 
     try {
-      const res = await postData(`api/agent/${agent.agent_name}/index/`, { fresh: indexFresh });
+      const res = await postData(fetchIndexEndpoint, { fresh: indexFresh });
       const data = res?.data ?? res;
 
       const cleanError = (val) => {
@@ -187,7 +203,7 @@ export default function PrivateLayout() {
         return looksLikeHtml ? 'Index request failed' : val;
       };
 
-      if (data?.ok || (res?.status && res.status >= 200 && res.status < 300)) {
+      if (data?.ok || data?.detail || (res?.status && res.status >= 200 && res.status < 300)) {
         setIndexProgress(100);
         message.success('Agent indexing triggered successfully');
         setTimeout(() => setIndexModalOpen(false), 500);
@@ -199,8 +215,7 @@ export default function PrivateLayout() {
         message.success('Index request sent');
         setTimeout(() => setIndexModalOpen(false), 500);
       }
-    } catch (error) {
-      console.error('Index agent error:', error);
+    } catch {
       message.error('Failed to index agent');
     } finally {
       clearInterval(tick);
@@ -211,11 +226,78 @@ export default function PrivateLayout() {
 
   const indexLabel = indexFresh ? 'Index with fresh=true' : 'Index without fresh';
 
+  const knowledgeChildren = [
+    {
+      key: 'contents',
+      label: <Link to={`/${id}/agent-dashboard/contents`}>Contents</Link>,
+    },
+    {
+      key: 'documents',
+      label: <Link to={`/${id}/agent-dashboard/documents`}>Documents</Link>,
+    },
+    {
+      key: 'prompts',
+      label: <Link to={`/${id}/agent-dashboard/manage-prompts`}>Prompts</Link>,
+    },
+    showWebsiteIntegration
+      ? {
+          key: 'website-integrations',
+          label: (
+            <Link to={`/${id}/agent-dashboard/website`}>
+              {websiteSourceType === 'WORDPRESS' ? 'WordPress Data' : 'Website Data'}
+            </Link>
+          ),
+        }
+      : null,
+    showWooIntegration
+      ? {
+          key: 'woocommerce-integrations',
+          label: <Link to={`/${id}/agent-dashboard/woocommerce`}>WooCommerce Data</Link>,
+        }
+      : null,
+    showShopifyIntegration
+      ? {
+          key: 'shopify-integrations',
+          label: <Link to={`/${id}/agent-dashboard/shopify`}>Shopify Data</Link>,
+        }
+      : null,
+  ].filter(Boolean);
+
+  const integrationsChildren = [
+    !planCaps || toBool(planCaps.website_widget)
+      ? { key: 'chat-widget', label: <Link to={`/${id}/agent-dashboard/chat-widget`}>Website Widget</Link> }
+      : null,
+    !planCaps || toBool(planCaps.messenger)
+      ? { key: 'facebook-integrations', label: <Link to={`/${id}/agent-dashboard/facebook`}>Facebook</Link> }
+      : null,
+    !planCaps || toBool(planCaps.instagram)
+      ? { key: 'instagram-integrations', label: <Link to={`/${id}/agent-dashboard/instagram`}>Instagram</Link> }
+      : null,
+    !planCaps || toBool(planCaps.whatsapp)
+      ? { key: 'whatsapp-integrations', label: <Link to={`/${id}/agent-dashboard/whatsapp`}>WhatsApp</Link> }
+      : null,
+  ].filter(Boolean);
+
+  const commerceChildren = [
+    {
+      key: 'products',
+      label: <Link to={`/${id}/agent-dashboard/products`}>Products</Link>,
+    },
+    {
+      key: 'orders',
+      label: <Link to={`/${id}/agent-dashboard/orders`}>Orders</Link>,
+    },
+    {
+      key: 'offers',
+      label: <Link to={`/${id}/agent-dashboard/offers`}>Offers</Link>,
+    },
+  ];
+
   const menuItems = [
     {
       key: 'dashboard',
       icon: <LayoutDashboard size={18} />,
-      label: <Link to={`/${id}/dashboard`}>Dashboard</Link>,
+      label: <Link to={`/${id}/agent-dashboard`}>Dashboard</Link>,
     },
 
     {
@@ -225,11 +307,11 @@ export default function PrivateLayout() {
       children: [
         {
           key: 'agent-info',
-          label: <Link to={`/${id}/dashboard/agent-info`}>Agent Info</Link>,
+          label: <Link to={`/${id}/agent-dashboard/agent-info`}>Agent Info</Link>,
         },
         {
           key: 'feature-config',
-          label: <Link to={`/${id}/dashboard/features`}>Feature Config</Link>,
+          label: <Link to={`/${id}/agent-dashboard/features`}>Feature Config</Link>,
         },
       ],
     },
@@ -238,87 +320,35 @@ export default function PrivateLayout() {
       key: 'knowledge',
       icon: <Lightbulb size={18} />,
       label: 'Knowledge',
-      children: [
-        {
-          key: 'contents',
-          label: <Link to={`/${id}/dashboard/contents`}>Contents</Link>,
-        },
-        {
-          key: 'documents',
-          label: <Link to={`/${id}/dashboard/documents`}>Documents</Link>,
-        },
-        {
-          key: 'prompts',
-          label: <Link to={`/${id}/dashboard/manage-prompts`}>Prompts</Link>,
-        },
-        showWebsiteIntegration
-          ? {
-              key: 'website-integrations',
-              label: <Link to={`/${id}/dashboard/website`}>Website Data</Link>,
-            }
-          : null,
-        showWooIntegration
-          ? {
-              key: 'woocommerce-integrations',
-              label: <Link to={`/${id}/dashboard/woocommerce`}>WooCommerce Data</Link>,
-            }
-          : null,
-        {
-          key: 'shopify-integrations',
-          label: <Link to={`/${id}/dashboard/shopify`}>Shopify Data</Link>,
-        }
-      ].filter(Boolean),
+      children: knowledgeChildren,
     },
 
-    {
-      key: 'integrations',
-      icon: <Plug size={18} />,
-      label: 'Integrations',
-      children: [
-        {
-          key: 'chat-widget',
-          label: <Link to={`/${id}/dashboard/chat-widget`}>Website Widget</Link>,
-        },
-        {
-          key: 'facebook-integrations',
-          label: <Link to={`/${id}/dashboard/facebook`}>Facebook</Link>,
-        },
-        {
-          key: 'instagram-integrations',
-          label: <Link to={`/${id}/dashboard/instagram`}>Instagram</Link>,
-        },
-        {
-          key: 'whatsapp-integrations',
-          label: <Link to={`/${id}/dashboard/whatsapp`}>WhatsApp</Link>,
-        },
-      ].filter(Boolean),
-    },
+    integrationsChildren.length > 0
+      ? {
+          key: 'integrations',
+          icon: <Plug size={18} />,
+          label: 'Integrations',
+          children: integrationsChildren,
+        }
+      : null,
 
     {
       key: 'customers',
       icon: <Users size={18} />,
-      label: <Link to={`/${id}/dashboard/customers`}>Customers</Link>,
+      label: <Link to={`/${id}/agent-dashboard/customers`}>Customers</Link>,
     },
 
     {
       key: 'chat-history',
       icon: <MessageCircleReply size={18} />,
-      label: <Link to={`/${id}/dashboard/chat-history`}>Chat History</Link>,
+      label: <Link to={`/${id}/agent-dashboard/chat-history`}>Chat History</Link>,
     },
 
     {
       key: 'support',
       icon: <MessageSquareMore size={18} />,
-      label: <Link to={`/${id}/dashboard/support`}>Support Inbox</Link>,
+      label: <Link to={`/${id}/agent-dashboard/support`}>Support Inbox</Link>,
     },
-
-    showLeadMenu
-      ? {
-          key: 'leads',
-          icon: <User size={18} />,
-          label: <Link to={`/${id}/dashboard/leads`}>Leads</Link>,
-        }
-      : null,
 
     showBookingsMenu
       ? {
@@ -328,11 +358,11 @@ export default function PrivateLayout() {
           children: [
             {
               key: 'bookings-list',
-              label: <Link to={`/${id}/dashboard/bookings`}>Manage Bookings</Link>,
+              label: <Link to={`/${id}/agent-dashboard/bookings`}>Manage Bookings</Link>,
             },
             {
               key: 'booking-windows',
-              label: <Link to={`/${id}/dashboard/booking-windows`}>Booking Windows</Link>,
+              label: <Link to={`/${id}/agent-dashboard/booking-windows`}>Booking Windows</Link>,
             },
           ],
         }
@@ -342,7 +372,7 @@ export default function PrivateLayout() {
       ? {
           key: 'complaints',
           icon: <ClipboardMinus size={18} />,
-          label: <Link to={`/${id}/dashboard/complaints`}>Complaints</Link>,
+          label: <Link to={`/${id}/agent-dashboard/complaints`}>Complaints</Link>,
         }
       : null,
 
@@ -351,38 +381,18 @@ export default function PrivateLayout() {
           key: 'commerce',
           icon: <ShoppingBag size={18} />,
           label: 'Commerce',
-          children: [
-            {
-              key: 'products',
-              label: <Link to={`/${id}/dashboard/products`}>Products</Link>,
-            },
-            {
-              key: 'orders',
-              label: <Link to={`/${id}/dashboard/orders`}>Orders</Link>,
-            },
-            {
-              key: 'offers',
-              label: <Link to={`/${id}/dashboard/offers`}>Offers</Link>,
-            },
-          ],
+          children: commerceChildren,
         }
       : null,
 
-    {
-      key: 'reports',
-      icon: <BarChart3 size={18} />,
-      label: <Link to={`/${id}/dashboard/report`}>Reports</Link>,
-    },
+    toBool(planCaps?.analytics)
+      ? {
+          key: 'reports',
+          icon: <BarChart3 size={18} />,
+          label: <Link to={`/${id}/agent-dashboard/report`}>Reports</Link>,
+        }
+      : null,
   ].filter(Boolean);
-
-  const headerActionGroup = (
-    <div className="private-layout__header-actions">
-      <Button type="primary" onClick={() => { setIndexModalOpen(true); }}>
-        Index Agent
-      </Button>
-      <UserMenu />
-    </div>
-  );
 
   const sidebarMenu = (
     <Menu
@@ -407,38 +417,13 @@ export default function PrivateLayout() {
         style={{ background: colorBgContainer }}
         className='private-layout__header !pl-4'
       >
-        <div className="private-layout__header-main">
-          {isMobile ? (
-            <Button
-              type="text"
-              icon={<MenuIcon size={22} />}
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open navigation menu"
-              className="private-layout__menu-trigger"
-            />
-          ) : null}
-
-          <Button
-            type="default"
-            onClick={() => navigate('/home')}
-            size='large'
-            style={{
-              fontSize: '16px',
-              padding: '0 5px',
-            }}
-            className='!bg-gray-200 rounded-lg'
-          >
-            <img src="/assets/logo/favicon.png" alt="icon" style={{ width: 30, verticalAlign: 'middle' }} />
-          </Button>
-
-          <div className="private-layout__agent-title demo-logo font-semibold text-2xl">
-            {loading ? 'Loading...' : (agent?.agent_name || 'Agent name')}
-          </div>
-
-          <div className="private-layout__header-actions-wrap">
-            {headerActionGroup}
-          </div>
-        </div>
+        <PrivateHeader
+          isMobile={isMobile}
+          loading={loading}
+          agentName={agent?.agent_name}
+          onMenuOpen={() => setMobileMenuOpen(true)}
+          onIndexClick={() => setIndexModalOpen(true)}
+        />
       </Header>
 
       <Layout className="private-layout__body">

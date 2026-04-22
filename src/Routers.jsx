@@ -20,9 +20,9 @@ import ChatWidget from './pages/private/ChatWidget.jsx';
 import AgentInfo from './pages/private/AgentInfo.jsx';
 import AgentFeatures from './pages/private/AgentFeatures';
 import ChatHistory from './pages/private/ChatHistory.jsx';
-import CreateAgent from './pages/private/CreateAgent.jsx';
-import Customers from './pages/private/Customers.jsx';
 import Dashboard from './pages/private/Dashboard.jsx';
+import Customers from './pages/private/Customers.jsx';
+import AgentDashboard from './pages/private/AgentDashboard.jsx';
 import Knowledge from './pages/private/knowledge.jsx';
 import ManageFiles from './pages/private/ManageFiles.jsx';
 import ManagePrompts from './pages/private/ManagePrompts.jsx';
@@ -105,10 +105,10 @@ export default function Routers() {
 
           {/* these require active plan */}
           <Route
-            path='/home'
+            path='/dashboard'
             element={
               <RequireActivePlan>
-                <CreateAgent />
+                <Dashboard />
               </RequireActivePlan>
             }
           />
@@ -135,32 +135,32 @@ export default function Routers() {
         </Route>
 
         {/* AGENT DASHBOARD */}
-        <Route path='/:id/dashboard' element={<PrivateLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path='/:id/dashboard/chat-history' element={<ChatHistory />} />
-          <Route path='/:id/dashboard/chat-history/:customerId' element={<ChatHistory />} />
-          <Route path='/:id/dashboard/manage-prompts' element={<ManagePrompts />} />
-          <Route path='/:id/dashboard/documents' element={<ManageFiles />} />
-          <Route path='/:id/dashboard/customers' element={<Customers />} />
-          <Route path='/:id/dashboard/chat-widget' element={<ChatWidget />} />
-          <Route path='/:id/dashboard/agent-info' element={<AgentInfo />} />
-          <Route path="/:id/dashboard/features" element={<AgentFeatures />} />
-          <Route path='/:id/dashboard/contents' element={<Knowledge />} />
-          <Route path='/:id/dashboard/report' element={<AgentReport />} />
-          <Route path='/:id/dashboard/leads' element={<ManageLeads />} />
-          <Route path='/:id/dashboard/bookings' element={<ManageBookings />} />
-          <Route path='/:id/dashboard/booking-windows' element={<ManageBookingWindows />} />
-          <Route path='/:id/dashboard/complaints' element={<ManageComplaints />} />
-          <Route path='/:id/dashboard/products' element={<ManageProducts />} />
-          <Route path='/:id/dashboard/offers' element={<ManageOffers />} />
-          <Route path='/:id/dashboard/orders' element={<ManageOrders />} />
-          <Route path="/:id/dashboard/facebook" element={<MetaConnectFacebook />} />
-          <Route path="/:id/dashboard/instagram" element={<MetaConnectInstagram />} />
-          <Route path="/:id/dashboard/whatsapp" element={<MetaConnectWhatsApp />} />
-          <Route path="/:id/dashboard/website" element={<WebsiteIntegration />} />
-          <Route path="/:id/dashboard/woocommerce" element={<WooCommerceIntegration />} />
-          <Route path="/:id/dashboard/shopify" element={<ShopifyIntegration />} />
-          <Route path='/:id/dashboard/support' element={<SupportInboxPage />} />
+        <Route path='/:id/agent-dashboard' element={<PrivateLayout />}>
+          <Route index element={<AgentDashboard />} />
+          <Route path='/:id/agent-dashboard/chat-history' element={<ChatHistory />} />
+          <Route path='/:id/agent-dashboard/chat-history/:customerId' element={<ChatHistory />} />
+          <Route path='/:id/agent-dashboard/manage-prompts' element={<ManagePrompts />} />
+          <Route path='/:id/agent-dashboard/documents' element={<ManageFiles />} />
+          <Route path='/:id/agent-dashboard/customers' element={<Customers />} />
+          <Route path='/:id/agent-dashboard/chat-widget' element={<ChatWidget />} />
+          <Route path='/:id/agent-dashboard/agent-info' element={<AgentInfo />} />
+          <Route path="/:id/agent-dashboard/features" element={<AgentFeatures />} />
+          <Route path='/:id/agent-dashboard/contents' element={<Knowledge />} />
+          <Route path='/:id/agent-dashboard/report' element={<AgentReport />} />
+          <Route path='/:id/agent-dashboard/leads' element={<ManageLeads />} />
+          <Route path='/:id/agent-dashboard/bookings' element={<ManageBookings />} />
+          <Route path='/:id/agent-dashboard/booking-windows' element={<ManageBookingWindows />} />
+          <Route path='/:id/agent-dashboard/complaints' element={<ManageComplaints />} />
+          <Route path='/:id/agent-dashboard/products' element={<ManageProducts />} />
+          <Route path='/:id/agent-dashboard/offers' element={<ManageOffers />} />
+          <Route path='/:id/agent-dashboard/orders' element={<ManageOrders />} />
+          <Route path="/:id/agent-dashboard/facebook" element={<MetaConnectFacebook />} />
+          <Route path="/:id/agent-dashboard/instagram" element={<MetaConnectInstagram />} />
+          <Route path="/:id/agent-dashboard/whatsapp" element={<MetaConnectWhatsApp />} />
+          <Route path="/:id/agent-dashboard/website" element={<WebsiteIntegration />} />
+          <Route path="/:id/agent-dashboard/woocommerce" element={<WooCommerceIntegration />} />
+          <Route path="/:id/agent-dashboard/shopify" element={<ShopifyIntegration />} />
+          <Route path='/:id/agent-dashboard/support' element={<SupportInboxPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

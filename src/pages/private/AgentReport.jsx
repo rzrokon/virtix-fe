@@ -1,10 +1,13 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { Table, Button, Input, DatePicker, Select, Space, message, Spin } from 'antd';
 import { ReloadOutlined, SearchOutlined, DownloadOutlined, FilterOutlined } from '@ant-design/icons';
-import { useParams } from 'react-router-dom';
+import { BarChart3, Lock } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
+import { GET_MY_SUBSCRIPTION } from '../../scripts/api';
+
+const toBool = (v) => v === true || v === 'true' || v === 1;
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -16,8 +19,10 @@ const escapeCsvValue = (value) => {
 
 export default function AgentReport() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { currentAgentName } = useContentApi();
 
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
@@ -74,8 +79,7 @@ export default function AgentReport() {
 
       setData(results);
       setPagination({ current: page, pageSize, total });
-    } catch (err) {
-      console.error('Error fetching report:', err);
+    } catch {
       message.error('Failed to fetch agent report');
     } finally {
       setLoading(false);
@@ -83,11 +87,17 @@ export default function AgentReport() {
   };
 
   useEffect(() => {
-    if (currentAgentName) {
+    getData(GET_MY_SUBSCRIPTION)
+      .then((sub) => setAnalyticsAllowed(toBool(sub?.subscription?.plan?.analytics)))
+      .catch(() => setAnalyticsAllowed(false));
+  }, []);
+
+  useEffect(() => {
+    if (currentAgentName && analyticsAllowed) {
       fetchReport(pagination.current, pagination.pageSize);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentAgentName]);
+  }, [currentAgentName, analyticsAllowed]);
 
   const handleTableChange = (pag) => {
     fetchReport(pag.current, pag.pageSize);
@@ -158,11 +168,35 @@ export default function AgentReport() {
       document.body.removeChild(link);
       URL.revokeObjectURL(downloadUrl);
       message.success('Report exported successfully');
-    } catch (err) {
-      console.error('Error exporting report:', err);
+    } catch {
       message.error('Failed to export report');
     }
   };
+
+  if (analyticsAllowed === null) {
+    return <div className="flex justify-center py-20"><Spin size="large" /></div>;
+  }
+
+  if (!analyticsAllowed) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f0ebff] mb-5">
+          <Lock size={28} className="text-[#6200FF]" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">Analytics not available on your plan</h2>
+        <p className="mt-2 text-sm text-slate-500 max-w-sm">
+          Upgrade your plan to access conversation reports, CSV exports, and detailed query analytics.
+        </p>
+        <button
+          onClick={() => navigate('/active-plan')}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#6200FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#5000CC] transition-colors"
+        >
+          <BarChart3 size={15} />
+          View plans &amp; upgrade
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">

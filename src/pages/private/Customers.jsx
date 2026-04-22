@@ -255,7 +255,7 @@ const Customers = () => {
         <Button
           shape="circle"
           icon={<MessageOutlined />}
-          onClick={() => navigate(`/${id}/dashboard/chat-history/${record.customer_id}`)}
+          onClick={() => navigate(`/${id}/agent-dashboard/chat-history/${record.customer_id}`)}
         />
       ),
     },

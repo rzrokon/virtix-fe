@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, message, Modal, Select, Spin, Tag } from 'antd';
 import Cookies from 'js-cookie';
-import { Check, X, RefreshCw, ArrowUpDown, Ban } from 'lucide-react';
+import { ArrowUpDown, Ban, Check, Minus, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { getData, postData } from '../../scripts/api-service';
-import { GET_BILLING_PLANS, GET_MY_SUBSCRIPTION, CHANGE_SUBSCRIPTION } from '../../scripts/api';
+import { CHANGE_SUBSCRIPTION, GET_BILLING_PLANS, GET_MY_SUBSCRIPTION } from '../../scripts/api';
+
+const toBool = (v) => v === true || v === 'true' || v === 1;
 
 const bytesToHuman = (bytes = 0) => {
   const b = Number(bytes || 0);
   if (b >= 1e12) return `${(b / 1e12).toFixed(1)} TB`;
-  if (b >= 1e9) return `${(b / 1e9).toFixed(1)} GB`;
-  if (b >= 1e6) return `${(b / 1e6).toFixed(1)} MB`;
-  if (b >= 1e3) return `${(b / 1e3).toFixed(1)} KB`;
+  if (b >= 1e9)  return `${(b / 1e9).toFixed(1)} GB`;
+  if (b >= 1e6)  return `${(b / 1e6).toFixed(1)} MB`;
+  if (b >= 1e3)  return `${(b / 1e3).toFixed(1)} KB`;
   return `${b} B`;
 };
 
@@ -24,24 +27,72 @@ const numToHuman = (n = 0) => {
 };
 
 const formatDate = (iso) => {
-  if (!iso) return '-';
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch { return iso; }
 };
 
 const planPriceLabel = (plan) => {
-  if (!plan) return '-';
+  if (!plan) return '—';
   if (plan.contact_sales_only) return 'Contact sales';
   const p = parseFloat(plan.price_usd);
-  if (!p || p === 0) return 'Free';
-  return `$${p}`;
+  return (!p || p === 0) ? 'Free' : `$${p}/mo`;
 };
 
+const extractError = (res) => {
+  if (!res?.errors) return 'Something went wrong. Please try again.';
+  if (typeof res.errors === 'string') return res.errors;
+  return Object.values(res.errors).flat().join(' ') || 'Something went wrong.';
+};
+
+const FEATURE_SECTIONS = [
+  {
+    label: 'Channels',
+    items: [
+      { key: 'website_widget',  label: 'Website Widget' },
+      { key: 'messenger',       label: 'Facebook Messenger' },
+      { key: 'instagram',       label: 'Instagram' },
+      { key: 'whatsapp',        label: 'WhatsApp' },
+    ],
+  },
+  {
+    label: 'Workflows',
+    items: [
+      { key: 'booking',    label: 'Booking System' },
+      { key: 'complaints', label: 'Complaints Management' },
+    ],
+  },
+  {
+    label: 'Knowledge',
+    items: [
+      { key: 'website_data',   label: 'Website Data' },
+      { key: 'wordpress_data', label: 'WordPress Data' },
+    ],
+  },
+  {
+    label: 'Commerce',
+    items: [
+      { key: 'internal_commerce',       label: 'Internal Commerce' },
+      { key: 'woocommerce',             label: 'WooCommerce' },
+      { key: 'shopify',                 label: 'Shopify' },
+      { key: 'product_recommendations', label: 'Product Recommendations' },
+      { key: 'order_processing',        label: 'Order Processing' },
+      { key: 'order_tracking',          label: 'Order Tracking' },
+    ],
+  },
+  {
+    label: 'Reporting',
+    items: [
+      { key: 'analytics', label: 'Analytics' },
+    ],
+  },
+];
+
 export default function ActivePlan() {
+  const navigate = useNavigate();
+
   const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [subData, setSubData] = useState(null);
@@ -51,201 +102,142 @@ export default function ActivePlan() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedPlanCode, setSelectedPlanCode] = useState(null);
 
-  // ✅ auth guard
-  useEffect(() => {
-    const token = Cookies.get('kotha_token');
-    if (!token) {
-      window.location.href = '/signin';
-    }
-  }, []);
-
   const currentPlan = subData?.subscription?.plan;
   const currentPlanCode = currentPlan?.code;
+  const usage = subData?.usage || {};
+  const limits = subData?.limits || {};
 
   const publicPlans = useMemo(() => {
-    const list = Array.isArray(plans) ? plans : [];
-    return list
+    return (Array.isArray(plans) ? plans : [])
       .filter(p => p.is_public)
       .sort((a, b) => (a.id || 0) - (b.id || 0));
   }, [plans]);
 
-  const starterPlan = useMemo(() => {
-    return publicPlans.find(p => p.code === 'starter')
-      || publicPlans.find(p => parseFloat(p.price_usd) === 0);
-  }, [publicPlans]);
+  const starterPlan = useMemo(() => (
+    publicPlans.find(p => p.code === 'starter') ||
+    publicPlans.find(p => parseFloat(p.price_usd) === 0)
+  ), [publicPlans]);
 
-  const planOptions = useMemo(() => {
-    return publicPlans
-      .filter(p => !p.contact_sales_only) // hide sales-only from dropdown (optional)
+  const planOptions = useMemo(() => (
+    publicPlans
+      .filter(p => !p.contact_sales_only)
       .map(p => ({
         value: p.code,
-        label: `${p.name} — ${planPriceLabel(p)}${parseFloat(p.price_usd) > 0 ? '/mo' : ''}`,
-      }));
-  }, [publicPlans]);
-
-  const usage = subData?.usage || {};
-  const limits = subData?.limits || {};
-  const includedFeatures = limits?.features || {};
-
-  const featureList = [
-    { key: 'lead_gen', label: 'Lead generation' },
-    { key: 'booking', label: 'Booking system' },
-    { key: 'complaints', label: 'Complaints management' },
-    { key: 'products_orders', label: 'Products & orders' },
-    { key: 'offers', label: 'Offers & promotions' },
-  ];
+        label: `${p.name} — ${planPriceLabel(p)}`,
+      }))
+  ), [publicPlans]);
 
   const refreshAll = async () => {
     setPageLoading(true);
+    setPageError(null);
     try {
-      // subscription endpoint requires auth token (getData includes token by default)
-      const sub = await getData(GET_MY_SUBSCRIPTION);
-
-      // plans endpoint is public
-      const pl = await getData(GET_BILLING_PLANS, true);
-      const list = Array.isArray(pl) ? pl : (pl?.results || []);
-
+      const [sub, pl] = await Promise.all([
+        getData(GET_MY_SUBSCRIPTION),
+        getData(GET_BILLING_PLANS, true),
+      ]);
       setSubData(sub);
-      setPlans(list);
-    } catch (e) {
-      console.error('[ActivePlan] refresh error', e);
-      message.error('Failed to load subscription data');
+      setPlans(Array.isArray(pl) ? pl : (pl?.results || []));
+    } catch {
+      setPageError('Failed to load subscription data. Please try again.');
     } finally {
       setPageLoading(false);
     }
   };
 
   useEffect(() => {
+    const token = Cookies.get('kotha_token');
+    if (!token) { navigate('/signin', { replace: true }); return; }
     refreshAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [navigate]);
 
-  const openChange = () => {
-    setSelectedPlanCode(currentPlanCode || null);
-    setChangeOpen(true);
-  };
-
-    const submitChange = async () => {
-    if (!selectedPlanCode) {
-        message.warning('Please select a plan');
-        return;
-    }
-
+  const submitChange = async () => {
+    if (!selectedPlanCode) { message.warning('Please select a plan'); return; }
     if (selectedPlanCode === currentPlanCode) {
-        message.info('You are already on this plan');
-        setChangeOpen(false);
-        return;
+      message.info('You are already on this plan');
+      setChangeOpen(false);
+      return;
     }
 
     setActionLoading(true);
     try {
-        const payload = { plan_code: selectedPlanCode };
-        console.log('[ChangeSubscription] payload', payload);
+      const res = await postData(CHANGE_SUBSCRIPTION, { plan_code: selectedPlanCode });
+      const data = res?.data ?? res;
 
-        const res = await postData(CHANGE_SUBSCRIPTION, payload);
-        const data = res?.data ?? res;
+      if (res?.error) { message.error(extractError(res)); return; }
 
-        console.log('[ChangeSubscription] response', data);
-
-        if (data?.detail === 'checkout_created' && data?.mode === 'lemon_checkout' && data?.checkout_url) {
+      if (data?.detail === 'checkout_created' && data?.checkout_url) {
         window.location.href = data.checkout_url;
         return;
-        }
+      }
 
-        if (data?.detail === 'ok' || data?.mode === 'internal') {
+      if (data?.detail === 'ok' || data?.mode === 'internal') {
         message.success('Plan updated successfully');
         setChangeOpen(false);
         await refreshAll();
         return;
-        }
+      }
 
-        if (res?.error) {
-        console.error('[ChangeSubscription] errors', res.errors);
-        message.error('Failed to change plan');
-        return;
-        }
-
-        message.error('Unexpected response from server');
-    } catch (e) {
-        console.error('[ChangeSubscription] exception', e);
-        message.error('Failed to change plan');
+      message.error('Unexpected response. Please try again.');
+    } catch {
+      message.error('Failed to change plan. Please try again.');
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
-    };
+  };
 
-  const openCancel = () => setCancelOpen(true);
-
-    const submitCancelToFree = async () => {
-    if (!starterPlan?.code) {
-        message.error('Starter (Free) plan not found');
-        return;
-    }
+  const submitCancelToFree = async () => {
+    if (!starterPlan?.code) { message.error('Free plan not found'); return; }
 
     setActionLoading(true);
     try {
-        const payload = { plan_code: starterPlan.code };
-        console.log('[CancelToFree] payload', payload);
+      const res = await postData(CHANGE_SUBSCRIPTION, { plan_code: starterPlan.code });
+      const data = res?.data ?? res;
 
-        const res = await postData(CHANGE_SUBSCRIPTION, payload);
-        const data = res?.data ?? res;
+      if (res?.error) { message.error(extractError(res)); return; }
 
-        console.log('[CancelToFree] response', data);
-
-        if (data?.detail === 'checkout_created' && data?.checkout_url) {
+      if (data?.detail === 'checkout_created' && data?.checkout_url) {
         window.location.href = data.checkout_url;
         return;
-        }
+      }
 
-        if (data?.detail === 'ok' || data?.mode === 'internal') {
-        message.success('Subscription canceled. You are now on the Free plan.');
+      if (data?.detail === 'ok' || data?.mode === 'internal') {
+        message.success('Switched to Free plan successfully.');
         setCancelOpen(false);
         await refreshAll();
         return;
-        }
+      }
 
-        if (res?.error) {
-        console.error('[CancelToFree] errors', res.errors);
-        message.error('Failed to cancel subscription');
-        return;
-        }
-
-        message.error('Unexpected response from server');
-    } catch (e) {
-        console.error('[CancelToFree] exception', e);
-        message.error('Failed to cancel subscription');
+      message.error('Unexpected response. Please try again.');
+    } catch {
+      message.error('Failed to cancel subscription. Please try again.');
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
-    };
+  };
 
   const usageCards = [
-    {
-      title: 'Messages used',
-      used: usage?.messages ?? 0,
-      limit: limits?.max_messages_per_month ?? 0,
-      format: numToHuman,
-    },
-    {
-      title: 'Index used',
-      used: usage?.index_bytes ?? 0,
-      limit: limits?.max_index_bytes ?? 0,
-      format: bytesToHuman,
-    },
-    {
-      title: 'Storage used',
-      used: usage?.storage_bytes ?? 0,
-      limit: limits?.max_storage_bytes ?? 0,
-      format: bytesToHuman,
-    },
+    { title: 'Messages',     used: usage?.messages ?? 0,      limit: limits?.max_messages_per_month ?? 0, format: numToHuman },
+    { title: 'Index',        used: usage?.index_bytes ?? 0,   limit: limits?.max_index_bytes ?? 0,        format: bytesToHuman },
+    { title: 'Storage',      used: usage?.storage_bytes ?? 0, limit: limits?.max_storage_bytes ?? 0,      format: bytesToHuman },
   ];
 
   if (pageLoading) {
     return (
       <div className="p-6">
         <Card>
-          <div className="flex justify-center py-10">
-            <Spin />
+          <div className="flex justify-center py-10"><Spin /></div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <div className="p-6">
+        <Card>
+          <div className="flex flex-col items-center gap-4 py-10 text-center">
+            <p className="text-red-500">{pageError}</p>
+            <Button onClick={refreshAll}>Try again</Button>
           </div>
         </Card>
       </div>
@@ -254,35 +246,31 @@ export default function ActivePlan() {
 
   return (
     <div className="p-6 space-y-6">
+
       {/* Header */}
       <Card>
         <div className="flex flex-wrap justify-between items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold">Active Plan</h1>
-            <p className="text-gray-600 mt-1">
-              View your current plan, usage and manage upgrades/downgrades.
+            <p className="text-gray-500 mt-1 text-sm">
+              View your current plan, usage, and manage upgrades or cancellations.
             </p>
           </div>
-
-          <div className="flex gap-2">
-            <Button icon={<RefreshCw size={16} />} onClick={refreshAll}>
+          <div className="flex flex-wrap gap-2">
+            <Button icon={<RefreshCw size={15} />} onClick={refreshAll} loading={pageLoading}>
               Refresh
             </Button>
-
             <Button
               type="primary"
-              icon={<ArrowUpDown size={16} />}
-              onClick={openChange}
-              loading={actionLoading}
+              icon={<ArrowUpDown size={15} />}
+              onClick={() => { setSelectedPlanCode(currentPlanCode || null); setChangeOpen(true); }}
             >
               Change plan
             </Button>
-
             <Button
               danger
-              icon={<Ban size={16} />}
-              onClick={openCancel}
-              loading={actionLoading}
+              icon={<Ban size={15} />}
+              onClick={() => setCancelOpen(true)}
               disabled={currentPlanCode === starterPlan?.code}
             >
               Cancel & switch to Free
@@ -291,106 +279,112 @@ export default function ActivePlan() {
         </div>
       </Card>
 
-      {/* Current Plan + Usage */}
+      {/* Plan info + Usage */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         {/* Current plan */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 space-y-6">
+
+          {/* Name + status */}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="text-sm text-gray-500">Current plan</div>
-              <div className="text-2xl font-bold">
-                {currentPlan?.name || '—'}{' '}
-                <span className="text-base font-semibold text-gray-700">
-                  ({planPriceLabel(currentPlan)}{parseFloat(currentPlan?.price_usd || 0) > 0 ? '/mo' : ''})
+              <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">Current plan</div>
+              <div className="text-2xl font-bold text-[#0C0900]">
+                {currentPlan?.name || '—'}
+                <span className="text-base font-normal text-gray-500 ml-2">
+                  {planPriceLabel(currentPlan)}
                 </span>
               </div>
-
-              <div className="mt-2 flex flex-wrap gap-2 items-center">
+              <div className="mt-2 flex flex-wrap gap-2">
                 <Tag color={subData?.subscription?.status === 'active' ? 'green' : 'orange'}>
                   {subData?.subscription?.status || 'unknown'}
                 </Tag>
-                {subData?.subscription?.cancel_at_period_end ? (
-                  <Tag color="volcano">Cancel at period end</Tag>
-                ) : (
-                  <Tag color="blue">Auto-renew</Tag>
-                )}
+                {subData?.subscription?.cancel_at_period_end
+                  ? <Tag color="volcano">Cancels at period end</Tag>
+                  : <Tag color="blue">Auto-renews</Tag>
+                }
               </div>
-
-              <div className="mt-4 text-sm text-gray-700 space-y-1">
-                <div>
-                  <span className="text-gray-500">Period start:</span>{' '}
-                  {formatDate(subData?.subscription?.current_period_start)}
-                </div>
-                <div>
-                  <span className="text-gray-500">Period end:</span>{' '}
-                  {formatDate(subData?.subscription?.current_period_end)}
-                </div>
+              <div className="mt-3 text-sm text-gray-500 space-y-0.5">
+                <div>Period: <span className="text-gray-700">{formatDate(subData?.subscription?.current_period_start)} — {formatDate(subData?.subscription?.current_period_end)}</span></div>
               </div>
             </div>
 
-            <div className="min-w-[220px]">
-              <div className="text-sm text-gray-500 mb-2">Plan limits</div>
+            {/* Limits summary */}
+            <div>
+              <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">Plan limits</div>
               <div className="space-y-1 text-sm">
-                <div><b>{limits?.max_agents ?? '-'}</b> agents</div>
-                <div><b>{limits?.max_files ?? '-'}</b> files</div>
-                <div><b>{numToHuman(limits?.max_messages_per_month ?? 0)}</b> msgs/month</div>
-                <div><b>{bytesToHuman(limits?.max_storage_bytes ?? 0)}</b> storage</div>
-                <div><b>{bytesToHuman(limits?.max_index_bytes ?? 0)}</b> index</div>
+                <div><span className="font-semibold">{limits?.max_agents ?? '—'}</span> agents</div>
+                <div><span className="font-semibold">{limits?.max_files ?? '—'}</span> files</div>
+                <div><span className="font-semibold">{numToHuman(limits?.max_messages_per_month ?? 0)}</span> messages/month</div>
+                <div><span className="font-semibold">{bytesToHuman(limits?.max_storage_bytes ?? 0)}</span> storage</div>
+                <div><span className="font-semibold">{bytesToHuman(limits?.max_index_bytes ?? 0)}</span> index</div>
+                <div><span className="font-semibold">{limits?.max_team_members ?? '—'}</span> team members</div>
               </div>
             </div>
           </div>
 
-          {/* Features */}
-          <div className="mt-6">
-            <div className="font-semibold text-lg mb-3">Included features</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {featureList.map((f) => {
-                const included = !!includedFeatures?.[f.key];
-                return (
-                  <div key={f.key} className="flex items-center gap-2">
-                    {included ? (
-                      <Check size={18} className="text-green-600" />
-                    ) : (
-                      <X size={18} className="text-gray-400" />
-                    )}
-                    <span className={included ? 'text-gray-900' : 'text-gray-400'}>
-                      {f.label}
-                    </span>
+          {/* Included features */}
+          <div>
+            <div className="text-xs uppercase tracking-widest text-gray-400 mb-4">Included features</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+              {FEATURE_SECTIONS.map((section) => (
+                <div key={section.label}>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    {section.label}
                   </div>
-                );
-              })}
+                  <div className="space-y-1.5">
+                    {section.items.map((f) => {
+                      const included = toBool(currentPlan?.[f.key]);
+                      return (
+                        <div key={f.key} className="flex items-center gap-2">
+                          {included
+                            ? <Check size={14} className="text-[#6200FF] flex-shrink-0" />
+                            : <Minus size={14} className="text-gray-300 flex-shrink-0" />
+                          }
+                          <span className={`text-sm ${included ? 'text-gray-800' : 'text-gray-400'}`}>
+                            {f.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </Card>
 
         {/* Usage */}
         <Card>
-          <div className="text-lg font-semibold mb-3">Usage</div>
-          <div className="text-sm text-gray-500 mb-4">
-            Current period: {formatDate(usage?.period_start)} → {formatDate(usage?.period_end)}
+          <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">Usage</div>
+          <div className="text-sm text-gray-500 mb-5">
+            {formatDate(usage?.period_start)} — {formatDate(usage?.period_end)}
           </div>
-
-          <div className="space-y-4">
+          <div className="space-y-5">
             {usageCards.map((u) => {
               const used = Number(u.used || 0);
               const limit = Number(u.limit || 0);
               const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+              const isHigh = pct >= 90;
+              const isMid = pct >= 70 && pct < 90;
 
               return (
                 <div key={u.title}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-700">{u.title}</span>
-                    <span className="text-gray-600">
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-gray-700 font-medium">{u.title}</span>
+                    <span className={`font-medium ${isHigh ? 'text-red-500' : isMid ? 'text-amber-500' : 'text-gray-500'}`}>
                       {u.format(used)} / {u.format(limit)}
                     </span>
                   </div>
-
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
-                      className="bg-[#6200FF] h-2 rounded-full"
+                      className={`h-2 rounded-full transition-all ${
+                        isHigh ? 'bg-red-500' : isMid ? 'bg-amber-400' : 'bg-[#6200FF]'
+                      }`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
+                  <div className="text-right text-xs text-gray-400 mt-1">{pct}%</div>
                 </div>
               );
             })}
@@ -407,13 +401,12 @@ export default function ActivePlan() {
         okText="Confirm change"
         confirmLoading={actionLoading}
       >
-        <div className="space-y-4">
-          <div className="text-sm text-gray-600">
-            Current plan: <b>{currentPlan?.name || '—'}</b>
+        <div className="space-y-4 py-2">
+          <div className="text-sm text-gray-500">
+            Current plan: <span className="font-semibold text-gray-800">{currentPlan?.name || '—'}</span>
           </div>
-
           <div>
-            <div className="text-sm font-medium text-gray-700 mb-1">Select a plan</div>
+            <div className="text-sm font-medium text-gray-700 mb-1.5">Select a new plan</div>
             <Select
               style={{ width: '100%' }}
               value={selectedPlanCode}
@@ -422,10 +415,9 @@ export default function ActivePlan() {
               placeholder="Choose a plan"
             />
           </div>
-
-          <div className="text-xs text-gray-500">
-            Your billing system will apply changes based on subscription rules.
-          </div>
+          <p className="text-xs text-gray-400">
+            Changes take effect immediately. Billing adjustments follow your subscription provider's rules.
+          </p>
         </div>
       </Modal>
 
@@ -439,13 +431,16 @@ export default function ActivePlan() {
         okButtonProps={{ danger: true }}
         confirmLoading={actionLoading}
       >
-        <p className="text-gray-700">
-          This will switch your plan to <b>{starterPlan?.name || 'Starter'}</b> (Free).
-        </p>
-        <p className="text-gray-500 mt-2 text-sm">
-          Some features may be disabled based on the Free plan limits.
-        </p>
+        <div className="space-y-2 py-2">
+          <p className="text-gray-700">
+            Your plan will be switched to <span className="font-semibold">{starterPlan?.name || 'Starter'}</span> (Free).
+          </p>
+          <p className="text-sm text-gray-400">
+            Features not included in the Free plan will be disabled immediately.
+          </p>
+        </div>
       </Modal>
+
     </div>
   );
 }

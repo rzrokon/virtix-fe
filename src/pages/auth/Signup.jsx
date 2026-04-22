@@ -22,10 +22,7 @@ export default function SignupForm() {
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    if (!clientId) {
-      console.warn("VITE_GOOGLE_CLIENT_ID missing in .env");
-      return;
-    }
+    if (!clientId) return;
 
     const initGoogle = () => {
       if (!window.google?.accounts?.id) return;
@@ -50,13 +47,12 @@ export default function SignupForm() {
             if (access && refresh) {
               setAuthToken(access, refresh);
               message.success("Signed in with Google!");
-              navigate("/home", { replace: true });
+              navigate("/dashboard", { replace: true });
             } else {
               message.error("Invalid token response from server");
             }
           } catch (e) {
             message.error(handleApiError(e) || "Google sign-in failed");
-            console.error(e);
           } finally {
             setGoogleLoading(false);
           }
@@ -111,7 +107,6 @@ export default function SignupForm() {
     } catch (error) {
       const errorMessage = handleApiError(error);
       message.error(errorMessage || "Registration failed. Please try again.");
-      console.error("Signup error:", error);
     } finally {
       setLoading(false);
     }

@@ -27,27 +27,24 @@ export default function CreateAgentLayout() {
   };
 
   const handleCreate = async (values) => {
-    try {
-      const formData = new FormData();
-      formData.append('agent_name', values.agent_name);
-      formData.append('agent_heading', values.agent_heading);
-      formData.append('agent_description', values.agent_description);
+    const formData = new FormData();
+    formData.append('agent_name', values.agent_name);
+    formData.append('agent_heading', values.agent_heading);
+    formData.append('agent_description', values.agent_description);
 
-      const response = await postData(CREATE_AGENT, formData);
+    const response = await postData(CREATE_AGENT, formData);
 
-      if (response) {
-        if (response.error) {
-          message.error('Agent created failed!');
-          return;
-        }
-        message.success('Agent created successfully!');
-        refreshAgents(); // Refresh agents list from context
-        handleModalClose();
-      }
-    } catch (error) {
-      console.error('Error creating agent:', error);
-      message.error('Failed to create agent. Please try again.');
+    if (response?.error) {
+      const errMsg = typeof response.errors === 'string'
+        ? response.errors
+        : Object.values(response.errors || {}).flat().join(' ') || 'Failed to create agent';
+      message.error(errMsg);
+      return;
     }
+
+    message.success('Agent created successfully!');
+    refreshAgents();
+    handleModalClose();
   };
 
 

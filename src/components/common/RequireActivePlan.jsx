@@ -13,7 +13,6 @@ export default function RequireActivePlan({ children }) {
   useEffect(() => {
     const run = async () => {
       const token = Cookies.get('kotha_token');
-      console.log('[RequireActivePlan] token exists?', !!token);
 
       if (!token) {
         navigate('/signin', { replace: true });
@@ -24,17 +23,14 @@ export default function RequireActivePlan({ children }) {
         const data = await getData(GET_MY_SUBSCRIPTION);
 
         const planCode = data?.subscription?.plan?.code;
-        console.log('[RequireActivePlan] planCode:', planCode);
 
         if (!planCode) {
-          console.log('[RequireActivePlan] No plan => redirect /choose-plan');
           navigate('/choose-plan', { replace: true, state: { from: location.pathname } });
           return;
         }
 
         setLoading(false);
-      } catch (e) {
-        console.error('[RequireActivePlan] subscription check failed', e);
+      } catch {
         navigate('/choose-plan', { replace: true, state: { from: location.pathname } });
       }
     };

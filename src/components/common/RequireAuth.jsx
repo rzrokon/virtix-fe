@@ -9,7 +9,6 @@ export default function RequireAuth({ children }) {
 
   useEffect(() => {
     const token = Cookies.get('kotha_token');
-    console.log('[RequireAuth] token exists?', !!token);
 
     if (!token) {
       navigate('/signin', { replace: true });

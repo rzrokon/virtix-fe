@@ -36,14 +36,13 @@ export default function BillingSuccess() {
       // ✅ if subscription is active and plan exists -> go home
       if (code && subStatus === 'active') {
         message.success('Subscription activated!');
-        navigate('/home', { replace: true });
+        navigate('/dashboard', { replace: true });
         return;
       }
 
       // If plan exists but status not active yet (webhook delay), keep user here
       // and let them retry.
-    } catch (e) {
-      console.error('[BillingSuccess] verify failed', e);
+    } catch {
       message.error('Could not verify your subscription yet. Please try again.');
     } finally {
       setLoading(false);
@@ -51,10 +50,6 @@ export default function BillingSuccess() {
   };
 
   useEffect(() => {
-    // Optional: Lemon may append params like order_id, checkout_id, etc.
-    // You can log them if needed:
-    console.log('[BillingSuccess] query params:', Object.fromEntries(searchParams.entries()));
-
     verifySubscription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -104,7 +99,7 @@ export default function BillingSuccess() {
                 <Button
                   type="primary"
                   className="bg-[#6200FF] border-[#6200FF]"
-                  onClick={() => navigate('/home')}
+                  onClick={() => navigate('/dashboard')}
                 >
                   Go to Dashboard
                 </Button>
