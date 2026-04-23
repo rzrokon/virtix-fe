@@ -1,5 +1,5 @@
-import { Button, Modal } from 'antd';
-import { Facebook, Globe, Instagram, MessageCircle, Phone, Play } from 'lucide-react';
+import { Modal } from 'antd';
+import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Phone, Play, Star, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -11,8 +11,9 @@ const Hero = () => {
     <section className="hero-section pt-40 pb-20">
       <div className="container">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="flex-2 space-y-6">
 
+          {/* Left: copy */}
+          <div className="flex-2 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-1.5 text-sm font-semibold text-[#6200FF]">
               <span className="h-2 w-2 rounded-full bg-[#6200FF] animate-pulse" />
               Built for Shopify &amp; WooCommerce stores
@@ -27,25 +28,23 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link to="/signin">
-                <Button
-                  type="primary"
-                  size="large"
-                  className="!bg-[#6200FF] !border-[#6200FF] hover:!bg-[#5000CC] !h-12 !px-8 !text-base !font-semibold"
-                >
-                  Start Free
-                </Button>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#6200FF] px-7 py-3.5 text-base font-semibold text-white hover:bg-[#5000CC] transition-colors shadow-[0_4px_20px_rgba(98,0,255,0.35)]"
+              >
+                Start Free
+                <ArrowRight size={16} />
               </Link>
-              <Link to="/contact">
-                <Button size="large" className="!h-12 !px-8 !text-base !font-semibold">
-                  Book Demo
-                </Button>
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 text-base font-semibold text-slate-800 hover:border-[#6200FF]/30 hover:text-[#6200FF] transition-colors"
+              >
+                Book Demo
               </Link>
             </div>
 
-            <p className="text-sm text-gray-400 flex items-center gap-1.5">
-              <span className="inline-block h-4 w-px bg-gray-300" />
-              No credit card required · Built for Shopify &amp; WooCommerce stores
+            <p className="text-sm text-gray-400">
+              No credit card required · Setup in under 5 minutes
             </p>
 
             <div className="pt-2">
@@ -59,7 +58,7 @@ const Hero = () => {
                 ].map((channel) => (
                   <span
                     key={channel.label}
-                    className="group inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-2 text-sm font-semibold text-[#0C0900] shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-[#D8CCFF] hover:shadow-[0_14px_28px_rgba(98,0,255,0.2)]"
+                    className="group inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-2 text-sm font-semibold text-[#0C0900] shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#D8CCFF] hover:shadow-[0_14px_28px_rgba(98,0,255,0.2)]"
                   >
                     <channel.Icon
                       size={16}
@@ -72,21 +71,50 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Right: product visual */}
           <div className="flex-1">
             <div className="relative">
-              <img src="/assets/images/virtix-widget.png" alt="Virtix AI website widget" />
+              <img
+                src="/assets/images/virtix-widget.png"
+                alt="Virtix AI website widget"
+                className="w-full rounded-2xl"
+              />
+
+              {/* Play button — covers entire image so clicking anywhere opens the video */}
               <button
                 type="button"
                 aria-label="Play product video"
                 onClick={() => setVideoOpen(true)}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 z-10 flex items-center justify-center group"
               >
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-[#0C0900] shadow-lg">
-                  <Play size={22} className="ml-0.5" />
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-[#6200FF] shadow-xl group-hover:scale-110 transition-transform">
+                  <Play size={22} className="ml-1" fill="currentColor" />
                 </span>
               </button>
+
+              {/* Tip card 1 — top left */}
+              <div className="pointer-events-none absolute top-5 left-4 z-20 hidden lg:flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative h-2 w-2 rounded-full bg-green-500" />
+                </span>
+                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">24/7 Available</span>
+              </div>
+
+              {/* Tip card 2 — bottom left */}
+              <div className="pointer-events-none absolute bottom-16 left-4 z-20 hidden lg:flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
+                <Zap size={13} className="text-[#6200FF] flex-shrink-0" fill="currentColor" />
+                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">{'< 1s Response'}</span>
+              </div>
+
+              {/* Tip card 3 — right side, moved up from mid */}
+              <div className="pointer-events-none absolute top-1/3 -translate-y-1/2 right-4 z-20 hidden lg:flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
+                <Star size={13} className="text-amber-500 flex-shrink-0" fill="currentColor" />
+                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">100% Automated</span>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
 
