@@ -9,32 +9,46 @@ const Hero = () => {
 
   return (
     <section className="hero-section pt-40 pb-20">
-      <div className="container ">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex-2 space-y-4">
-            <h1 className="text-5xl leading-[120%] text-[#0C0900] font-semibold">
-              One AI agent to handle sales, support and bookings — 24/7
+      <div className="container">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="flex-2 space-y-6">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-1.5 text-sm font-semibold text-[#6200FF]">
+              <span className="h-2 w-2 rounded-full bg-[#6200FF] animate-pulse" />
+              Built for Shopify &amp; WooCommerce stores
+            </div>
+
+            <h1 className="text-5xl leading-[120%] text-[#0C0900] font-bold">
+              AI Sales &amp; Support Agent for Shopify &amp; WooCommerce Stores
             </h1>
 
-            <p className="font-normal text-xl leading-relaxed text-gray-600">
-              Virtix AI handles sales questions, captures leads, books appointments and manages support 24/7 — without growing your team.
+            <p className="font-normal text-xl leading-relaxed text-gray-600 max-w-xl">
+              Virtix AI helps Shopify and WooCommerce stores answer product questions, recommend products, track orders, and support customers 24/7.
             </p>
 
-
-            <p className="font-normal text-xl leading-relaxed text-[#0C0900]">
-              Stop missing leads. Stop repeating answers. Start scaling conversations.
-            </p>
-
-            <div className="flex items-center gap-4 mt-10">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link to="/signin">
-                <Button type="primary">Start free — no credit card</Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  className="!bg-[#6200FF] !border-[#6200FF] hover:!bg-[#5000CC] !h-12 !px-8 !text-base !font-semibold"
+                >
+                  Start Free
+                </Button>
               </Link>
               <Link to="/contact">
-                <Button>Book a demo</Button>
+                <Button size="large" className="!h-12 !px-8 !text-base !font-semibold">
+                  Book Demo
+                </Button>
               </Link>
             </div>
 
-            <div className="mt-10 space-y-3">
+            <p className="text-sm text-gray-400 flex items-center gap-1.5">
+              <span className="inline-block h-4 w-px bg-gray-300" />
+              No credit card required · Built for Shopify &amp; WooCommerce stores
+            </p>
+
+            <div className="pt-2">
               <div className="flex flex-wrap items-center gap-3">
                 {[
                   { label: 'Website Widget', color: 'text-[#6200FF]', Icon: Globe },
@@ -55,7 +69,6 @@ const Hero = () => {
                   </span>
                 ))}
               </div>
-          
             </div>
           </div>
 

@@ -12,21 +12,21 @@ const CTA = () => {
           <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-4 max-w-2xl">
               <h2 className="text-3xl md:text-5xl leading-[120%] font-extrabold">
-                Make customer experience your competitive edge
+                Turn store conversations into more sales
               </h2>
               <p className="text-base md:text-lg leading-[160%] text-white/80 font-semibold">
-                Virtix AI helps you handle conversations at scale — without scaling headcount.
+                Answer product questions faster, support customers 24/7, and recover lost revenue with Virtix AI.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-auto">
               <Link to="/signin">
                 <Button type="primary" size="large" className="w-full md:w-[260px] bg-white text-[#0C0900] border-white hover:bg-white/90">
-                  Start free — no credit card
+                  Start Free
                 </Button>
               </Link>
               <div className="text-xs text-white/60 text-center md:text-center">
-                Launch in minutes. Cancel anytime.
+                No credit card required
               </div>
             </div>
           </div>

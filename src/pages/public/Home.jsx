@@ -8,6 +8,8 @@ import ExplorePublic from '../../components/pages/home/ExplorePublic';
 import ActionBlocks from '../../components/pages/home/ActionBlocks';
 import Differentiation from '../../components/pages/home/Differentiation';
 import Hero from '../../components/pages/home/Hero';
+import HowItWorks from '../../components/pages/home/HowItWorks';
+import Integrations from '../../components/pages/home/Integrations';
 import ProblemSolution from '../../components/pages/home/ProblemSolution';
 import Pricing from '../../components/pages/home/Pricing';
 
@@ -32,7 +34,9 @@ function Home() {
       <ProblemSolution />
       <ExploreAgents />
       <ActionBlocks />
-      <Differentiation />
+      <HowItWorks />
+      <Integrations />
+      {/* <Differentiation /> */}
       <ExplorePublic />
       {/* <BuildAgent /> */}
       {/* <CustomerInteractions data={Interaction} /> */}

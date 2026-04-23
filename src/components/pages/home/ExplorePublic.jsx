@@ -1,28 +1,34 @@
 import { Button } from 'antd';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, HeartPulse, PackageCheck, ShoppingBag, ShoppingCart } from 'lucide-react';
 
 export default function ExplorePublic() {
   const agents = [
     {
-      title: "eCommerce Sales Agent",
-      description: "Recommends products, answers pricing questions and take orders.",
-      icon: "/assets/images/Home/user-1.png",
-      backgroundColor: "#E7D7FF",
-      link: "https://virtixai.xyz/ecommerce/index.html"
+      title: 'WooCommerce Store Agent',
+      description: 'Answer product questions, recommend items, and support WooCommerce shoppers from discovery to order updates.',
+      Icon: ShoppingCart,
+      accentIcon: PackageCheck,
+      backgroundColor: '#F1E7FF',
+      iconColor: '#7F54B3',
+      link: 'https://virtixai.xyz/ecommerce/index.html'
     },
     {
-      title: "Support Knowledge Agent",
-      description: "Answers FAQs from docs and policies with consistent, on-brand responses.",
-      icon: "/assets/images/Home/user-2.png",
-      backgroundColor: "#CBEED8",
-      link: "https://virtixai.xyz/agency/index.html"
+      title: 'Shopify Store Agent',
+      description: 'Guide Shopify customers with instant answers about availability, variants, delivery, and product fit.',
+      Icon: ShoppingBag,
+      accentIcon: ArrowRight,
+      backgroundColor: '#ECF7DA',
+      iconColor: '#95BF47',
+      link: 'https://virtixai.xyz/ecommerce/index.html'
     },
     {
-      title: "Bookings & Leads Agent",
-      description: "Captures lead details and books appointments automatically — 24/7.",
-      icon: "/assets/images/Home/user-3.png",
-      backgroundColor: "#F7EBD6",
-      link: "https://virtixai.xyz/healthcare/index.html"
+      title: 'Clinics or Agency Support Agent',
+      description: 'Handle service questions, collect lead details, and help visitors book the next step automatically.',
+      Icon: HeartPulse,
+      accentIcon: BriefcaseBusiness,
+      backgroundColor: '#FFF1D8',
+      iconColor: '#D97706',
+      link: 'https://virtixai.xyz/agency/index.html'
     },
   ];
 
@@ -35,7 +41,7 @@ export default function ExplorePublic() {
             See Virtix AI in action
           </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Try live demo agents to experience how Virtix AI talks, understands your customers and drives outcomes.
+            Try store-focused demo agents and see how Virtix AI answers questions, recommends products, and supports customers.
           </p>
         </div>
 
@@ -47,10 +53,13 @@ export default function ExplorePublic() {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="h-12 w-12 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
+                  className="relative h-14 w-14 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
                   style={{ backgroundColor: agent.backgroundColor }}
                 >
-                  <img src={agent.icon} alt={agent.title} />
+                  <agent.Icon size={26} color={agent.iconColor} strokeWidth={1.9} />
+                  <span className="absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-[0_6px_14px_rgba(15,23,42,0.14)]">
+                    <agent.accentIcon size={13} color={agent.iconColor} strokeWidth={2.2} />
+                  </span>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-[#0C0900]">{agent.title}</h3>

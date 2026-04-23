@@ -16,12 +16,26 @@ const formatNumber = (num) => {
   return num.toString();
 };
 
-const formatBytes = (bytes) => {
-  if (!bytes) return '0 KB';
-  if (bytes >= 1_099_511_627_776) return `${(bytes / 1_099_511_627_776).toFixed(1)} TB`;
-  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} GB`;
-  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+const getPlanCode = (plan) => plan.code?.toLowerCase();
+
+const getPlanDisplayName = (plan) => {
+  const names = {
+    starter: 'Starter',
+    growth: 'Growth',
+    business: 'Business',
+  };
+
+  return names[getPlanCode(plan)] || plan.name;
+};
+
+const getPlanDescription = (plan) => {
+  const descriptions = {
+    starter: 'For testing Virtix on your store',
+    growth: 'For small stores ready to automate support',
+    business: 'For growing stores with higher volume',
+  };
+
+  return descriptions[getPlanCode(plan)] || 'Flexible AI support for your store';
 };
 
 const SectionLabel = ({ children, popular }) => (
@@ -87,7 +101,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
     return `$${price}`;
   };
 
-  const isPopular = (plan) => plan.code === 'growth';
+  const isPopular = (plan) => getPlanCode(plan) === 'growth';
 
   const handlePlanSelection = (plan) => {
     if (plan.contact_sales_only) { navigate('/contact'); return; }
@@ -168,15 +182,18 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
               >
                 {popular && (
                   <div className="absolute -top-3 left-6 rounded-full bg-[#6200FF] px-3 py-1 text-xs font-semibold text-white">
-                    Most popular
+                    Most Popular
                   </div>
                 )}
 
                 {/* Plan header */}
                 <div className="mb-5">
                   <h3 className={`text-2xl font-bold mb-1 ${popular ? 'text-white' : 'text-[#0C0900]'}`}>
-                    {plan.name}
+                    {getPlanDisplayName(plan)}
                   </h3>
+                  <p className={`mb-4 text-sm leading-[150%] ${popular ? 'text-white/65' : 'text-[#0C0900]/60'}`}>
+                    {getPlanDescription(plan)}
+                  </p>
                   <div className="flex items-end gap-1.5">
                     <span className={`text-4xl font-bold leading-tight ${popular ? 'text-white' : 'text-[#0C0900]'}`}>
                       {formatPrice(plan)}
@@ -208,8 +225,6 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                 <div className="space-y-2">
                   <FeatureRow label={`${plan.max_agents} agent${plan.max_agents > 1 ? 's' : ''}`} enabled popular={popular} />
                   <FeatureRow label={`${formatNumber(plan.max_messages_per_month)} messages / month`} enabled popular={popular} />
-                  <FeatureRow label={`${plan.max_files} files`} enabled popular={popular} />
-                  <FeatureRow label={`${formatBytes(plan.max_storage_bytes)} storage`} enabled popular={popular} />
                   <FeatureRow label={`${plan.max_team_members} team member${plan.max_team_members > 1 ? 's' : ''}`} enabled popular={popular} />
                 </div>
 
