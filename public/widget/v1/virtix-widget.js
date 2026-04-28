@@ -663,6 +663,62 @@
       }
       .branding svg { width:11px; height:11px; fill:currentColor; }
 
+      /* ── Product cards ── */
+      .bubble-col {
+        display:flex; flex-direction:column; gap:6px;
+        max-width:72%; min-width:0;
+      }
+      .bubble-col .msg { max-width:100%; }
+      .product-cards-wrap { width:100%; overflow:hidden; }
+      .product-cards {
+        display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;
+        scrollbar-width:thin; scrollbar-color:${hex2rgba(T.themeColor, 0.2)} transparent;
+      }
+      .product-cards::-webkit-scrollbar { height:3px; }
+      .product-cards::-webkit-scrollbar-thumb { background:${hex2rgba(T.themeColor, 0.25)}; border-radius:4px; }
+      .product-card {
+        flex-shrink:0; width:145px;
+        background:var(--c-bot-bg);
+        border:1px solid ${hex2rgba(T.themeColor, 0.2)};
+        border-radius:var(--br); overflow:hidden;
+        display:flex; flex-direction:column;
+      }
+      .product-card-img {
+        width:100%; height:110px; object-fit:cover; display:block;
+      }
+      .product-card-img-placeholder {
+        width:100%; height:110px;
+        background:${hex2rgba(T.themeColor, 0.06)};
+        display:flex; align-items:center; justify-content:center;
+      }
+      .product-card-body {
+        padding:8px; display:flex; flex-direction:column; flex:1; gap:4px;
+      }
+      .product-card-title {
+        font-weight:600; font-size:11.5px; color:var(--c-bot-text);
+        line-height:1.3;
+        display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+        overflow:hidden;
+      }
+      .product-card-price {
+        font-size:12px; font-weight:700; color:var(--c-theme);
+      }
+      .product-card-btn {
+        display:block; width:100%; padding:5px 8px; margin-top:auto;
+        text-align:center; background:var(--c-theme); color:#fff;
+        text-decoration:none; border-radius:var(--br-sm);
+        font-size:11px; font-weight:600; font-family:var(--font);
+        box-sizing:border-box; transition:opacity .15s;
+      }
+      .product-card-btn:hover { opacity:.85; }
+
+      /* ── Inline links ── */
+      .chat-link {
+        color:var(--c-theme); text-decoration:underline;
+        word-break:break-all; opacity:.9;
+      }
+      .chat-link:hover { opacity:1; }
+
       @media (max-width:420px) {
         .panel { width:calc(100vw - 40px); height:72vh; }
       }
@@ -919,6 +975,7 @@
             role: "assistant",
             sender_type: data?.handover_status && data.handover_status !== "BOT" ? "SYSTEM" : "BOT",
             text: data.response || "", ts: new Date().toISOString(),
+            product_cards: Array.isArray(data.product_cards) && data.product_cards.length ? data.product_cards : null,
           });
           saveSession();
           if (["REQUESTED", "ACTIVE"].includes(state.handoverStatus)) startSyncLoop();
@@ -947,6 +1004,56 @@
         if (msgInput) { msgInput.value = text; shadowPanel.getElementById("send")?.click(); }
       };
     });
+  }
+
+  // ── URL linkifier ─────────────────────────────────────────────────────────
+  // Handles both markdown-style [text](url) and bare https?:// URLs
+  function linkify(raw) {
+    const result = [];
+    const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|https?:\/\/[^\s<>"')\]]+/g;
+    let last = 0, m;
+    while ((m = re.exec(raw)) !== null) {
+      if (m.index > last) result.push(esc(raw.slice(last, m.index)));
+      if (m[1] !== undefined) {
+        // Markdown [text](url)
+        result.push(`<a href="${esc(m[2])}" target="_blank" rel="noopener noreferrer" class="chat-link">${esc(m[1])}</a>`);
+      } else {
+        // Bare URL — strip trailing punctuation that isn't part of the URL
+        const url = m[0].replace(/[.,;:!?)\]'"]+$/, "");
+        result.push(`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="chat-link">${esc(url)}</a>`);
+        re.lastIndex = m.index + url.length;
+      }
+      last = re.lastIndex;
+    }
+    if (last < raw.length) result.push(esc(raw.slice(last)));
+    return result.join("");
+  }
+
+  // ── Product card builder ──────────────────────────────────────────────────
+  const CURRENCY_SYMBOLS = { USD:"$", EUR:"€", GBP:"£", JPY:"¥", CAD:"CA$", AUD:"A$", BDT:"৳" };
+
+  function buildProductCards(cards) {
+    const cardsHtml = cards.map((card) => {
+      const symbol   = CURRENCY_SYMBOLS[card.currency] || (card.currency ? card.currency + " " : "");
+      const price    = card.price ? parseFloat(card.price).toFixed(2) : null;
+      const imgHtml  = card.image_url
+        ? `<img class="product-card-img" src="${esc(card.image_url)}" alt="${esc(card.title || '')}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="product-card-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+      const priceHtml = price ? `<div class="product-card-price">${esc(symbol)}${esc(price)}</div>` : "";
+      const btnHtml   = card.url
+        ? `<a class="product-card-btn" href="${esc(card.url)}" target="_blank" rel="noopener noreferrer">View Product</a>`
+        : "";
+      return `
+        <div class="product-card">
+          ${imgHtml}
+          <div class="product-card-body">
+            <div class="product-card-title">${esc(card.title || '')}</div>
+            ${priceHtml}
+            ${btnHtml}
+          </div>
+        </div>`;
+    }).join("");
+    return `<div class="product-cards-wrap"><div class="product-cards">${cardsHtml}</div></div>`;
   }
 
   // ── Render messages with grouping ─────────────────────────────────────────
@@ -1012,20 +1119,36 @@
       const showTime = timeStr && (groupClass === "last-in-group" || groupClass === "only-in-group");
 
       // User bubbles: no avatar, just the bubble right-aligned
-      // Bot/human bubbles: avatar on left
+      // Bot/human bubbles: avatar on left, wrapped in bubble-col for product cards
       const avatarHtml = m.role !== "user"
         ? `<div class="${avatarClass} ${avatarHiddenClass}">${avatarIcon}</div>`
         : "";
 
-      html += `
-        <div class="row ${rowClass}">
-          ${avatarHtml}
-          <div class="msg ${bubbleType} ${groupClass}">
-            ${showLabel ? `<div class="msg-label">${esc(shortLabel)}</div>` : ""}
-            ${esc(m.text)}${showTime ? `<span class="msg-time">${timeStr}</span>` : ""}
-          </div>
-        </div>
-      `;
+      const bubbleInner = `
+        <div class="msg ${bubbleType} ${groupClass}">
+          ${showLabel ? `<div class="msg-label">${esc(shortLabel)}</div>` : ""}
+          ${linkify(m.text)}${showTime ? `<span class="msg-time">${timeStr}</span>` : ""}
+        </div>`;
+
+      if (m.role !== "user") {
+        const productCardsHtml = (m.product_cards && m.product_cards.length)
+          ? buildProductCards(m.product_cards)
+          : "";
+        html += `
+          <div class="row ${rowClass}">
+            ${avatarHtml}
+            <div class="bubble-col">
+              ${bubbleInner}
+              ${productCardsHtml}
+            </div>
+          </div>`;
+      } else {
+        html += `
+          <div class="row ${rowClass}">
+            ${avatarHtml}
+            ${bubbleInner}
+          </div>`;
+      }
     });
 
     chat.innerHTML = html;
