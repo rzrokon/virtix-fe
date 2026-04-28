@@ -22,8 +22,9 @@ import {
   Col,
   Statistic,
   Select,
+  Upload,
 } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   GET_PRODUCTS,
@@ -35,6 +36,8 @@ import { getData, postData, patchData, deleteData } from '../../scripts/api-serv
 
 const { TextArea } = Input;
 const { Option } = Select;
+
+const normFile = (e) => (Array.isArray(e) ? e : e?.fileList);
 
 export default function ManageProducts() {
   const { id: agentId } = useParams();
@@ -50,6 +53,9 @@ export default function ManageProducts() {
   const [submitting, setSubmitting] = useState(false);
 
   const [editingProduct, setEditingProduct] = useState(null);
+  // Ref ensures the correct product id is always available inside async handlers
+  // regardless of React's render/closure cycle
+  const editingProductRef = useRef(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,7 +92,9 @@ export default function ManageProducts() {
   };
 
   const openEditModal = (product) => {
+    editingProductRef.current = product;
     setEditingProduct(product);
+    editForm.resetFields();
     editForm.setFieldsValue({
       sku: product.sku,
       name: product.name,
@@ -97,6 +105,13 @@ export default function ManageProducts() {
       is_active: product.is_active,
     });
     setEditModalVisible(true);
+  };
+
+  const closeEditModal = () => {
+    setEditModalVisible(false);
+    editForm.resetFields();
+    setEditingProduct(null);
+    editingProductRef.current = null;
   };
 
   const handleCreateProduct = async (values) => {
@@ -111,11 +126,19 @@ export default function ManageProducts() {
     };
 
     try {
-      const payload = {
-        agent: agentId,
-        ...values,
-      };
-      const res = await postData(CREATE_PRODUCT, payload, false, false, false, true);
+      const imageFile = values.image?.[0]?.originFileObj ?? null;
+      const formData = new FormData();
+      formData.append('agent', agentId);
+      if (values.sku)                  formData.append('sku',         values.sku);
+      if (values.name)                 formData.append('name',        values.name);
+      if (values.description != null)  formData.append('description', values.description ?? '');
+      if (values.price       != null)  formData.append('price',       values.price);
+      if (values.currency)             formData.append('currency',    values.currency);
+      if (values.stock       != null)  formData.append('stock',       values.stock);
+      formData.append('is_active', values.is_active ? 'true' : 'false');
+      if (imageFile)                   formData.append('image',       imageFile);
+
+      const res = await postData(CREATE_PRODUCT, formData, false, false, false, true);
       const data = res?.data ?? res;
 
       if (data?.error) {
@@ -136,7 +159,11 @@ export default function ManageProducts() {
   };
 
   const handleEditProduct = async (values) => {
-    if (!editingProduct) return;
+    const product = editingProductRef.current;
+    if (!product?.id) {
+      message.error('Could not identify product to update');
+      return;
+    }
     setSubmitting(true);
     const normalizeError = (errObj) => {
       if (typeof errObj === 'string') return errObj;
@@ -148,7 +175,18 @@ export default function ManageProducts() {
     };
 
     try {
-      const res = await patchData(`${UPDATE_PRODUCT}${editingProduct.id}/`, values);
+      const imageFile = values.image?.[0]?.originFileObj ?? null;
+      const formData = new FormData();
+      if (values.sku)                  formData.append('sku',         values.sku);
+      if (values.name)                 formData.append('name',        values.name);
+      if (values.description != null)  formData.append('description', values.description ?? '');
+      if (values.price       != null)  formData.append('price',       values.price);
+      if (values.currency)             formData.append('currency',    values.currency);
+      if (values.stock       != null)  formData.append('stock',       values.stock);
+      formData.append('is_active', values.is_active ? 'true' : 'false');
+      if (imageFile)                   formData.append('image',       imageFile);
+
+      const res = await patchData(`${UPDATE_PRODUCT}${product.id}/`, formData);
       const data = res?.data ?? res;
 
       if (data?.error) {
@@ -157,9 +195,7 @@ export default function ManageProducts() {
       }
 
       message.success('Product updated successfully');
-      setEditModalVisible(false);
-      editForm.resetFields();
-      setEditingProduct(null);
+      closeEditModal();
       fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error.response?.data || error);
@@ -183,11 +219,9 @@ export default function ManageProducts() {
   // ---- Derived data: filtered list + stats ----
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      // status filter
       if (statusFilter === 'active' && !p.is_active) return false;
       if (statusFilter === 'inactive' && p.is_active) return false;
 
-      // search filter
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const name = (p.name || '').toLowerCase();
@@ -204,6 +238,26 @@ export default function ManageProducts() {
   const lowStockCount = products.filter((p) => p.stock >= 0 && p.stock <= 5).length;
 
   const columns = [
+    {
+      title: 'Image',
+      dataIndex: 'image_url',
+      key: 'image_url',
+      width: 72,
+      render: (url) =>
+        url ? (
+          <img
+            src={url}
+            alt="product"
+            style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #f0f0f0', display: 'block' }}
+          />
+        ) : (
+          <div
+            style={{ width: 44, height: 44, borderRadius: 6, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: 18 }}
+          >
+            —
+          </div>
+        ),
+    },
     {
       title: 'SKU',
       dataIndex: 'sku',
@@ -380,7 +434,6 @@ export default function ManageProducts() {
         </Spin>
       </Card>
 
-      {/* Modals same as before (create + edit) */}
       {/* ➕ Create Product Modal */}
       <Modal
         title="Add Product"
@@ -418,10 +471,21 @@ export default function ManageProducts() {
             name="description"
             label="Description"
           >
-            <TextArea
-              rows={3}
-              placeholder="Product description"
-            />
+            <TextArea rows={3} placeholder="Product description" />
+          </Form.Item>
+
+          <Form.Item
+            name="image"
+            label="Image"
+            valuePropName="fileList"
+            getValueFromEvent={normFile}
+          >
+            <Upload listType="picture-card" maxCount={1} beforeUpload={() => false} accept="image/*">
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 6, fontSize: 12 }}>Upload</div>
+              </div>
+            </Upload>
           </Form.Item>
 
           <Form.Item
@@ -429,10 +493,7 @@ export default function ManageProducts() {
             label="Price"
             rules={[{ required: true, message: 'Please enter price' }]}
           >
-            <InputNumber
-              min={0}
-              style={{ width: '100%' }}
-            />
+            <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
@@ -450,9 +511,7 @@ export default function ManageProducts() {
             tooltip="Set -1 for unlimited"
             rules={[{ required: true, message: 'Please enter stock' }]}
           >
-            <InputNumber
-              style={{ width: '100%' }}
-            />
+            <InputNumber style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
@@ -472,11 +531,7 @@ export default function ManageProducts() {
             >
               Cancel
             </Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={submitting}
-            >
+            <Button type="primary" htmlType="submit" loading={submitting}>
               Create
             </Button>
           </div>
@@ -487,11 +542,7 @@ export default function ManageProducts() {
       <Modal
         title="Edit Product"
         open={editModalVisible}
-        onCancel={() => {
-          setEditModalVisible(false);
-          editForm.resetFields();
-          setEditingProduct(null);
-        }}
+        onCancel={closeEditModal}
         footer={null}
         width={600}
       >
@@ -521,10 +572,35 @@ export default function ManageProducts() {
             name="description"
             label="Description"
           >
-            <TextArea
-              rows={3}
-              placeholder="Product description"
-            />
+            <TextArea rows={3} placeholder="Product description" />
+          </Form.Item>
+
+          <Form.Item label="Image">
+            {editingProduct?.image_url && (
+              <div style={{ marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Current image:</span>
+                <img
+                  src={editingProduct.image_url}
+                  alt="current product"
+                  style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6, border: '1px solid #f0f0f0' }}
+                />
+              </div>
+            )}
+            <Form.Item
+              name="image"
+              valuePropName="fileList"
+              getValueFromEvent={normFile}
+              noStyle
+            >
+              <Upload listType="picture-card" maxCount={1} beforeUpload={() => false} accept="image/*">
+                <div>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 6, fontSize: 12 }}>
+                    {editingProduct?.image_url ? 'Replace' : 'Upload'}
+                  </div>
+                </div>
+              </Upload>
+            </Form.Item>
           </Form.Item>
 
           <Form.Item
@@ -532,10 +608,7 @@ export default function ManageProducts() {
             label="Price"
             rules={[{ required: true, message: 'Please enter price' }]}
           >
-            <InputNumber
-              min={0}
-              style={{ width: '100%' }}
-            />
+            <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
@@ -552,9 +625,7 @@ export default function ManageProducts() {
             tooltip="Set -1 for unlimited"
             rules={[{ required: true, message: 'Please enter stock' }]}
           >
-            <InputNumber
-              style={{ width: '100%' }}
-            />
+            <InputNumber style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
@@ -566,20 +637,8 @@ export default function ManageProducts() {
           </Form.Item>
 
           <div className="flex justify-end space-x-2 mt-6">
-            <Button
-              onClick={() => {
-                setEditModalVisible(false);
-                editForm.resetFields();
-                setEditingProduct(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={submitting}
-            >
+            <Button onClick={closeEditModal}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={submitting}>
               Update
             </Button>
           </div>
