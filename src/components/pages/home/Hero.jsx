@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Phone, Play, Star, Zap } from 'lucide-react';
+import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Phone, Play } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -92,26 +92,6 @@ const Hero = () => {
                 </span>
               </button>
 
-              {/* Tip card 1 — top left */}
-              <div className="pointer-events-none absolute top-5 left-4 z-20 hidden lg:flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
-                <span className="relative flex h-2 w-2 flex-shrink-0">
-                  <span className="animate-ping absolute h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative h-2 w-2 rounded-full bg-green-500" />
-                </span>
-                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">24/7 Available</span>
-              </div>
-
-              {/* Tip card 2 — bottom left */}
-              <div className="pointer-events-none absolute bottom-16 left-4 z-20 hidden lg:flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
-                <Zap size={13} className="text-[#6200FF] flex-shrink-0" fill="currentColor" />
-                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">{'< 1s Response'}</span>
-              </div>
-
-              {/* Tip card 3 — right side, moved up from mid */}
-              <div className="pointer-events-none absolute top-1/3 -translate-y-1/2 right-4 z-20 hidden lg:flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-white/70 px-3 py-1.5 shadow-md">
-                <Star size={13} className="text-amber-500 flex-shrink-0" fill="currentColor" />
-                <span className="text-xs font-semibold text-[#0C0900] whitespace-nowrap">100% Automated</span>
-              </div>
             </div>
           </div>
 
