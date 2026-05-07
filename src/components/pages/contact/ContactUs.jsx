@@ -53,6 +53,15 @@ export default function ContactUs() {
           </p>
         </div>
 
+        <div className="mx-auto mt-8 max-w-4xl rounded-[24px] border border-[#e5e7eb] bg-[#faf8ff] p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200FF]">Office Address</p>
+          <div className="mt-3 text-base leading-7 text-[#0C0900]/75">
+            <p>1209 MOUNTAIN ROAD PL NE</p>
+            <p>STE R, ALBUQUERQUE</p>
+            <p>New Mexico 87110, USA</p>
+          </div>
+        </div>
+
         <div className="mx-auto mt-10 max-w-4xl rounded-[24px] border border-[#e5e7eb] bg-white p-6 shadow-sm md:p-8">
           <Form
             size="large"

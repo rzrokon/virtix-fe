@@ -11,7 +11,7 @@ const Footer = () => {
   return (
     <footer className="footer bg-[#111111] text-white">
       <div className="mx-auto w-full max-w-6xl px-6 py-16">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr] items-start">
+        <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-[1.5fr_0.9fr_0.9fr_1fr] items-start">
           <div className="space-y-6">
             <img src="/assets/logo/Virtix_AI_Logo_White.png" alt="Virtix AI" className="h-10" />
             <p className="text-sm leading-relaxed text-white/70">
@@ -41,17 +41,31 @@ const Footer = () => {
           </div>
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.3em] text-white/60 font-semibold">Company</p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <Link to="/" className="text-white/70 hover:text-white">Home</Link>
-              <Link to="/about" className="text-white/70 hover:text-white">About us</Link>
-              
-              <Link to="/features" className="text-white/70 hover:text-white">Feature</Link>
-              <Link to="/terms" className="text-white/70 hover:text-white">Terms & Conditions</Link> 
-              <Link to="/pricing" className="text-white/70 hover:text-white">Pricing</Link>
-              <Link to="/privacy-policy" className="text-white/70 hover:text-white">Privacy Policy</Link> 
-              <Link to="/contact" className="text-white/70 hover:text-white">Contact</Link>
-              <Link to="/refund-policy" className="text-white/70 hover:text-white">Refund Policy</Link>
-              <Link to="/help-center" className="text-white/70 hover:text-white">Help Center</Link> 
+            <div className="space-y-3 text-sm">
+              <Link to="/" className="block text-white/70 hover:text-white">Home</Link>
+              <Link to="/about" className="block text-white/70 hover:text-white">About us</Link>
+              <Link to="/features" className="block text-white/70 hover:text-white">Feature</Link>
+              <Link to="/pricing" className="block text-white/70 hover:text-white">Pricing</Link>
+              <Link to="/contact" className="block text-white/70 hover:text-white">Contact</Link>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/60 font-semibold">Resources</p>
+            <div className="space-y-3 text-sm">
+              <Link to="/terms" className="block text-white/70 hover:text-white">Terms & Conditions</Link>
+              <Link to="/privacy-policy" className="block text-white/70 hover:text-white">Privacy Policy</Link>
+              <Link to="/refund-policy" className="block text-white/70 hover:text-white">Refund Policy</Link>
+              <Link to="/help-center" className="block text-white/70 hover:text-white">Help Center</Link>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/60 font-semibold">Address</p>
+            <div className="text-sm leading-7 text-white/70">
+              <p>1209 MOUNTAIN ROAD PL NE</p>
+              <p>STE R, ALBUQUERQUE</p>
+              <p>New Mexico 87110, USA</p>
             </div>
           </div>
         </div>
