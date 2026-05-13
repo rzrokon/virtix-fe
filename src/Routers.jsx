@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import ScrollToTop from './components/common/ScrollToTop.jsx';
 import UserProfile from './components/pages/profile/UserProfile.jsx';
@@ -60,13 +60,6 @@ import Terms from './pages/public/Terms.jsx';
 import HelpCenter from './pages/public/HelpCenter.jsx';
 
 import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
-
-function LegacyShopifyRedirect() {
-  const location = useLocation();
-  const { id } = useParams();
-
-  return <Navigate to={`/${id}/agent-dashboard/shopify${location.search}`} replace />;
-}
 
 export default function Routers() {
   return (
@@ -169,8 +162,6 @@ export default function Routers() {
           <Route path="/:id/agent-dashboard/shopify" element={<ShopifyIntegration />} />
           <Route path='/:id/agent-dashboard/support' element={<SupportInboxPage />} />
         </Route>
-
-        <Route path="/:id/dashboard/shopify" element={<LegacyShopifyRedirect />} />
       </Routes>
     </BrowserRouter>
   );
