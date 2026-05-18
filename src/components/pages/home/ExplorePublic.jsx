@@ -1,5 +1,5 @@
 import { Button } from 'antd';
-import { ArrowRight, BriefcaseBusiness, HeartPulse, PackageCheck, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Headphones, PackageCheck, ShoppingBag, ShoppingCart } from 'lucide-react';
 
 export default function ExplorePublic() {
   const agents = [
@@ -10,7 +10,7 @@ export default function ExplorePublic() {
       accentIcon: PackageCheck,
       backgroundColor: '#F1E7FF',
       iconColor: '#7F54B3',
-      link: 'https://virtixai.xyz/ecommerce/index.html'
+      link: 'https://demo1.virtixai.xyz/'
     },
     {
       title: 'Shopify Store Agent',
@@ -19,16 +19,16 @@ export default function ExplorePublic() {
       accentIcon: ArrowRight,
       backgroundColor: '#ECF7DA',
       iconColor: '#95BF47',
-      link: 'https://virtixai.xyz/ecommerce/index.html'
+      link: 'https://urbanthread-6591.myshopify.com/'
     },
     {
-      title: 'Clinics or Agency Support Agent',
-      description: 'Handle service questions, collect lead details, and help visitors book the next step automatically.',
-      Icon: HeartPulse,
+      title: 'Customer Support Agent',
+      description: 'Handle service questions, collect collect complaints, and help visitors book the next step automatically.',
+      Icon: Headphones,
       accentIcon: BriefcaseBusiness,
       backgroundColor: '#FFF1D8',
       iconColor: '#D97706',
-      link: 'https://virtixai.xyz/agency/index.html'
+      link: 'https://demo2.virtixai.xyz/'
     },
   ];
 
