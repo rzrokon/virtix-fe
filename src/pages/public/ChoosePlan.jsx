@@ -2,32 +2,32 @@ import { Button, message, Spin } from 'antd';
 import Cookies from 'js-cookie';
 import { Check } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getData, postData } from '../../scripts/api-service';
 import { GET_BILLING_PLANS, GET_MY_SUBSCRIPTION, START_SUBSCRIPTION } from '../../scripts/api';
 
 const toBool = (v) => v === true || v === 'true' || v === 1;
 
-const priceLabel = (plan) => {
-  if (plan.contact_sales_only) return 'Contact sales';
-  const p = parseFloat(plan.price_usd);
-  if (!p || p === 0) return 'Free';
-  return `$${p}`;
-};
-
 export default function ChoosePlan() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [starting, setStarting] = useState(null);
+  const [billing, setBilling] = useState('monthly');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const publicPlans = useMemo(() => {
     return (Array.isArray(plans) ? plans : [])
       .filter(p => p.is_public)
       .sort((a, b) => (a.id || 0) - (b.id || 0));
   }, [plans]);
+
+  useEffect(() => {
+    const cycle = searchParams.get('cycle');
+    if (cycle === 'yearly') setBilling('yearly');
+  }, [searchParams]);
 
   useEffect(() => {
     const token = Cookies.get('kotha_token');
@@ -39,10 +39,9 @@ export default function ChoosePlan() {
     const init = async () => {
       setLoading(true);
       try {
-        // Redirect to home if user already has an active plan
         try {
           const sub = await getData(GET_MY_SUBSCRIPTION);
-          if (sub?.is_active) {
+          if (sub?.subscription?.status === 'active') {
             navigate('/dashboard', { replace: true });
             return;
           }
@@ -63,18 +62,49 @@ export default function ChoosePlan() {
     init();
   }, [navigate]);
 
+  const priceLabel = (plan) => {
+    if (plan.contact_sales_only) return 'Contact sales';
+    const monthly = parseFloat(plan.price_usd);
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (!monthly || monthly === 0) return 'Free';
+    if (billing === 'yearly' && yearly > 0) {
+      return `$${Math.floor(yearly / 12)}/mo`;
+    }
+    return `$${monthly}/mo`;
+  };
+
+  const yearlyNote = (plan) => {
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (billing !== 'yearly' || !yearly) return null;
+    return `billed as $${yearly}/year`;
+  };
+
+  const savingsBadge = (plan) => {
+    const monthly = parseFloat(plan.price_usd);
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (!monthly || !yearly || billing !== 'yearly') return null;
+    const saved = Math.round(((monthly * 12 - yearly) / (monthly * 12)) * 100);
+    return saved > 0 ? `Save ${saved}%` : null;
+  };
+
   const startPlan = async (plan) => {
     if (plan.contact_sales_only) {
       navigate('/contact');
       return;
     }
 
+    const isPaid = parseFloat(plan.price_usd) > 0;
+    const cycle = isPaid ? billing : 'monthly';
+
     setStarting(plan.code);
     try {
-      const res = await postData(START_SUBSCRIPTION, { plan_code: plan.code });
+      const res = await postData(START_SUBSCRIPTION, {
+        plan_code: plan.code,
+        billing_cycle: cycle,
+        provider: 'stripe',
+      });
       const data = res?.data ?? res;
 
-      // API-level error returned by postData
       if (data?.error) {
         const errMsg = typeof data.errors === 'string'
           ? data.errors
@@ -83,13 +113,11 @@ export default function ChoosePlan() {
         return;
       }
 
-      // Paid plan → Lemon Squeezy checkout
       if (data?.detail === 'checkout_created' && data?.checkout_url) {
         window.location.href = data.checkout_url;
         return;
       }
 
-      // Free / internal plan activated
       if (data?.detail === 'ok') {
         message.success('Plan activated successfully!');
         navigate('/dashboard', { replace: true });
@@ -97,8 +125,6 @@ export default function ChoosePlan() {
       }
 
       message.error('Unexpected response. Please try again.');
-    } catch {
-      message.error('Failed to start subscription. Please try again.');
     } finally {
       setStarting(null);
     }
@@ -134,9 +160,38 @@ export default function ChoosePlan() {
           </p>
         </div>
 
+        {/* Billing cycle toggle */}
+        <div className="flex items-center gap-1 rounded-full bg-gray-100 p-1">
+          <button
+            onClick={() => setBilling('monthly')}
+            className={`rounded-full px-5 py-1.5 text-sm font-semibold transition-all ${
+              billing === 'monthly'
+                ? 'bg-white text-[#0C0900] shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling('yearly')}
+            className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-semibold transition-all ${
+              billing === 'yearly'
+                ? 'bg-white text-[#0C0900] shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Yearly
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+              Save 10%
+            </span>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl px-4">
           {publicPlans.map((plan) => {
             const popular = plan.code === 'growth';
+            const badge = savingsBadge(plan);
+            const note = yearlyNote(plan);
 
             const features = [
               `Up to ${plan.max_agents} agent${plan.max_agents > 1 ? 's' : ''}`,
@@ -178,14 +233,19 @@ export default function ChoosePlan() {
                 <div className="space-y-6">
                   <div className="space-y-1">
                     <h3 className="text-2xl leading-[140%] text-[#0C0900] font-bold">{plan.name}</h3>
-                    <div className="flex items-end gap-1">
+                    <div className="flex items-end gap-2">
                       <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
                         {priceLabel(plan)}
                       </span>
-                      {!plan.contact_sales_only && parseFloat(plan.price_usd) > 0 && (
-                        <span className="text-base text-gray-500 pb-1">/month</span>
+                      {badge && (
+                        <span className="mb-1.5 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                          {badge}
+                        </span>
                       )}
                     </div>
+                    {note && (
+                      <p className="text-xs text-gray-400">{note}</p>
+                    )}
                   </div>
 
                   <Button
@@ -207,7 +267,7 @@ export default function ChoosePlan() {
                   </Button>
 
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-[#0C0900]">What's included</h4>
+                    <h4 className="font-semibold text-[#0C0900]">What&apos;s included</h4>
                     {features.map((f, idx) => (
                       <div key={idx} className="flex items-start gap-3">
                         <Check size={16} className="text-[#6200FF] mt-0.5 flex-shrink-0" />

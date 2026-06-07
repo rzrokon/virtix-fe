@@ -19,12 +19,7 @@ const formatNumber = (num) => {
 const getPlanCode = (plan) => plan.code?.toLowerCase();
 
 const getPlanDisplayName = (plan) => {
-  const names = {
-    starter: 'Starter',
-    growth: 'Growth',
-    business: 'Business',
-  };
-
+  const names = { starter: 'Starter', growth: 'Growth', business: 'Business' };
   return names[getPlanCode(plan)] || plan.name;
 };
 
@@ -34,7 +29,6 @@ const getPlanDescription = (plan) => {
     growth: 'For small stores ready to automate support',
     business: 'For growing stores with higher volume',
   };
-
   return descriptions[getPlanCode(plan)] || 'Flexible AI support for your store';
 };
 
@@ -67,6 +61,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
   const [internalPlans, setInternalPlans] = useState([]);
   const [internalLoading, setInternalLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [billing, setBilling] = useState('monthly');
   const navigate = useNavigate();
 
   const useProp = plansProp !== undefined;
@@ -96,9 +91,29 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
 
   const formatPrice = (plan) => {
     if (plan.contact_sales_only) return 'Contact sales';
-    const price = parseFloat(plan.price_usd);
-    if (!price || price === 0) return 'Free';
-    return `$${price}`;
+    const monthly = parseFloat(plan.price_usd);
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (!monthly || monthly === 0) return 'Free';
+    if (billing === 'yearly' && yearly > 0) {
+      return `$${Math.floor(yearly / 12)}/mo`;
+    }
+    return `$${monthly}/mo`;
+  };
+
+  const yearlyNote = (plan) => {
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (billing !== 'yearly' || !yearly) return null;
+    return `billed as $${yearly}/year`;
+  };
+
+  const savingsBadge = (plan) => {
+    const monthly = parseFloat(plan.price_usd);
+    const yearly = parseFloat(plan.price_usd_yearly);
+    if (!monthly || !yearly || billing !== 'yearly') return null;
+    const annualMonthly = monthly * 12;
+    const saved = Math.round(((annualMonthly - yearly) / annualMonthly) * 100);
+    if (saved <= 0) return null;
+    return `Save ${saved}%`;
   };
 
   const isPopular = (plan) => getPlanCode(plan) === 'growth';
@@ -106,7 +121,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
   const handlePlanSelection = (plan) => {
     if (plan.contact_sales_only) { navigate('/contact'); return; }
     const token = Cookies.get('kotha_token');
-    navigate(token ? '/choose-plan' : '/signin');
+    navigate(token ? `/choose-plan?cycle=${billing}` : `/signin?next=/choose-plan?cycle=${billing}`);
   };
 
   if (loading) {
@@ -160,7 +175,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
       <div className="container flex flex-col gap-10 overflow-hidden">
 
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="space-y-3 max-w-2xl mb-5 px-2">
+          <div className="space-y-3 max-w-2xl mb-2 px-2">
             <h2 className="text-3xl sm:text-4xl md:text-5xl leading-[120%] text-[#0C0900] font-bold">
               Simple, scalable pricing
             </h2>
@@ -168,11 +183,41 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
               No credit card required to start.
             </p>
           </div>
+
+          {/* Monthly / Yearly toggle */}
+          <div className="flex items-center gap-1 rounded-full bg-gray-100 p-1">
+            <button
+              onClick={() => setBilling('monthly')}
+              className={`rounded-full px-5 py-1.5 text-sm font-semibold transition-all ${
+                billing === 'monthly'
+                  ? 'bg-white text-[#0C0900] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling('yearly')}
+              className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-semibold transition-all ${
+                billing === 'yearly'
+                  ? 'bg-white text-[#0C0900] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Yearly
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                Save 10%
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {plans.map((plan, index) => {
             const popular = isPopular(plan);
+            const badge = savingsBadge(plan);
+            const note = yearlyNote(plan);
+
             return (
               <div
                 key={plan.id || index}
@@ -194,16 +239,21 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                   <p className={`mb-4 text-sm leading-[150%] ${popular ? 'text-white/65' : 'text-[#0C0900]/60'}`}>
                     {getPlanDescription(plan)}
                   </p>
-                  <div className="flex items-end gap-1.5">
+                  <div className="flex items-end gap-2">
                     <span className={`text-4xl font-bold leading-tight ${popular ? 'text-white' : 'text-[#0C0900]'}`}>
                       {formatPrice(plan)}
                     </span>
-                    {!plan.contact_sales_only && parseFloat(plan.price_usd) > 0 && (
-                      <span className={`text-sm pb-1 ${popular ? 'text-white/60' : 'text-gray-500'}`}>
-                        /month
+                    {badge && (
+                      <span className="mb-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                        {badge}
                       </span>
                     )}
                   </div>
+                  {note && (
+                    <p className={`mt-1 text-xs ${popular ? 'text-white/50' : 'text-gray-400'}`}>
+                      {note}
+                    </p>
+                  )}
                 </div>
 
                 {/* CTA */}

@@ -1,11 +1,11 @@
-import { Button, Card, message, Modal, Select, Spin, Tag } from 'antd';
+import { Button, Card, message, Modal, Radio, Select, Spin, Tag } from 'antd';
 import Cookies from 'js-cookie';
-import { ArrowUpDown, Ban, Check, Minus, RefreshCw } from 'lucide-react';
+import { ArrowUpDown, Ban, Check, ExternalLink, Minus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getData, postData } from '../../scripts/api-service';
-import { CHANGE_SUBSCRIPTION, GET_BILLING_PLANS, GET_MY_SUBSCRIPTION } from '../../scripts/api';
+import { CHANGE_SUBSCRIPTION, GET_BILLING_PLANS, GET_MY_SUBSCRIPTION, STRIPE_PORTAL } from '../../scripts/api';
 
 const toBool = (v) => v === true || v === 'true' || v === 1;
 
@@ -101,6 +101,7 @@ export default function ActivePlan() {
   const [changeOpen, setChangeOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedPlanCode, setSelectedPlanCode] = useState(null);
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState('monthly');
 
   const currentPlan = subData?.subscription?.plan;
   const currentPlanCode = currentPlan?.code;
@@ -150,20 +151,53 @@ export default function ActivePlan() {
     refreshAll();
   }, [navigate]);
 
+  const openStripePortal = async () => {
+    setActionLoading(true);
+    try {
+      const res = await postData(STRIPE_PORTAL, {});
+      const data = res?.data ?? res;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        message.error('Could not open billing portal. Please contact support.');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const submitChange = async () => {
     if (!selectedPlanCode) { message.warning('Please select a plan'); return; }
-    if (selectedPlanCode === currentPlanCode) {
+    if (selectedPlanCode === currentPlanCode && selectedBillingCycle === subData?.subscription?.billing_cycle) {
       message.info('You are already on this plan');
       setChangeOpen(false);
       return;
     }
 
+    const selectedPlan = publicPlans.find(p => p.code === selectedPlanCode);
+    const isPaid = selectedPlan && parseFloat(selectedPlan.price_usd) > 0;
+    const cycle = isPaid ? selectedBillingCycle : 'monthly';
+
     setActionLoading(true);
     try {
-      const res = await postData(CHANGE_SUBSCRIPTION, { plan_code: selectedPlanCode });
+      const res = await postData(CHANGE_SUBSCRIPTION, {
+        plan_code: selectedPlanCode,
+        billing_cycle: cycle,
+        provider: 'stripe',
+      });
       const data = res?.data ?? res;
 
       if (res?.error) { message.error(extractError(res)); return; }
+
+      if (data?.mode === 'portal_required') {
+        if (data?.portal_url) {
+          window.location.href = data.portal_url;
+        } else {
+          message.info('Please use the Stripe portal to manage your subscription.');
+          await openStripePortal();
+        }
+        return;
+      }
 
       if (data?.detail === 'checkout_created' && data?.checkout_url) {
         window.location.href = data.checkout_url;
@@ -178,8 +212,6 @@ export default function ActivePlan() {
       }
 
       message.error('Unexpected response. Please try again.');
-    } catch {
-      message.error('Failed to change plan. Please try again.');
     } finally {
       setActionLoading(false);
     }
@@ -260,21 +292,37 @@ export default function ActivePlan() {
             <Button icon={<RefreshCw size={15} />} onClick={refreshAll} loading={pageLoading}>
               Refresh
             </Button>
-            <Button
-              type="primary"
-              icon={<ArrowUpDown size={15} />}
-              onClick={() => { setSelectedPlanCode(currentPlanCode || null); setChangeOpen(true); }}
-            >
-              Change plan
-            </Button>
-            <Button
-              danger
-              icon={<Ban size={15} />}
-              onClick={() => setCancelOpen(true)}
-              disabled={currentPlanCode === starterPlan?.code}
-            >
-              Cancel & switch to Free
-            </Button>
+            {subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
+              <Button
+                icon={<ExternalLink size={15} />}
+                onClick={openStripePortal}
+                loading={actionLoading}
+              >
+                Manage in Stripe
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="primary"
+                  icon={<ArrowUpDown size={15} />}
+                  onClick={() => {
+                    setSelectedPlanCode(currentPlanCode || null);
+                    setSelectedBillingCycle(subData?.subscription?.billing_cycle || 'monthly');
+                    setChangeOpen(true);
+                  }}
+                >
+                  Change plan
+                </Button>
+                <Button
+                  danger
+                  icon={<Ban size={15} />}
+                  onClick={() => setCancelOpen(true)}
+                  disabled={currentPlanCode === starterPlan?.code}
+                >
+                  Cancel & switch to Free
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </Card>
@@ -415,8 +463,33 @@ export default function ActivePlan() {
               placeholder="Choose a plan"
             />
           </div>
+          {(() => {
+            const sel = publicPlans.find(p => p.code === selectedPlanCode);
+            return sel && parseFloat(sel.price_usd) > 0 ? (
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1.5">Billing cycle</div>
+                <Radio.Group
+                  value={selectedBillingCycle}
+                  onChange={e => setSelectedBillingCycle(e.target.value)}
+                  className="flex gap-3"
+                >
+                  <Radio value="monthly">
+                    Monthly — ${parseFloat(sel.price_usd)}/mo
+                  </Radio>
+                  {parseFloat(sel.price_usd_yearly) > 0 && (
+                    <Radio value="yearly">
+                      Yearly — ${parseFloat(sel.price_usd_yearly)}/yr
+                      <span className="ml-1 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                        Save 10%
+                      </span>
+                    </Radio>
+                  )}
+                </Radio.Group>
+              </div>
+            ) : null;
+          })()}
           <p className="text-xs text-gray-400">
-            Changes take effect immediately. Billing adjustments follow your subscription provider's rules.
+            Changes take effect immediately. Billing adjustments follow your subscription provider&apos;s rules.
           </p>
         </div>
       </Modal>
