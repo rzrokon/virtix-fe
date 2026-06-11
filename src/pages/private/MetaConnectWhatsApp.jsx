@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Button,
   Card,
-  List,
-  Tag,
-  message,
-  Modal,
-  Alert,
-  Input,
   Collapse,
   Divider,
+  Input,
+  List,
+  Modal,
+  Tag,
   Typography,
+  message,
 } from "antd";
+import { MessageCircle, Phone, Plug, Trash2, Wifi } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { getData, postData } from "../../scripts/api-service";
 
@@ -56,86 +57,28 @@ function extractEmbeddedSignupSession(payload) {
       candidate?.phone_numbers?.[0]?.id ||
       null;
 
-    const business_id =
-      candidate?.business_id ||
-      candidate?.businessId ||
-      null;
+    const business_id = candidate?.business_id || candidate?.businessId || null;
 
     if (waba_id || phone_number_id || business_id) {
-      return {
-        waba_id: waba_id || null,
-        phone_number_id: phone_number_id || null,
-        business_id: business_id || null,
-        raw: candidate,
-      };
+      return { waba_id: waba_id || null, phone_number_id: phone_number_id || null, business_id: business_id || null };
     }
   }
 
-  return {
-    waba_id: null,
-    phone_number_id: null,
-    business_id: null,
-    raw: payload || null,
-  };
+  return { waba_id: null, phone_number_id: null, business_id: null };
 }
 
-function getMetaEventSummary(event) {
-  if (!event) return null;
-
-  const eventName =
-    event.event ||
-    event.type ||
-    event.raw?.event ||
-    event.raw?.type ||
-    "unknown";
-
-  let preview = "";
-
-  try {
-    if (typeof event.raw === "string") {
-      preview = event.raw;
-    } else if (event.raw) {
-      preview = JSON.stringify(event.raw);
-    } else {
-      preview = JSON.stringify(event);
-    }
-  } catch {
-    preview = String(event.raw || event);
-  }
-
-  return {
-    eventName,
-    preview: preview.slice(0, 300),
-  };
-}
-
-// ─────────────────────────────────────────────
-// Load Facebook SDK
-// ─────────────────────────────────────────────
 function loadFacebookSdk(appId, version = "v20.0") {
   return new Promise((resolve, reject) => {
     const initFb = () => {
       try {
-        window.FB.init({
-          appId,
-          cookie: true,
-          xfbml: true,
-          version,
-        });
+        window.FB.init({ appId, cookie: true, xfbml: true, version });
         resolve(window.FB);
-      } catch (err) {
-        reject(err);
-      }
+      } catch (err) { reject(err); }
     };
 
-    if (window.FB) {
-      initFb();
-      return;
-    }
+    if (window.FB) { initFb(); return; }
 
-    window.fbAsyncInit = function () {
-      initFb();
-    };
+    window.fbAsyncInit = function () { initFb(); };
 
     if (!document.getElementById(FB_SDK_ID)) {
       const script = document.createElement("script");
@@ -143,7 +86,7 @@ function loadFacebookSdk(appId, version = "v20.0") {
       script.src = "https://connect.facebook.net/en_US/sdk.js";
       script.async = true;
       script.defer = true;
-      script.onerror = () => reject(new Error("FB SDK failed"));
+      script.onerror = () => reject(new Error("FB SDK failed to load"));
       document.body.appendChild(script);
     }
   });
@@ -158,6 +101,7 @@ export default function MetaConnectWhatsApp() {
   const [connecting, setConnecting] = useState(false);
   const [manualLoading, setManualLoading] = useState(false);
   const [disconnectingId, setDisconnectingId] = useState(null);
+  const [error, setError] = useState(null);
 
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [accessToken, setAccessToken] = useState("");
@@ -167,23 +111,15 @@ export default function MetaConnectWhatsApp() {
   const embeddedAuthCodeRef = useRef(null);
   const embeddedCompletionStartedRef = useRef(false);
   const embeddedConfigRef = useRef(null);
-  const [lastMetaEvent, setLastMetaEvent] = useState(null);
-  const [lastMetaMessage, setLastMetaMessage] = useState(null);
-  const [embeddedConfig, setEmbeddedConfig] = useState(null);
-  const [lastError, setLastError] = useState(null);
 
-  // ─────────────────────────────────────────────
-  // Fetch integrations
-  // ─────────────────────────────────────────────
   const fetchData = async () => {
     setLoading(true);
     try {
       const data = await getData(`${LIST_API}?agent=${agentId}&platform=WHATSAPP`);
       setConnected(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -191,76 +127,30 @@ export default function MetaConnectWhatsApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
 
-  // ─────────────────────────────────────────────
-  // Listen Embedded Signup Session
-  // ─────────────────────────────────────────────
   useEffect(() => {
     const listener = (event) => {
       if (!event.origin.includes("facebook.com")) return;
 
       try {
-        console.log("[Meta WA] message event", {
-          origin: event.origin,
-          dataType: typeof event.data,
-          data: event.data,
-        });
-        setLastMetaMessage({
-          origin: event.origin,
-          dataType: typeof event.data,
-          data: event.data,
-        });
-
         let data = event.data;
         if (typeof data === "string") {
-          try {
-            data = JSON.parse(data);
-          } catch {
-            const params = new URLSearchParams(data);
-            const entries = Object.fromEntries(params.entries());
-            if (Object.keys(entries).length > 0) {
-              setLastMetaEvent({
-                type: "NON_JSON_FB_MESSAGE",
-                event: entries.event || null,
-                raw: data,
-                parsed: entries,
-              });
-            }
-            return;
-          }
-        }
-
-        if (data && typeof data === "object") {
-          setLastMetaEvent({
-            type: data.type || "OBJECT_FB_MESSAGE",
-            event: data.event || null,
-            raw: data,
-          });
+          try { data = JSON.parse(data); } catch { return; }
         }
 
         if (data?.type === "WA_EMBEDDED_SIGNUP") {
           if (data.event === "FINISH") {
-            const session = extractEmbeddedSignupSession(data);
-            embeddedSessionRef.current = session;
-            console.log("Embedded Session:", session);
+            embeddedSessionRef.current = extractEmbeddedSignupSession(data);
             tryCompleteEmbeddedSignup();
-            return;
-          }
-
-          if (data.event === "ERROR") {
-            const msg = data?.data?.error_message || "WhatsApp signup failed in Meta";
-            setLastError(msg);
+          } else if (data.event === "ERROR") {
+            const msg = data?.data?.error_message || "WhatsApp signup failed";
+            setError(msg);
             messageApi.error(msg);
             setConnecting(false);
-            return;
-          }
-
-          if (data.event === "CANCEL") {
+          } else if (data.event === "CANCEL") {
             setConnecting(false);
           }
         }
-      } catch (err) {
-        console.debug("Ignored non-JSON Facebook message event", err);
-      }
+      } catch { /* ignore */ }
     };
 
     window.addEventListener("message", listener);
@@ -268,18 +158,12 @@ export default function MetaConnectWhatsApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─────────────────────────────────────────────
-  // Complete Embedded Signup once both code and session data exist
-  // ─────────────────────────────────────────────
   const tryCompleteEmbeddedSignup = async () => {
     const code = embeddedAuthCodeRef.current;
     const session = embeddedSessionRef.current || {};
-    const waba_id = session.waba_id;
-    const phone_number_id = session.phone_number_id;
+    const { waba_id, phone_number_id } = session;
 
-    if (!code || !waba_id || embeddedCompletionStartedRef.current) {
-      return;
-    }
+    if (!code || !waba_id || !phone_number_id || embeddedCompletionStartedRef.current) return;
 
     embeddedCompletionStartedRef.current = true;
 
@@ -288,18 +172,19 @@ export default function MetaConnectWhatsApp() {
         agent: Number(agentId),
         code,
         waba_id,
-        phone_number_id: phone_number_id || null,
+        phone_number_id,
       });
 
       if (res?.detail === "connected" || res?.data?.detail === "connected") {
-        messageApi.success("WhatsApp connected");
+        messageApi.success("WhatsApp number connected successfully!");
+        setError(null);
         fetchData();
       } else {
-        throw new Error(prettyErr(res));
+        throw new Error(prettyErr(res?.data ?? res));
       }
     } catch (e) {
-      const msg = e.message || "Failed to connect";
-      setLastError(msg);
+      const msg = e.message || "Failed to connect WhatsApp";
+      setError(msg);
       messageApi.error(msg);
     } finally {
       embeddedAuthCodeRef.current = null;
@@ -309,15 +194,12 @@ export default function MetaConnectWhatsApp() {
     }
   };
 
-  // ─────────────────────────────────────────────
-  // Embedded Signup Handler
-  // ─────────────────────────────────────────────
-  const handleEmbeddedSignupResponse = async (response) => {
+  const handleEmbeddedSignupResponse = (response) => {
     const code = response?.authResponse?.code;
 
     if (!code) {
       setConnecting(false);
-      messageApi.warning("Signup cancelled");
+      messageApi.warning("Signup cancelled or no authorisation returned");
       return;
     }
 
@@ -325,30 +207,18 @@ export default function MetaConnectWhatsApp() {
     tryCompleteEmbeddedSignup();
 
     window.setTimeout(() => {
-      const session = embeddedSessionRef.current || {};
-      if (!embeddedCompletionStartedRef.current && !session.waba_id) {
-        const rawCodeOnlyCallback =
-          lastMetaEvent?.type === "NON_JSON_FB_MESSAGE" &&
-          (lastMetaEvent?.parsed?.code || lastMetaEvent?.raw?.includes?.("code="));
-
-        const msg = rawCodeOnlyCallback
-          ? "Facebook returned an OAuth code, but Meta did not emit the WhatsApp Embedded Signup completion event. This points to a Meta app/configuration issue, not a parsing issue in this page."
-          : "Meta did not send a usable WhatsApp completion payload. Try the Facebook flow again.";
-        setLastError(msg);
-        messageApi.error(msg);
+      if (!embeddedCompletionStartedRef.current) {
+        setError("Meta did not send the WhatsApp account data. Please try again or use Manual Setup below.");
+        messageApi.error("Connection timed out");
         embeddedAuthCodeRef.current = null;
         setConnecting(false);
       }
     }, 15000);
   };
 
-  // ─────────────────────────────────────────────
-  // Start Embedded Signup
-  // ─────────────────────────────────────────────
   const startEmbeddedSignup = async () => {
     setConnecting(true);
-    setLastError(null);
-    setLastMetaEvent(null);
+    setError(null);
     embeddedSessionRef.current = {};
     embeddedAuthCodeRef.current = null;
     embeddedCompletionStartedRef.current = false;
@@ -356,188 +226,175 @@ export default function MetaConnectWhatsApp() {
     try {
       const cfg = await getData(EMBEDDED_CONFIG_API);
       embeddedConfigRef.current = cfg;
-      setEmbeddedConfig(cfg);
 
       await loadFacebookSdk(cfg.app_id, cfg.graph_version);
 
-      window.FB.login(
-        (response) => {
-          handleEmbeddedSignupResponse(response);
-        },
-        {
-          config_id: cfg.config_id,
-          response_type: "code",
-          override_default_response_type: true,
-          extras: {
-            version: "v3",
-            setup: {},
-            features: [],
-          },
-        }
-      );
+      window.FB.login(handleEmbeddedSignupResponse, {
+        config_id: cfg.config_id,
+        response_type: "code",
+        override_default_response_type: true,
+        extras: { version: "v3", setup: {}, features: [] },
+      });
     } catch {
-      messageApi.error("Failed to start signup");
+      messageApi.error("Failed to start WhatsApp signup. Please try again.");
       setConnecting(false);
     }
   };
 
-  // ─────────────────────────────────────────────
-  // Manual Connect
-  // ─────────────────────────────────────────────
   const manualConnect = async () => {
-    setManualLoading(true);
+    if (!phoneNumberId || !accessToken) {
+      messageApi.warning("Phone Number ID and Access Token are required");
+      return;
+    }
 
+    setManualLoading(true);
     try {
       const res = await postData(MANUAL_CONNECT_API, {
         agent: Number(agentId),
-        waba_id: wabaId,
+        waba_id: wabaId || undefined,
         wa_phone_number_id: phoneNumberId,
         wa_access_token: accessToken,
       });
 
-      if (res?.detail === "connected") {
-        messageApi.success("Connected");
+      const data = res?.data ?? res;
+      if (data?.detail === "connected") {
+        messageApi.success("WhatsApp number connected!");
+        setError(null);
+        setPhoneNumberId("");
+        setAccessToken("");
+        setWabaId("");
         fetchData();
       } else {
-        throw new Error(prettyErr(res));
+        throw new Error(prettyErr(data));
       }
     } catch (e) {
-      messageApi.error(e.message);
+      messageApi.error(e.message || "Connection failed");
+    } finally {
+      setManualLoading(false);
     }
-
-    setManualLoading(false);
   };
 
-  // ─────────────────────────────────────────────
-  // Disconnect
-  // ─────────────────────────────────────────────
   const disconnect = (item) => {
     Modal.confirm({
-      title: "Disconnect?",
+      title: "Disconnect WhatsApp number?",
+      content: `${item.wa_display_phone_number || item.wa_phone_number_id} will stop receiving AI replies.`,
+      okText: "Disconnect",
+      okButtonProps: { danger: true },
       onOk: async () => {
         setDisconnectingId(item.id);
         await postData(DISCONNECT_API(item.id), {});
-        fetchData();
+        await fetchData();
         setDisconnectingId(null);
       },
     });
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-3xl">
       {contextHolder}
 
-      <Card>
-        <h2>WhatsApp Integration</h2>
+      <div>
+        <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <MessageCircle size={20} className="text-[#25D366]" />
+          WhatsApp Integration
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Connect your WhatsApp Business number so your AI agent can reply to customers automatically.
+        </p>
+      </div>
 
-        {lastError && (
-          <Alert
-            type="error"
-            message={lastError}
-            description={
-              (() => {
-                const summary = getMetaEventSummary(lastMetaEvent);
-                if (!summary) return null;
-                return `Last Meta event: ${summary.eventName}. Payload: ${summary.preview}`;
-              })()
-            }
-          />
-        )}
+      {error && (
+        <Alert type="error" message={error} closable onClose={() => setError(null)} />
+      )}
 
-        <Collapse
-          className="mb-4"
-          items={[
-            {
-              key: "debug",
-              label: "Debug Info",
-              children: (
-                <div className="space-y-4">
-                  <div>
-                    <Text strong>Embedded Config</Text>
-                    <pre className="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs">
-                      {JSON.stringify(embeddedConfig, null, 2) || "Not loaded yet"}
-                    </pre>
-                  </div>
-                  <div>
-                    <Text strong>Last Meta Event</Text>
-                    <pre className="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs">
-                      {JSON.stringify(lastMetaEvent, null, 2) || "No event received"}
-                    </pre>
-                  </div>
-                  <div>
-                    <Text strong>Last Meta Message</Text>
-                    <pre className="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs">
-                      {JSON.stringify(lastMetaMessage, null, 2) || "No message received"}
-                    </pre>
-                  </div>
-                  <div>
-                    <Text strong>Parsed Embedded Session</Text>
-                    <pre className="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs">
-                      {JSON.stringify(embeddedSessionRef.current, null, 2) || "No session parsed"}
-                    </pre>
-                  </div>
-                </div>
-              ),
-            },
-          ]}
-        />
+      <Card
+        title={
+          <span className="flex items-center gap-2 font-semibold">
+            <Plug size={16} className="text-[#25D366]" />
+            Connect WhatsApp Business
+          </span>
+        }
+      >
+        <p className="text-sm text-gray-600 mb-4">
+          Sign in with your Facebook Business account to connect your WhatsApp Business number.
+          You&apos;ll be guided through the setup by Meta.
+        </p>
 
         <Button
           type="primary"
+          size="large"
+          icon={<Wifi size={15} />}
           onClick={startEmbeddedSignup}
           loading={connecting}
+          style={{ background: "#25D366", borderColor: "#25D366" }}
         >
-          Connect via Facebook (Recommended)
+          {connecting ? "Connecting…" : "Connect via Facebook"}
         </Button>
 
-        <Divider />
+        <Divider plain>
+          <Text className="text-xs text-gray-400">or set up manually</Text>
+        </Divider>
 
         <Collapse
-          items={[
-            {
-              key: "1",
-              label: "Manual Setup",
-              children: (
-                <>
-                  <Input
-                    placeholder="WABA ID"
-                    value={wabaId}
-                    onChange={(e) => setWabaId(e.target.value)}
-                  />
-                  <Input
-                    placeholder="Phone Number ID"
-                    value={phoneNumberId}
-                    onChange={(e) => setPhoneNumberId(e.target.value)}
-                  />
-                  <Input.Password
-                    placeholder="Access Token"
-                    value={accessToken}
-                    onChange={(e) => setAccessToken(e.target.value)}
-                  />
-                  <Button
-                    onClick={manualConnect}
-                    loading={manualLoading}
-                    disabled={!phoneNumberId || !accessToken}
-                  >
-                    Connect Manually
-                  </Button>
-                </>
-              ),
-            },
-          ]}
+          ghost
+          items={[{
+            key: "manual",
+            label: <Text className="text-sm text-gray-500">Manual Setup (advanced)</Text>,
+            children: (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-400">
+                  Use this if you have a System User token from Meta Business Manager.
+                </p>
+                <Input
+                  placeholder="WABA ID (optional)"
+                  value={wabaId}
+                  onChange={(e) => setWabaId(e.target.value)}
+                />
+                <Input
+                  placeholder="Phone Number ID *"
+                  value={phoneNumberId}
+                  onChange={(e) => setPhoneNumberId(e.target.value)}
+                />
+                <Input.Password
+                  placeholder="Access Token *"
+                  value={accessToken}
+                  onChange={(e) => setAccessToken(e.target.value)}
+                />
+                <Button
+                  type="primary"
+                  onClick={manualConnect}
+                  loading={manualLoading}
+                  disabled={!phoneNumberId || !accessToken}
+                >
+                  Connect
+                </Button>
+              </div>
+            ),
+          }]}
         />
       </Card>
 
-      <Card title="Connected Numbers">
+      <Card
+        title={
+          <span className="flex items-center gap-2 font-semibold">
+            <Phone size={16} className="text-gray-600" />
+            Connected Numbers
+          </span>
+        }
+      >
         <List
           loading={loading}
+          locale={{ emptyText: "No WhatsApp numbers connected yet." }}
           dataSource={connected}
           renderItem={(item) => (
             <List.Item
               actions={[
-                <Tag color="green">CONNECTED</Tag>,
+                <Tag color="green" key="status">Active</Tag>,
                 <Button
+                  key="disconnect"
                   danger
+                  size="small"
+                  icon={<Trash2 size={13} />}
                   loading={disconnectingId === item.id}
                   onClick={() => disconnect(item)}
                 >
@@ -545,10 +402,31 @@ export default function MetaConnectWhatsApp() {
                 </Button>,
               ]}
             >
-              {item.wa_display_phone_number || item.wa_phone_number_id}
+              <List.Item.Meta
+                avatar={<MessageCircle size={20} className="text-[#25D366] mt-1" />}
+                title={
+                  <span className="font-medium">
+                    {item.wa_display_phone_number || item.wa_phone_number_id}
+                  </span>
+                }
+                description={
+                  item.wa_verified_name
+                    ? <Text className="text-xs text-gray-400">{item.wa_verified_name}</Text>
+                    : null
+                }
+              />
             </List.Item>
           )}
         />
+      </Card>
+
+      <Card title="How it works">
+        <ol className="list-decimal pl-4 space-y-2 text-sm text-gray-600">
+          <li>Click <strong>Connect via Facebook</strong> and log in with your Facebook Business account.</li>
+          <li>Select the WhatsApp Business Account and phone number you want to connect.</li>
+          <li>Your AI agent will automatically reply to incoming WhatsApp messages 24/7.</li>
+          <li>WhatsApp message charges from Meta apply — you are billed per conversation.</li>
+        </ol>
       </Card>
     </div>
   );

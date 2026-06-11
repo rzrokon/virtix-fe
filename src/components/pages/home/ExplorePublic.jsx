@@ -23,7 +23,7 @@ export default function ExplorePublic() {
     },
     {
       title: 'Customer Support Agent',
-      description: 'Handle service questions, collect collect complaints, and help visitors book the next step automatically.',
+      description: 'Handle service questions, resolve complaints, and help visitors book the next step automatically.',
       Icon: Headphones,
       accentIcon: BriefcaseBusiness,
       backgroundColor: '#FFF1D8',
