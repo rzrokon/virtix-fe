@@ -275,7 +275,6 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                 <div className="space-y-2">
                   <FeatureRow label={`${plan.max_agents} agent${plan.max_agents > 1 ? 's' : ''}`} enabled popular={popular} />
                   <FeatureRow label={`${formatNumber(plan.max_messages_per_month)} messages / month`} enabled popular={popular} />
-                  <FeatureRow label={`${plan.max_team_members} team member${plan.max_team_members > 1 ? 's' : ''}`} enabled popular={popular} />
                 </div>
 
                 {/* Channels */}
@@ -284,7 +283,6 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                   <FeatureRow label="Website Widget" enabled={toBool(plan.website_widget)} popular={popular} />
                   <FeatureRow label="Facebook Messenger" enabled={toBool(plan.messenger)} popular={popular} />
                   <FeatureRow label="Instagram" enabled={toBool(plan.instagram)} popular={popular} />
-                  <FeatureRow label="WhatsApp" enabled={toBool(plan.whatsapp)} popular={popular} />
                 </div>
 
                 {/* Workflows */}

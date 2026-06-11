@@ -1,4 +1,4 @@
-import { Facebook, Globe, Instagram, MessageCircle, Phone, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { Facebook, Globe, Instagram, MessageCircle, ShoppingBag, ShoppingCart } from 'lucide-react';
 
 const Integrations = () => {
   const integrations = [
@@ -31,12 +31,6 @@ const Integrations = () => {
       Icon: Instagram,
       color: 'text-[#E1306C]',
       bg: 'bg-[#E1306C]/10',
-    },
-    {
-      name: 'WhatsApp',
-      Icon: Phone,
-      color: 'text-[#25D366]',
-      bg: 'bg-[#25D366]/10',
     },
   ];
 

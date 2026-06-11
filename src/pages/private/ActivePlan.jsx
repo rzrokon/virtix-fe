@@ -52,7 +52,6 @@ const FEATURE_SECTIONS = [
       { key: 'website_widget',  label: 'Website Widget' },
       { key: 'messenger',       label: 'Facebook Messenger' },
       { key: 'instagram',       label: 'Instagram' },
-      { key: 'whatsapp',        label: 'WhatsApp' },
     ],
   },
   {
@@ -366,7 +365,6 @@ export default function ActivePlan() {
                 <div><span className="font-semibold">{numToHuman(limits?.max_messages_per_month ?? 0)}</span> messages/month</div>
                 <div><span className="font-semibold">{bytesToHuman(limits?.max_storage_bytes ?? 0)}</span> storage</div>
                 <div><span className="font-semibold">{bytesToHuman(limits?.max_index_bytes ?? 0)}</span> index</div>
-                <div><span className="font-semibold">{limits?.max_team_members ?? '—'}</span> team members</div>
               </div>
             </div>
           </div>

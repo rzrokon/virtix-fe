@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Phone, Play } from 'lucide-react';
+import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Play } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -54,7 +54,6 @@ const Hero = () => {
                   { label: 'Facebook', color: 'text-[#1877F2]', Icon: Facebook },
                   { label: 'Messenger', color: 'text-[#00B2FF]', Icon: MessageCircle },
                   { label: 'Instagram', color: 'text-[#E1306C]', Icon: Instagram },
-                  { label: 'WhatsApp', color: 'text-[#25D366]', Icon: Phone },
                 ].map((channel) => (
                   <span
                     key={channel.label}

@@ -277,9 +277,6 @@ export default function PrivateLayout() {
     !planCaps || toBool(planCaps.instagram)
       ? { key: 'instagram-integrations', label: <Link to={`/${id}/agent-dashboard/instagram`}>Instagram</Link> }
       : null,
-    !planCaps || toBool(planCaps.whatsapp)
-      ? { key: 'whatsapp-integrations', label: <Link to={`/${id}/agent-dashboard/whatsapp`}>WhatsApp</Link> }
-      : null,
   ].filter(Boolean);
 
   const commerceChildren = [

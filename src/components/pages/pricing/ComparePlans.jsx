@@ -26,7 +26,6 @@ const SECTIONS = [
       { label: 'Files',             render: (p) => p.max_files },
       { label: 'Storage',           render: (p) => formatBytes(p.max_storage_bytes) },
       { label: 'Index capacity',    render: (p) => formatBytes(p.max_index_bytes) },
-      { label: 'Team members',      render: (p) => p.max_team_members },
     ],
   },
   {
@@ -35,7 +34,6 @@ const SECTIONS = [
       { label: 'Website Widget',     render: (p) => toBool(p.website_widget) },
       { label: 'Facebook Messenger', render: (p) => toBool(p.messenger) },
       { label: 'Instagram',          render: (p) => toBool(p.instagram) },
-      { label: 'WhatsApp',           render: (p) => toBool(p.whatsapp) },
     ],
   },
   {
