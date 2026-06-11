@@ -103,3 +103,9 @@ export const STAFF_TICKET_DETAIL = (id) => `api/support/staff/tickets/${id}/`;
 export const STAFF_TICKET_UPDATE = (id) => `api/support/staff/tickets/${id}/update/`;
 export const STAFF_TICKET_REPLY = (id) => `api/support/staff/tickets/${id}/reply/`;
 export const STAFF_MEMBERS = 'api/support/staff/members/';
+
+// Staff — contact submission management
+export const STAFF_CONTACTS = 'api/support/staff/contacts/';
+export const STAFF_CONTACT_DETAIL = (id) => `api/support/staff/contacts/${id}/`;
+export const STAFF_CONTACT_UPDATE = (id) => `api/support/staff/contacts/${id}/update/`;
+export const STAFF_CONTACT_REPLY = (id) => `api/support/staff/contacts/${id}/reply/`;

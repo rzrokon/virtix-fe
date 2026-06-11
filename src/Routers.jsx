@@ -63,6 +63,7 @@ import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
 import MyTickets from './pages/private/MyTickets.jsx';
 import TicketDetailPage from './pages/private/TicketDetailPage.jsx';
 import StaffTicketsPage from './pages/private/StaffTicketsPage.jsx';
+import StaffContactsPage from './pages/private/StaffContactsPage.jsx';
 
 export default function Routers() {
   return (
@@ -138,6 +139,7 @@ export default function Routers() {
           <Route path='/my-tickets' element={<MyTickets />} />
           <Route path='/my-tickets/:ticketId' element={<TicketDetailPage />} />
           <Route path='/staff/tickets' element={<StaffTicketsPage />} />
+          <Route path='/staff/contacts' element={<StaffContactsPage />} />
         </Route>
 
         {/* AGENT DASHBOARD */}

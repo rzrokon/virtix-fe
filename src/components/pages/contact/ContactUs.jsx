@@ -24,7 +24,7 @@ export default function ContactUs() {
         message: helpMessage,
       };
 
-      const res = await postData('api/billing/contact/submit/', payload, false);
+      const res = await postData('api/support/contact/submit/', payload, false);
 
       if (res?.data?.ok) {
         message.success(`Thanks! You request ID: ${res?.data?.id}`);

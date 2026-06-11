@@ -1,6 +1,6 @@
 import { LockOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown, message } from 'antd';
-import { ChevronDown, CreditCard, LayoutDashboard, TicketCheck } from 'lucide-react';
+import { ChevronDown, CreditCard, Inbox, LayoutDashboard, TicketCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../contexts/UserContext';
 import { logoutUser } from '../../../scripts/api-service';
@@ -55,6 +55,21 @@ export default function UserMenu() {
       label: 'My Support Tickets',
       onClick: () => navigate('/my-tickets'),
     },
+    ...(user?.is_staff ? [
+      { type: 'divider' },
+      {
+        key: 'staff-tickets',
+        icon: <TicketCheck size={14} />,
+        label: 'Staff: Tickets',
+        onClick: () => navigate('/staff/tickets'),
+      },
+      {
+        key: 'staff-contacts',
+        icon: <Inbox size={14} />,
+        label: 'Staff: Contact Inbox',
+        onClick: () => navigate('/staff/contacts'),
+      },
+    ] : []),
     {
       key: 'profile',
       icon: <UserOutlined />,
