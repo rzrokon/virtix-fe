@@ -61,16 +61,6 @@ const Footer = () => {
               Virtix AI is a conversation-first support platform that lets SMEs and enterprises handle chat, complaints,
               bookings, orders and leads with AI agents – without hiring a big support team.
             </p>
-            <div className="space-y-2 text-sm text-white/70">
-              <a href="mailto:info@virtixai.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Mail size={14} />
-                info@virtixai.com
-              </a>
-              <a href="tel:+15055282615" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Phone size={14} />
-                +1 (505) 528-2615
-              </a>
-            </div>
             <div className="flex items-center gap-4 text-white/70">
               <a href="https://x.com/tryvirtixai" target="_blank" rel="noreferrer" aria-label="Virtix AI on X" className="hover:text-white">
                 <XOutlined className="text-base" />
@@ -111,6 +101,7 @@ const Footer = () => {
               <Link to="/privacy-policy" className="block text-white/70 hover:text-white">Privacy Policy</Link>
               <Link to="/refund-policy" className="block text-white/70 hover:text-white">Refund Policy</Link>
               <Link to="/help-center" className="block text-white/70 hover:text-white">Help Center</Link>
+              <Link to="/partners" className="block text-white/70 hover:text-white">Become a Partner</Link>
             </div>
           </div>
 
@@ -120,6 +111,16 @@ const Footer = () => {
               <p>1209 MOUNTAIN ROAD PL NE</p>
               <p>STE R, ALBUQUERQUE</p>
               <p>New Mexico 87110, USA</p>
+            </div>
+            <div className="space-y-2 text-sm text-white/70 pt-2">
+              <a href="mailto:info@virtixai.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                <Mail size={14} />
+                info@virtixai.com
+              </a>
+              <a href="tel:+15055282615" className="flex items-center gap-2 hover:text-white transition-colors">
+                <Phone size={14} />
+                +1 (505) 528-2615
+              </a>
             </div>
           </div>
         </div>

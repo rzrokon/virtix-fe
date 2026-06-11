@@ -1,4 +1,5 @@
 import { Button, Col, Form, Input, Row, message } from 'antd';
+import { Mail, Phone } from 'lucide-react';
 import { postData } from '../../../scripts/api-service';
 
 const { TextArea } = Input;
@@ -54,11 +55,35 @@ export default function ContactUs() {
         </div>
 
         <div className="mx-auto mt-8 max-w-4xl rounded-[24px] border border-[#e5e7eb] bg-[#faf8ff] p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200FF]">Office Address</p>
-          <div className="mt-3 text-base leading-7 text-[#0C0900]/75">
-            <p>1209 MOUNTAIN ROAD PL NE</p>
-            <p>STE R, ALBUQUERQUE</p>
-            <p>New Mexico 87110, USA</p>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200FF]">Office Address</p>
+              <div className="mt-3 text-sm leading-7 text-[#0C0900]/75">
+                <p>1209 MOUNTAIN ROAD PL NE</p>
+                <p>STE R, ALBUQUERQUE</p>
+                <p>New Mexico 87110, USA</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200FF]">Email</p>
+              <a
+                href="mailto:info@virtixai.com"
+                className="mt-3 flex items-center gap-2 text-sm text-[#0C0900]/75 hover:text-[#6200FF] transition-colors"
+              >
+                <Mail size={15} className="text-[#6200FF] shrink-0" />
+                info@virtixai.com
+              </a>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200FF]">Phone</p>
+              <a
+                href="tel:+15055282615"
+                className="mt-3 flex items-center gap-2 text-sm text-[#0C0900]/75 hover:text-[#6200FF] transition-colors"
+              >
+                <Phone size={15} className="text-[#6200FF] shrink-0" />
+                +1 (505) 528-2615
+              </a>
+            </div>
           </div>
         </div>
 
