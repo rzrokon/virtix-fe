@@ -1,5 +1,6 @@
 import { ArrowUpRight, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import SubmitTicketModal from '../../components/support/SubmitTicketModal';
 
 const HELP_SECTIONS = [
   {
@@ -832,6 +833,7 @@ const flattenArticles = (sections) =>
 
 const HelpCenter = () => {
   const [query, setQuery] = useState('');
+  const [showTicketModal, setShowTicketModal] = useState(false);
   const allArticles = useMemo(() => flattenArticles(HELP_SECTIONS), []);
   const [selectedArticleId, setSelectedArticleId] = useState(allArticles[0]?.id ?? '');
 
@@ -1089,6 +1091,29 @@ const HelpCenter = () => {
           </div>
         )}
       </div>
+
+      {/* Contact support CTA */}
+      <div className="mt-16 mx-auto max-w-3xl px-6 text-center">
+        <div className="rounded-3xl bg-[#6200FF]/5 border border-[#6200FF]/20 px-8 py-10">
+          <h2 className="text-2xl font-bold text-[#0C0900]">Can&apos;t find what you&apos;re looking for?</h2>
+          <p className="mt-2 text-base text-[#0C0900]/65">
+            Our support team is ready to help. Submit a ticket and we&apos;ll get back to you by email.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowTicketModal(true)}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6200FF] px-6 py-3 text-sm font-semibold text-white hover:bg-[#5000dd] transition-colors"
+          >
+            Submit a Support Ticket <ArrowUpRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <SubmitTicketModal
+        open={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        onSuccess={() => setShowTicketModal(false)}
+      />
     </section>
   );
 };

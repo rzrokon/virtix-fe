@@ -1,6 +1,6 @@
 import { LockOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown, message } from 'antd';
-import { ChevronDown, CreditCard, LayoutDashboard } from 'lucide-react';
+import { ChevronDown, CreditCard, LayoutDashboard, TicketCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../contexts/UserContext';
 import { logoutUser } from '../../../scripts/api-service';
@@ -48,6 +48,12 @@ export default function UserMenu() {
       icon: <CreditCard size={14} />,
       label: 'Active Plan',
       onClick: () => navigate('/active-plan'),
+    },
+    {
+      key: 'my-tickets',
+      icon: <TicketCheck size={14} />,
+      label: 'My Support Tickets',
+      onClick: () => navigate('/my-tickets'),
     },
     {
       key: 'profile',

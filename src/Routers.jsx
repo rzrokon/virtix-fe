@@ -60,6 +60,9 @@ import Terms from './pages/public/Terms.jsx';
 import HelpCenter from './pages/public/HelpCenter.jsx';
 
 import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
+import MyTickets from './pages/private/MyTickets.jsx';
+import TicketDetailPage from './pages/private/TicketDetailPage.jsx';
+import StaffTicketsPage from './pages/private/StaffTicketsPage.jsx';
 
 export default function Routers() {
   return (
@@ -132,6 +135,9 @@ export default function Routers() {
               <ChangePassword />
           }
         />
+          <Route path='/my-tickets' element={<MyTickets />} />
+          <Route path='/my-tickets/:ticketId' element={<TicketDetailPage />} />
+          <Route path='/staff/tickets' element={<StaffTicketsPage />} />
         </Route>
 
         {/* AGENT DASHBOARD */}

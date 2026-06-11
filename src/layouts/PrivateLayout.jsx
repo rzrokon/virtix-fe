@@ -7,9 +7,11 @@ import {
   LayoutDashboard,
   Lightbulb,
   MessageCircleReply,
+  MessageSquareDashed,
   MessageSquareMore,
   Plug,
   Settings,
+  ShieldCheck,
   ShoppingBag,
   Users
 } from 'lucide-react';
@@ -40,6 +42,8 @@ export default function PrivateLayout() {
   const [openKeys, setOpenKeys] = useState([]);
 
   const getSelectedKey = () => {
+    if (location.pathname.startsWith('/my-tickets')) return 'my-tickets';
+    if (location.pathname.startsWith('/staff/tickets')) return 'staff-tickets';
     const parts = location.pathname.split('/');
     const segment = parts[3];
     if (!segment) return 'dashboard';
@@ -348,6 +352,12 @@ export default function PrivateLayout() {
       key: 'support',
       icon: <MessageSquareMore size={18} />,
       label: <Link to={`/${id}/agent-dashboard/support`}>Support Inbox</Link>,
+    },
+
+    {
+      key: 'my-tickets',
+      icon: <MessageSquareDashed size={18} />,
+      label: <Link to="/my-tickets">My Tickets</Link>,
     },
 
     showBookingsMenu

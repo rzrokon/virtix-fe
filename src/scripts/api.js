@@ -93,3 +93,13 @@ export const HANDOVER_REPLY = (conversationId) =>
 
 export const HANDOVER_CLOSE = (conversationId) =>
   `api/agent/support/conversations/${conversationId}/close/`;
+
+// Support Center (Help Desk Tickets)
+export const SUPPORT_TICKETS = 'api/support/tickets/';
+export const SUPPORT_TICKET_DETAIL = (id) => `api/support/tickets/${id}/`;
+export const SUPPORT_TICKET_REPLY = (id) => `api/support/tickets/${id}/reply/`;
+export const STAFF_TICKETS = 'api/support/staff/tickets/';
+export const STAFF_TICKET_DETAIL = (id) => `api/support/staff/tickets/${id}/`;
+export const STAFF_TICKET_UPDATE = (id) => `api/support/staff/tickets/${id}/update/`;
+export const STAFF_TICKET_REPLY = (id) => `api/support/staff/tickets/${id}/reply/`;
+export const STAFF_MEMBERS = 'api/support/staff/members/';
