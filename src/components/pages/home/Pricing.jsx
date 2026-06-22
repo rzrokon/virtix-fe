@@ -1,6 +1,6 @@
-import { Button } from 'antd';
+import { Button, message as antMessage } from 'antd';
 import Cookies from 'js-cookie';
-import { Check, X } from 'lucide-react';
+import { Check, Copy, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GET_BILLING_PLANS } from '../../../scripts/api';
@@ -171,6 +171,64 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
   }
 
   return (
+    <>
+    {/* Why Virtix + Trust */}
+    <section className="py-16 sm:py-20">
+      <div className="container max-w-5xl">
+        <div className="rounded-[32px] border border-[#E5E7EB] bg-[linear-gradient(160deg,#ffffff_0%,#f6f2ff_50%,#f0f9ff_100%)] p-8 md:p-12 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+
+            {/* Left — value props */}
+            <div className="space-y-5">
+              <p className="text-xs uppercase tracking-[0.25em] font-semibold text-[#6200FF]">Why Virtix AI</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#0C0900] leading-[120%]">
+                Recover More Sales Automatically
+              </h2>
+              <div className="space-y-3">
+                {[
+                  'Answer product questions instantly',
+                  'Recommend relevant products',
+                  'Capture customer leads',
+                  'Reduce abandoned conversations',
+                  'Support customers 24/7',
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                      <Check size={12} className="text-green-600" />
+                    </div>
+                    <span className="text-sm text-[#0C0900]/80">{item}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm font-medium text-[#0C0900]/50 italic border-l-2 border-[#6200FF]/30 pl-3">
+                Every unanswered customer question is a potential lost sale.
+              </p>
+            </div>
+
+            {/* Right — trust signals */}
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
+                <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#0C0900]/40">Works with</p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {['Shopify', 'WooCommerce', 'Messenger', 'Instagram', 'Website Widget'].map((item) => (
+                    <div key={item} className="flex items-center gap-2 rounded-xl bg-[#f8f6ff] px-3 py-2">
+                      <Check size={13} className="text-[#6200FF] shrink-0" />
+                      <span className="text-sm font-medium text-[#0C0900]">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-semibold text-[#0C0900]/35 uppercase tracking-[0.2em]">Trusted by growing ecommerce brands</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Pricing */}
     <section className="pricing py-16 sm:py-20">
       <div className="container flex flex-col gap-10 overflow-hidden">
 
@@ -182,6 +240,30 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
             <p className="font-normal text-base leading-[150%] text-[#0C0900]">
               No credit card required to start.
             </p>
+          </div>
+
+          {/* Founder offer banner */}
+          <div className="w-full max-w-3xl rounded-2xl border border-[#6200FF]/20 bg-[linear-gradient(135deg,#faf5ff_0%,#ede5ff_100%)] px-6 py-5">
+            <div className="flex flex-col sm:flex-row gap-5">
+              <div className="flex-1 space-y-2">
+                <p className="text-lg font-bold text-[#0C0900]">🚀 Founding Customer Program</p>
+                <p className="text-sm text-[#0C0900]/70">Join the first 100 stores and get 50% off for your first 12 months.</p>
+                <p className="text-sm text-[#0C0900]/55">Includes priority support, roadmap influence, and early access to new features.</p>
+              </div>
+              <div className="flex flex-col items-center gap-2 shrink-0 sm:pt-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText('FOUNDER50');
+                    antMessage.success('Coupon code copied!');
+                  }}
+                  className="flex items-center gap-2 rounded-xl border-2 border-dashed border-[#6200FF]/40 bg-white px-4 py-2.5 hover:border-[#6200FF] transition-colors group"
+                >
+                  <span className="font-mono text-lg font-bold text-[#6200FF] tracking-wider">FOUNDER50</span>
+                  <Copy size={14} className="text-[#6200FF]/50 group-hover:text-[#6200FF] transition-colors" />
+                </button>
+                <span className="text-[10px] font-semibold text-[#6200FF]/60 uppercase tracking-wide">Only 100 founder accounts available</span>
+              </div>
+            </div>
           </div>
 
           {/* Monthly / Yearly toggle */}
@@ -239,21 +321,53 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                   <p className={`mb-4 text-sm leading-[150%] ${popular ? 'text-white/65' : 'text-[#0C0900]/60'}`}>
                     {getPlanDescription(plan)}
                   </p>
-                  <div className="flex items-end gap-2">
-                    <span className={`text-4xl font-bold leading-tight ${popular ? 'text-white' : 'text-[#0C0900]'}`}>
-                      {formatPrice(plan)}
-                    </span>
-                    {badge && (
-                      <span className="mb-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                        {badge}
-                      </span>
-                    )}
-                  </div>
-                  {note && (
-                    <p className={`mt-1 text-xs ${popular ? 'text-white/50' : 'text-gray-400'}`}>
-                      {note}
-                    </p>
-                  )}
+                  {(() => {
+                    const monthly = parseFloat(plan.price_usd);
+                    const yearly = parseFloat(plan.price_usd_yearly);
+                    const isPaid = monthly > 0 && !plan.contact_sales_only;
+                    const rawPrice = billing === 'yearly' && yearly > 0 ? yearly / 12 : monthly;
+                    const founderPrice = isPaid ? (rawPrice / 2) : 0;
+                    const founderLabel = founderPrice % 1 === 0 ? `$${founderPrice}` : `$${founderPrice.toFixed(2)}`;
+                    return (
+                      <>
+                        <div className="flex items-end gap-2 flex-wrap">
+                          <span className={`text-4xl font-bold leading-tight ${popular ? 'text-white' : 'text-[#0C0900]'}`}>
+                            {formatPrice(plan)}
+                          </span>
+                          {badge && (
+                            <span className="mb-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                              {badge}
+                            </span>
+                          )}
+                        </div>
+                        {isPaid && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xl font-bold leading-tight ${popular ? 'text-[#62F5A8]' : 'text-[#6200FF]'}`}>
+                              {founderLabel}/mo
+                            </span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                              popular ? 'bg-[#62F5A8]/15 text-[#62F5A8]' : 'bg-[#6200FF]/10 text-[#6200FF]'
+                            }`}>
+                              Founder Price
+                            </span>
+                          </div>
+                        )}
+                        {billing === 'yearly' && yearly > 0 && isPaid ? (
+                          <p className={`mt-1 text-xs ${popular ? 'text-white/50' : 'text-gray-400'}`}>
+                            <span className="line-through">${yearly}/yr</span>
+                            {' '}
+                            <span className={popular ? 'text-[#62F5A8]/70' : 'text-[#6200FF]/70'}>
+                              ${(yearly / 2) % 1 === 0 ? yearly / 2 : (yearly / 2).toFixed(2)}/yr with FOUNDER50
+                            </span>
+                          </p>
+                        ) : note ? (
+                          <p className={`mt-1 text-xs ${popular ? 'text-white/50' : 'text-gray-400'}`}>
+                            {note}
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* CTA */}
@@ -274,7 +388,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                 <SectionLabel popular={popular}>Limits</SectionLabel>
                 <div className="space-y-2">
                   <FeatureRow label={`${plan.max_agents} agent${plan.max_agents > 1 ? 's' : ''}`} enabled popular={popular} />
-                  <FeatureRow label={`${formatNumber(plan.max_messages_per_month)} messages / month`} enabled popular={popular} />
+                  <FeatureRow label={`Ideal for stores handling up to ${formatNumber(Math.floor((plan.max_messages_per_month || 0) / 4))} customer inquiries/month`} enabled popular={popular} />
                 </div>
 
                 {/* Channels */}
@@ -329,6 +443,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
         </p>
       </div>
     </section>
+    </>
   );
 };
 

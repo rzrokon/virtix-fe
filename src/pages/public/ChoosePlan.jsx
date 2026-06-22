@@ -1,6 +1,6 @@
 import { Button, message, Spin } from 'antd';
 import Cookies from 'js-cookie';
-import { Check } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -187,6 +187,30 @@ export default function ChoosePlan() {
           </button>
         </div>
 
+        {/* Founder offer banner */}
+        <div className="w-full max-w-2xl rounded-2xl border border-[#6200FF]/20 bg-[linear-gradient(135deg,#faf5ff_0%,#ede5ff_100%)] px-6 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex-1 space-y-2">
+              <p className="text-lg font-bold text-[#0C0900]">🚀 Founding Customer Program</p>
+              <p className="text-sm text-[#0C0900]/70">Join the first 100 stores and get 50% off for your first 12 months.</p>
+              <p className="text-sm text-[#0C0900]/55">Includes priority support, roadmap influence, and early access to new features.</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('FOUNDER50');
+                  message.success('Coupon code copied!');
+                }}
+                className="flex items-center gap-2 rounded-xl border-2 border-dashed border-[#6200FF]/40 bg-white px-4 py-2.5 hover:border-[#6200FF] transition-colors group"
+              >
+                <span className="font-mono text-lg font-bold text-[#6200FF] tracking-wider">FOUNDER50</span>
+                <Copy size={14} className="text-[#6200FF]/50 group-hover:text-[#6200FF] transition-colors" />
+              </button>
+              <span className="text-[10px] font-semibold text-[#6200FF]/60 uppercase tracking-wide">Only 100 founder accounts available</span>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl px-4">
           {publicPlans.map((plan) => {
             const popular = plan.code === 'growth';
@@ -195,7 +219,7 @@ export default function ChoosePlan() {
 
             const features = [
               `Up to ${plan.max_agents} agent${plan.max_agents > 1 ? 's' : ''}`,
-              `${Number(plan.max_messages_per_month || 0).toLocaleString()} messages/month`,
+              `Ideal for stores handling up to ${Math.floor((plan.max_messages_per_month || 0) / 4).toLocaleString()} customer inquiries/month`,
               `${plan.max_files} files`,
               toBool(plan.website_widget) ? 'Website Widget' : null,
               toBool(plan.messenger) ? 'Facebook Messenger' : null,
@@ -231,19 +255,49 @@ export default function ChoosePlan() {
                 <div className="space-y-6">
                   <div className="space-y-1">
                     <h3 className="text-2xl leading-[140%] text-[#0C0900] font-bold">{plan.name}</h3>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
-                        {priceLabel(plan)}
-                      </span>
-                      {badge && (
-                        <span className="mb-1.5 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                          {badge}
-                        </span>
-                      )}
-                    </div>
-                    {note && (
-                      <p className="text-xs text-gray-400">{note}</p>
-                    )}
+                    {(() => {
+                      const monthly = parseFloat(plan.price_usd);
+                      const yearly = parseFloat(plan.price_usd_yearly);
+                      const isPaid = monthly > 0 && !plan.contact_sales_only;
+                      const rawPrice = billing === 'yearly' && yearly > 0 ? yearly / 12 : monthly;
+                      const founderPrice = isPaid ? (rawPrice / 2) : 0;
+                      const founderLabel = founderPrice % 1 === 0 ? `$${founderPrice}` : `$${founderPrice.toFixed(2)}`;
+                      return (
+                        <>
+                          <div className="flex items-end gap-2 flex-wrap">
+                            <span className="text-4xl leading-[140%] text-[#0C0900] font-bold">
+                              {priceLabel(plan)}
+                            </span>
+                            {badge && (
+                              <span className="mb-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                                {badge}
+                              </span>
+                            )}
+                          </div>
+                          {isPaid && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xl leading-[140%] text-[#6200FF] font-bold">
+                                {founderLabel}/mo
+                              </span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#6200FF]/10 text-[#6200FF]">
+                                Founder Price
+                              </span>
+                            </div>
+                          )}
+                          {billing === 'yearly' && yearly > 0 && isPaid ? (
+                            <p className="text-xs text-gray-400">
+                              <span className="line-through">${yearly}/yr</span>
+                              {' '}
+                              <span className="text-[#6200FF]/70">
+                                ${(yearly / 2) % 1 === 0 ? yearly / 2 : (yearly / 2).toFixed(2)}/yr with FOUNDER50
+                              </span>
+                            </p>
+                          ) : note ? (
+                            <p className="text-xs text-gray-400">{note}</p>
+                          ) : null}
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <Button

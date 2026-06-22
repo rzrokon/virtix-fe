@@ -22,7 +22,7 @@ const SECTIONS = [
     label: 'Limits',
     rows: [
       { label: 'Agents',            render: (p) => p.max_agents },
-      { label: 'Messages / month',  render: (p) => formatNumber(p.max_messages_per_month) },
+      { label: 'Customer inquiries / month', render: (p) => formatNumber(Math.floor((p.max_messages_per_month || 0) / 4)) },
       { label: 'Files',             render: (p) => p.max_files },
       { label: 'Storage',           render: (p) => formatBytes(p.max_storage_bytes) },
       { label: 'Index capacity',    render: (p) => formatBytes(p.max_index_bytes) },
@@ -130,7 +130,22 @@ export default function ComparePlans({ plans = [], loading = false }) {
                       <div className={`text-base font-bold ${popular ? 'text-[#6200FF]' : 'text-[#0C0900]'}`}>
                         {plan.name}
                       </div>
-                      <div className="text-sm text-gray-400 mt-0.5">{priceLabel(plan)}</div>
+                      {(() => {
+                        const monthly = parseFloat(plan.price_usd);
+                        const isPaid = monthly > 0 && !plan.contact_sales_only;
+                        if (!isPaid) return <div className="text-sm text-gray-400 mt-0.5">{priceLabel(plan)}</div>;
+                        const founderPrice = monthly / 2;
+                        const founderLabel = founderPrice % 1 === 0 ? `$${founderPrice}` : `$${founderPrice.toFixed(2)}`;
+                        return (
+                          <div className="mt-0.5 space-y-0.5">
+                            <div className="text-sm font-bold text-[#0C0900]">{priceLabel(plan)}</div>
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="text-xs font-bold text-[#6200FF]">{founderLabel}/mo</span>
+                              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#6200FF]/10 text-[#6200FF]">Founder Price</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </th>
                   );
                 })}
