@@ -1,96 +1,102 @@
 import { Modal } from 'antd';
-import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Play } from 'lucide-react';
+import { ArrowRight, Facebook, Globe, Instagram, MessageCircle, Play, ShieldCheck, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+
+const channels = [
+  { label: 'Website Widget', color: 'text-[#6200FF]', Icon: Globe },
+  { label: 'Facebook', color: 'text-[#1877F2]', Icon: Facebook },
+  { label: 'Messenger', color: 'text-[#00B2FF]', Icon: MessageCircle },
+  { label: 'Instagram', color: 'text-[#E1306C]', Icon: Instagram },
+];
 
 const Hero = () => {
   const [videoOpen, setVideoOpen] = useState(false);
   const youtubeEmbedUrl = 'https://www.youtube.com/embed/IZcjJMuH86w?autoplay=1&rel=0';
 
   return (
-    <section className="hero-section pt-40 pb-20">
-      <div className="container">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+    <section className="relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(98,0,255,0.08)_0%,transparent_70%)] pointer-events-none" />
 
-          {/* Left: copy */}
-          <div className="flex-2 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-1.5 text-sm font-semibold text-[#6200FF]">
+      <div className="container relative pt-16 pb-20 sm:pt-20 sm:pb-24">
+        <div className="grid lg:grid-cols-[1fr_auto] gap-12 lg:gap-14 items-center">
+
+          {/* Left — content */}
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#6200FF]/15 bg-white/70 backdrop-blur px-4 py-1.5 text-sm font-semibold text-[#6200FF] shadow-sm">
               <span className="h-2 w-2 rounded-full bg-[#6200FF] animate-pulse" />
               Built for Shopify &amp; WooCommerce stores
             </div>
 
-            <h1 className="text-5xl leading-[120%] text-[#0C0900] font-bold">
-              AI Sales &amp; Support Agent for Shopify &amp; WooCommerce Stores
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[115%] text-[#0C0900] font-bold tracking-tight">
+              Your AI Sales &amp; Support Agent That Never Sleeps
             </h1>
 
-            <p className="font-normal text-xl leading-relaxed text-gray-600 max-w-xl">
-              Virtix AI helps Shopify and WooCommerce stores answer product questions, recommend products, track orders, and support customers 24/7.
+            <p className="text-lg leading-relaxed text-[#0C0900]/60 max-w-lg">
+              Answer product questions, recommend items, process orders, and support customers 24/7 — across every channel.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#6200FF] px-7 py-3.5 text-base font-semibold text-white hover:bg-[#5000CC] transition-colors shadow-[0_4px_20px_rgba(98,0,255,0.35)]"
+                className="inline-flex items-center gap-2 rounded-full bg-[#6200FF] px-7 py-3.5 text-base font-semibold text-white hover:bg-[#5000CC] transition-all shadow-[0_4px_24px_rgba(98,0,255,0.3)] hover:shadow-[0_6px_32px_rgba(98,0,255,0.4)]"
               >
-                Start Free
-                <ArrowRight size={16} />
+                Start Free <ArrowRight size={16} />
               </Link>
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 text-base font-semibold text-slate-800 hover:border-[#6200FF]/30 hover:text-[#6200FF] transition-colors"
+              <button
+                onClick={() => setVideoOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-6 py-3.5 text-base font-semibold text-[#0C0900] hover:border-[#6200FF]/30 hover:text-[#6200FF] transition-colors"
               >
-                Book Demo
-              </Link>
+                <Play size={16} fill="currentColor" className="opacity-60" />
+                Watch Demo
+              </button>
             </div>
 
-            <p className="text-sm text-gray-400">
-              No credit card required · Setup in under 5 minutes
-            </p>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[#0C0900]/45">
+              <span className="flex items-center gap-1.5">
+                <Zap size={14} className="text-[#6200FF]/60" />
+                Setup in under 5 minutes
+              </span>
+              <span className="hidden sm:inline text-[#0C0900]/20">|</span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-[#6200FF]/60" />
+                No credit card required
+              </span>
+            </div>
 
-            <div className="pt-2">
-              <div className="flex flex-wrap items-center gap-3">
-                {[
-                  { label: 'Website Widget', color: 'text-[#6200FF]', Icon: Globe },
-                  { label: 'Facebook', color: 'text-[#1877F2]', Icon: Facebook },
-                  { label: 'Messenger', color: 'text-[#00B2FF]', Icon: MessageCircle },
-                  { label: 'Instagram', color: 'text-[#E1306C]', Icon: Instagram },
-                ].map((channel) => (
-                  <span
-                    key={channel.label}
-                    className="group inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-2 text-sm font-semibold text-[#0C0900] shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#D8CCFF] hover:shadow-[0_14px_28px_rgba(98,0,255,0.2)]"
-                  >
-                    <channel.Icon
-                      size={16}
-                      className={`${channel.color} transition-transform duration-300 ease-out group-hover:scale-110`}
-                    />
-                    {channel.label}
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {channels.map((ch) => (
+                <span
+                  key={ch.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-3.5 py-1.5 text-sm font-medium text-[#0C0900] shadow-sm hover:-translate-y-0.5 transition-transform"
+                >
+                  <ch.Icon size={14} className={ch.color} />
+                  {ch.label}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Right: product visual */}
-          <div className="flex-1">
-            <div className="relative">
-              <img
-                src="/assets/images/virtix-widget.png"
-                alt="Virtix AI website widget"
-                className="w-full rounded-2xl"
-              />
-
-              {/* Play button — covers entire image so clicking anywhere opens the video */}
-              <button
-                type="button"
-                aria-label="Play product video"
-                onClick={() => setVideoOpen(true)}
-                className="absolute inset-0 z-10 flex items-center justify-center group"
-              >
-                <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-[#6200FF] shadow-xl group-hover:scale-110 transition-transform">
-                  <Play size={22} className="ml-1" fill="currentColor" />
-                </span>
-              </button>
-
+          {/* Right — product visual */}
+          <div className="relative flex items-center justify-center">
+            <div className="inline-block rounded-2xl border border-[#E5E7EB] bg-white p-2 shadow-[0_24px_60px_rgba(15,23,42,0.1)]">
+              <div className="relative rounded-xl overflow-hidden h-[520px]">
+                <img
+                  src="/assets/images/virtix-widget.png"
+                  alt="Virtix AI website widget"
+                  className="h-full w-auto block"
+                />
+                <button
+                  type="button"
+                  aria-label="Play product video"
+                  onClick={() => setVideoOpen(true)}
+                  className="absolute inset-0 z-10 flex items-center justify-center group bg-black/5 hover:bg-black/10 transition-colors"
+                >
+                  <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-[#6200FF] shadow-xl group-hover:scale-110 transition-transform">
+                    <Play size={22} className="ml-1" fill="currentColor" />
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -106,7 +112,7 @@ const Hero = () => {
         destroyOnHidden
       >
         <div className="aspect-video w-full">
-          {videoOpen ? (
+          {videoOpen && (
             <iframe
               className="h-full w-full rounded-lg"
               src={youtubeEmbedUrl}
@@ -115,7 +121,7 @@ const Hero = () => {
               referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
             />
-          ) : null}
+          )}
         </div>
       </Modal>
     </section>

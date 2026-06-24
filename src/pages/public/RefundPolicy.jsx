@@ -2,7 +2,7 @@ const RefundPolicy = () => {
   return (
     <section className="bg-[#f8fafc] py-20">
       <div className="container max-w-5xl space-y-10 text-[#0C0900]">
-        <div className="mt-15 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0_10px_24px_rgba(15,23,42,0.06)] md:p-8">
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0_10px_24px_rgba(15,23,42,0.06)] md:p-8">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200ff]">Refund policy</p>
             <h1 className="text-4xl font-bold leading-[120%] md:text-5xl">Refund Policy</h1>

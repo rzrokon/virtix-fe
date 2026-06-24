@@ -53,7 +53,7 @@ const PayPalIcon = () => (
 const Footer = () => {
   return (
     <footer className="footer bg-[#111111] text-white">
-      <div className="mx-auto w-full max-w-6xl px-6 py-16">
+      <div className="container py-16">
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-[1.5fr_0.9fr_0.9fr_1fr] items-start">
           <div className="space-y-6">
             <img src="/assets/logo/Virtix_AI_Logo_White.png" alt="Virtix AI" className="h-10" />

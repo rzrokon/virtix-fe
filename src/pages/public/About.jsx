@@ -30,7 +30,7 @@ export default function About() {
     <>
       <section className="py-20 bg-[#f8fafc]">
         <div className="container max-w-6xl space-y-10 text-[#0C0900]">
-          <div className="mt-15 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)] md:p-10">
+          <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)] md:p-10">
             <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-[0.3em] text-[#6200ff] font-semibold">About us</p>

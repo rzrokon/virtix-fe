@@ -900,7 +900,7 @@ const HelpCenter = () => {
 
   return (
     <section className="bg-[#f8fafc] py-20">
-      <div className="container mt-15 max-w-6xl space-y-6 text-[#0C0900]">
+      <div className="container max-w-6xl space-y-6 text-[#0C0900]">
         <div className="rounded-[28px] border border-[#E5E7EB] bg-white p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
