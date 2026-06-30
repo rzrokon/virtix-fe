@@ -32,7 +32,9 @@ const refreshAccessToken = async () => {
 
   if (!refreshRequest) {
     refreshRequest = axios
-      .post(`${base_url}api/user/token/refresh/`, { refresh })
+      .post(`${base_url}api/user/token/refresh/`, { refresh }, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      })
       .then((res) => {
         const data = res?.data
 
@@ -69,6 +71,7 @@ const requestWithAuth = async (config, options = {}) => {
       headers: {
         ...(config.headers || {}),
         ...(no_token ? {} : { Authorization: token ? `Bearer ${token}` : null }),
+        'ngrok-skip-browser-warning': 'true',
       },
     })
   } catch (error) {
@@ -241,7 +244,9 @@ export const refreshToken = async () => {
 
 export const refreshTokenWithValue = async (refresh) => {
   try {
-    const res = await axios.post(`${base_url}api/user/token/refresh/`, { refresh })
+    const res = await axios.post(`${base_url}api/user/token/refresh/`, { refresh }, {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    })
     const data = res?.data
 
     if (!data?.access) {

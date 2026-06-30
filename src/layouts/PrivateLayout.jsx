@@ -11,6 +11,7 @@ import {
   MessageSquareMore,
   Plug,
   Settings,
+  RefreshCw,
   ShieldCheck,
   ShoppingBag,
   Users
@@ -33,6 +34,7 @@ export default function PrivateLayout() {
   const [indexFresh, setIndexFresh] = useState(true);
   const [indexing, setIndexing] = useState(false);
   const [indexProgress, setIndexProgress] = useState(0);
+  const [reindexPromptOpen, setReindexPromptOpen] = useState(false);
   const [featureFlags, setFeatureFlags] = useState(null);
   const [planCaps, setPlanCaps] = useState(null);
 
@@ -163,6 +165,12 @@ export default function PrivateLayout() {
       fetchAgent();
     }
   }, [token, id]);
+
+  useEffect(() => {
+    if (agent?.needs_reindex && !indexModalOpen) {
+      setReindexPromptOpen(true);
+    }
+  }, [agent?.needs_reindex]);
 
   const toBool = (v) => v === true || v === 'true' || v === 1;
 
@@ -521,6 +529,41 @@ export default function PrivateLayout() {
               </Text>
             </div>
             <Progress percent={indexProgress} status={indexing ? 'active' : undefined} />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        title={
+          <div className="flex items-center gap-2 text-amber-600">
+            <RefreshCw size={20} />
+            <span>Re-index Recommended</span>
+          </div>
+        }
+        open={reindexPromptOpen}
+        onCancel={() => setReindexPromptOpen(false)}
+        footer={[
+          <Button key="later" onClick={() => setReindexPromptOpen(false)}>
+            Later
+          </Button>,
+          <Button
+            key="reindex"
+            type="primary"
+            onClick={() => {
+              setReindexPromptOpen(false);
+              setIndexModalOpen(true);
+            }}
+          >
+            Re-index Now
+          </Button>,
+        ]}
+      >
+        <div className="space-y-3">
+          <Text className="text-slate-600 block">
+            Your agent's data has changed since the last index. The AI responses may be outdated until you re-index.
+          </Text>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            Changes to files, knowledge base, product inventory, or website content require re-indexing so the AI can use the latest information.
           </div>
         </div>
       </Modal>
