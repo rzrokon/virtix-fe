@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Lightbulb,
   MessageCircleReply,
-  MessageSquareDashed,
   MessageSquareMore,
   Plug,
   Settings,
@@ -349,12 +348,6 @@ export default function PrivateLayout() {
       key: 'support',
       icon: <MessageSquareMore size={18} />,
       label: <Link to={`/${id}/agent-dashboard/support`}>Support Inbox</Link>,
-    },
-
-    {
-      key: 'my-tickets',
-      icon: <MessageSquareDashed size={18} />,
-      label: <Link to="/my-tickets">My Tickets</Link>,
     },
 
     showBookingsMenu

@@ -2,23 +2,26 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
-  InfoCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import {
   Button,
   Card,
+  Col,
+  Descriptions,
   Form,
+  Input,
   message,
   Modal,
   Popconfirm,
+  Row,
   Select,
   Space,
   Spin,
+  Statistic,
   Table,
   Tag,
-  Row,
-  Col,
-  Statistic,
+  Typography,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -30,42 +33,211 @@ import {
 import { getData, patchData, deleteData } from '../../scripts/api-service';
 
 const { Option } = Select;
+const { Text } = Typography;
+const { TextArea } = Input;
 
-const ORDER_STATUS_OPTIONS = [
-  { value: 'new', label: 'New' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'shipped', label: 'Shipped' },
-  { value: 'canceled', label: 'Canceled' },
-  { value: 'refunded', label: 'Refunded' },
+const ORDER_STATUSES = [
+  { value: 'new',        label: 'New',        color: 'gold' },
+  { value: 'paid',       label: 'Paid',       color: 'green' },
+  { value: 'processing', label: 'Processing', color: 'blue' },
+  { value: 'shipped',    label: 'Shipped',    color: 'cyan' },
+  { value: 'delivered',  label: 'Delivered',  color: 'green' },
+  { value: 'canceled',   label: 'Canceled',   color: 'red' },
+  { value: 'refunded',   label: 'Refunded',   color: 'purple' },
 ];
 
-function getOrderStatusTag(status) {
-  switch (status) {
-    case 'new':
-      return <Tag color="gold">New</Tag>;
-    case 'paid':
-      return <Tag color="green">Paid</Tag>;
-    case 'shipped':
-      return <Tag color="blue">Shipped</Tag>;
-    case 'canceled':
-      return <Tag color="red">Canceled</Tag>;
-    case 'refunded':
-      return <Tag color="purple">Refunded</Tag>;
-    default:
-      return <Tag>{status}</Tag>;
-  }
+function StatusTag({ status }) {
+  const s = ORDER_STATUSES.find(o => o.value === status);
+  return <Tag color={s?.color || 'default'}>{s?.label || status}</Tag>;
 }
 
-function renderCustomer(customer) {
-  if (!customer) return '-';
-  if (typeof customer === 'number') return `#${customer}`;
-  if (typeof customer === 'string') return customer;
+function CustomerCell({ order }) {
+  if (order.customer_name) {
+    return (
+      <div>
+        <div className="font-medium">{order.customer_name}</div>
+        {order.customer_email && <div className="text-xs text-gray-400">{order.customer_email}</div>}
+        {order.customer_phone && <div className="text-xs text-gray-400">{order.customer_phone}</div>}
+      </div>
+    );
+  }
+  if (order.customer) {
+    return <span className="text-gray-500">User #{order.customer}</span>;
+  }
+  return <span className="text-gray-400">—</span>;
+}
+
+function OrderDetailsModal({ order, onClose }) {
+  if (!order) return null;
+
+  const itemCols = [
+    {
+      title: 'Product',
+      key: 'product',
+      render: (_, item) => (
+        <div>
+          <div>{item.product_name || '—'}</div>
+          {item.sku && <code className="text-xs text-gray-400">{item.sku}</code>}
+          {item.variant_attributes && Object.keys(item.variant_attributes).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {Object.entries(item.variant_attributes).map(([k, v]) => (
+                <Tag key={k} style={{ fontSize: 11 }}>{k}: {v}</Tag>
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    { title: 'Qty', dataIndex: 'qty', key: 'qty', width: 60 },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
+      width: 100,
+      render: (v) => `${order.currency} ${Number(v).toFixed(2)}`,
+    },
+    {
+      title: 'Subtotal',
+      key: 'subtotal',
+      width: 100,
+      render: (_, item) => `${order.currency} ${(Number(item.price) * item.qty).toFixed(2)}`,
+    },
+  ];
+
   return (
-    customer.name ||
-    customer.full_name ||
-    customer.email ||
-    customer.username ||
-    '-'
+    <Modal
+      title={
+        <div className="flex items-center gap-2">
+          <span>Order Details</span>
+          {order.order_number && <Tag color="blue">{order.order_number}</Tag>}
+          <StatusTag status={order.status} />
+        </div>
+      }
+      open={!!order}
+      onCancel={onClose}
+      footer={<Button onClick={onClose}>Close</Button>}
+      width={760}
+    >
+      <div className="space-y-4 mt-2">
+        <Descriptions bordered size="small" column={2}>
+          <Descriptions.Item label="Order #">{order.order_number || `#${order.id}`}</Descriptions.Item>
+          <Descriptions.Item label="Status"><StatusTag status={order.status} /></Descriptions.Item>
+          <Descriptions.Item label="Customer">{order.customer_name || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Email">{order.customer_email || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Phone">{order.customer_phone || '—'}</Descriptions.Item>
+          <Descriptions.Item label="City">{order.city || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Country">{order.country || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Total">
+            <Text strong>{order.currency} {Number(order.total_price).toFixed(2)}</Text>
+          </Descriptions.Item>
+          {order.shipping_address && (
+            <Descriptions.Item label="Shipping Address" span={2}>
+              {order.shipping_address}
+            </Descriptions.Item>
+          )}
+          {order.notes && (
+            <Descriptions.Item label="Notes" span={2}>{order.notes}</Descriptions.Item>
+          )}
+          <Descriptions.Item label="Created" span={2}>
+            {order.created ? new Date(order.created).toLocaleString() : '—'}
+          </Descriptions.Item>
+        </Descriptions>
+
+        {Array.isArray(order.items) && order.items.length > 0 && (
+          <>
+            <div className="font-semibold text-sm">Order Items</div>
+            <Table
+              dataSource={order.items}
+              columns={itemCols}
+              rowKey="id"
+              size="small"
+              pagination={false}
+              summary={() => (
+                <Table.Summary.Row>
+                  <Table.Summary.Cell colSpan={3} align="right">
+                    <Text strong>Total</Text>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell>
+                    <Text strong>{order.currency} {Number(order.total_price).toFixed(2)}</Text>
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              )}
+            />
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function EditOrderModal({ order, onClose, onSaved }) {
+  const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!order) return;
+    form.setFieldsValue({
+      status: order.status,
+      notes: order.notes || '',
+      shipping_address: order.shipping_address || '',
+      city: order.city || '',
+      country: order.country || '',
+    });
+  }, [order]);
+
+  const handleSubmit = async (values) => {
+    setSubmitting(true);
+    try {
+      const res = await patchData(`${UPDATE_ORDER}${order.id}/`, values);
+      if (res?.error) {
+        message.error('Failed to update order');
+        return;
+      }
+      message.success('Order updated');
+      onSaved();
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      title={`Edit Order ${order?.order_number || `#${order?.id}`}`}
+      open={!!order}
+      onCancel={onClose}
+      footer={null}
+      width={500}
+      destroyOnClose
+    >
+      <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-3">
+        <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+          <Select options={ORDER_STATUSES.map(s => ({ value: s.value, label: s.label }))} />
+        </Form.Item>
+        <Row gutter={12}>
+          <Col span={12}>
+            <Form.Item name="city" label="City">
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="country" label="Country">
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Form.Item name="shipping_address" label="Shipping Address">
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="notes" label="Notes">
+          <TextArea rows={2} />
+        </Form.Item>
+        <div className="flex justify-end gap-2 mt-2">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={submitting}>Update</Button>
+        </div>
+      </Form>
+    </Modal>
   );
 }
 
@@ -74,17 +246,10 @@ export default function ManageOrders() {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [editingOrder, setEditingOrder] = useState(null);
-
-  const [editForm] = Form.useForm();
-  const [submitting, setSubmitting] = useState(false);
-
-  const [statusFilter, setStatusFilter] = useState('all'); // all or specific status
+  const [detailOrder, setDetailOrder] = useState(null);
+  const [editOrder, setEditOrder] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!agentId) return;
@@ -94,142 +259,98 @@ export default function ManageOrders() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await getData(
-        `${GET_ORDERS}?agent=${agentId}&ordering=-created`
-      );
-      setOrders(response.results || response);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
+      const res = await getData(`${GET_ORDERS}?agent=${agentId}&ordering=-created`);
+      setOrders(res.results || res || []);
+    } catch {
       message.error('Failed to fetch orders');
     } finally {
       setLoading(false);
     }
   };
 
-  const openDetailsModal = (order) => {
-    setSelectedOrder(order);
-    setDetailsModalVisible(true);
-  };
-
-  const openEditModal = (order) => {
-    setEditingOrder(order);
-    editForm.setFieldsValue({
-      status: order.status,
-    });
-    setEditModalVisible(true);
-  };
-
-  const handleEditOrder = async (values) => {
-    if (!editingOrder) return;
-    setSubmitting(true);
-    try {
-      await patchData(`${UPDATE_ORDER}${editingOrder.id}/`, values);
-      message.success('Order updated successfully');
-      setEditModalVisible(false);
-      editForm.resetFields();
-      setEditingOrder(null);
-      fetchOrders();
-    } catch (error) {
-      console.error('Error updating order:', error.response?.data || error);
-      message.error('Failed to update order');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDeleteOrder = async (id) => {
+  const handleDelete = async (id) => {
     try {
       await deleteData(`${DELETE_ORDER}${id}/`);
-      message.success('Order deleted successfully');
+      message.success('Order deleted');
       fetchOrders();
-    } catch (error) {
-      console.error('Error deleting order:', error);
+    } catch {
       message.error('Failed to delete order');
     }
   };
 
-  // Derived data
-  const filteredOrders = useMemo(() => {
-    return orders.filter((o) => {
+  const filtered = useMemo(() => {
+    return orders.filter(o => {
       if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const match = [o.order_number, o.customer_name, o.customer_email, o.customer_phone]
+          .some(v => v?.toLowerCase().includes(q));
+        if (!match) return false;
+      }
       return true;
     });
-  }, [orders, statusFilter]);
+  }, [orders, statusFilter, searchTerm]);
 
   const totalOrders = orders.length;
-  const newOrders = orders.filter((o) => o.status === 'new').length;
-  const paidOrders = orders.filter((o) => o.status === 'paid').length;
+  const newOrders = orders.filter(o => o.status === 'new').length;
+  const paidOrders = orders.filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length;
+  const totalRevenue = orders
+    .filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status))
+    .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      render: (id) => <span className="font-mono">#{id}</span>,
+      title: 'Order #',
+      key: 'order_number',
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetailOrder(r)}>
+          {r.order_number || `#${r.id}`}
+        </Button>
+      ),
     },
     {
       title: 'Customer',
-      dataIndex: 'customer',
       key: 'customer',
-      render: renderCustomer,
+      render: (_, r) => <CustomerCell order={r} />,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: getOrderStatusTag,
+      render: s => <StatusTag status={s} />,
     },
     {
       title: 'Total',
-      dataIndex: 'total_price',
-      key: 'total_price',
-      render: (_, record) =>
-        `${record.total_price} ${record.currency || ''}`,
+      key: 'total',
+      render: (_, r) => <Text strong>{r.currency} {Number(r.total_price).toFixed(2)}</Text>,
+    },
+    {
+      title: 'Items',
+      key: 'items',
+      render: (_, r) => Array.isArray(r.items) ? r.items.length : '—',
     },
     {
       title: 'Created',
       dataIndex: 'created',
       key: 'created',
-      render: (value) =>
-        value ? new Date(value).toLocaleString() : '-',
+      render: v => v ? new Date(v).toLocaleDateString() : '—',
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 260,
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<InfoCircleOutlined />}
-            onClick={() => openDetailsModal(record)}
-            className="text-indigo-600 hover:text-indigo-800"
-          >
-            Details
-          </Button>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => openEditModal(record)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            Edit
-          </Button>
+      width: 120,
+      render: (_, r) => (
+        <Space size={0}>
+          <Button type="text" icon={<EyeOutlined />} onClick={() => setDetailOrder(r)} title="Details" />
+          <Button type="text" icon={<EditOutlined />} onClick={() => setEditOrder(r)} title="Edit" />
           <Popconfirm
-            title="Delete Order"
-            description="Are you sure you want to delete this order?"
-            onConfirm={() => handleDeleteOrder(record.id)}
+            title="Delete this order?"
+            onConfirm={() => handleDelete(r.id)}
             okText="Yes"
             cancelText="No"
             icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
           >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              className="text-red-600 hover:text-red-800"
-            >
-              Delete
-            </Button>
+            <Button type="text" icon={<DeleteOutlined />} danger title="Delete" />
           </Popconfirm>
         </Space>
       ),
@@ -239,56 +360,43 @@ export default function ManageOrders() {
   return (
     <div className="space-y-6">
       <Card>
-        <h1 className="text-2xl font-bold">
-          Manage Orders
-        </h1>
+        <h1 className="text-2xl font-bold">Orders</h1>
       </Card>
 
-      {/* Summary cards */}
       <Row gutter={16}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Total Orders"
-              value={totalOrders}
-            />
-          </Card>
+        <Col xs={12} sm={6}>
+          <Card><Statistic title="Total Orders" value={totalOrders} /></Card>
         </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="New Orders"
-              value={newOrders}
-              valueStyle={{ color: '#f59e0b' }}
-            />
-          </Card>
+        <Col xs={12} sm={6}>
+          <Card><Statistic title="New" value={newOrders} valueStyle={{ color: '#f59e0b' }} /></Card>
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={12} sm={6}>
+          <Card><Statistic title="Paid / Active" value={paidOrders} valueStyle={{ color: '#16a34a' }} /></Card>
+        </Col>
+        <Col xs={12} sm={6}>
           <Card>
             <Statistic
-              title="Paid Orders"
-              value={paidOrders}
-              valueStyle={{ color: '#16a34a' }}
+              title="Revenue"
+              value={totalRevenue.toFixed(2)}
+              prefix={orders[0]?.currency || ''}
+              valueStyle={{ color: '#2563eb' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Filters */}
       <Card>
-        <div className="flex flex-wrap gap-3 items-center justify-end">
-          <span className="text-sm text-gray-500">Status:</span>
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 200 }}
-          >
-            <Option value="all">All</Option>
-            {ORDER_STATUS_OPTIONS.map((s) => (
-              <Option key={s.value} value={s.value}>
-                {s.label}
-              </Option>
-            ))}
+        <div className="flex flex-wrap gap-3 items-center">
+          <Input
+            placeholder="Search order #, name, email…"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{ maxWidth: 280 }}
+            allowClear
+          />
+          <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 160 }}>
+            <Option value="all">All Statuses</Option>
+            {ORDER_STATUSES.map(s => <Option key={s.value} value={s.value}>{s.label}</Option>)}
           </Select>
         </div>
       </Card>
@@ -297,151 +405,20 @@ export default function ManageOrders() {
         <Spin spinning={loading}>
           <Table
             columns={columns}
-            dataSource={filteredOrders}
+            dataSource={filtered}
             rowKey="id"
             pagination={{
-              pageSize: 10,
+              pageSize: 15,
               showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} orders`,
+              showTotal: (t, r) => `${r[0]}-${r[1]} of ${t}`,
             }}
+            size="middle"
           />
         </Spin>
       </Card>
 
-      {/* ✏️ Edit Order Modal */}
-      <Modal
-        title="Edit Order"
-        open={editModalVisible}
-        onCancel={() => {
-          setEditModalVisible(false);
-          editForm.resetFields();
-          setEditingOrder(null);
-        }}
-        footer={null}
-        width={400}
-      >
-        <Form
-          form={editForm}
-          layout="vertical"
-          onFinish={handleEditOrder}
-          className="mt-4"
-        >
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select a status' }]}
-          >
-            <Select
-              placeholder="Select status"
-              options={ORDER_STATUS_OPTIONS}
-            />
-          </Form.Item>
-
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button
-              onClick={() => {
-                setEditModalVisible(false);
-                editForm.resetFields();
-                setEditingOrder(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={submitting}
-            >
-              Update
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-
-      {/* 📋 Details Modal */}
-      <Modal
-        title="Order Details"
-        open={detailsModalVisible}
-        onCancel={() => {
-          setDetailsModalVisible(false);
-          setSelectedOrder(null);
-        }}
-        footer={[
-          <Button
-            key="close"
-            onClick={() => {
-              setDetailsModalVisible(false);
-              setSelectedOrder(null);
-            }}
-          >
-            Close
-          </Button>,
-        ]}
-        width={700}
-      >
-        {selectedOrder && (
-          <div className="space-y-3 mt-2">
-            <p>
-              <strong>Order ID:</strong> #{selectedOrder.id}
-            </p>
-            <p>
-              <strong>Status:</strong>{' '}
-              {getOrderStatusTag(selectedOrder.status)}
-            </p>
-            <p>
-              <strong>Customer:</strong>{' '}
-              {renderCustomer(selectedOrder.customer)}
-            </p>
-            <p>
-              <strong>Total:</strong>{' '}
-              {selectedOrder.total_price} {selectedOrder.currency}
-            </p>
-            <p>
-              <strong>Created:</strong>{' '}
-              {selectedOrder.created
-                ? new Date(selectedOrder.created).toLocaleString()
-                : '-'}
-            </p>
-
-            {Array.isArray(selectedOrder.items) && (
-              <>
-                <p>
-                  <strong>Items:</strong>
-                </p>
-                <Table
-                  size="small"
-                  pagination={false}
-                  dataSource={selectedOrder.items}
-                  rowKey="id"
-                  columns={[
-                    {
-                      title: 'Product',
-                      dataIndex: ['product', 'name'],
-                      key: 'product_name',
-                      render: (_, item) =>
-                        item.product?.name ||
-                        item.product_name ||
-                        '-',
-                    },
-                    {
-                      title: 'Qty',
-                      dataIndex: 'qty',
-                      key: 'qty',
-                    },
-                    {
-                      title: 'Price',
-                      dataIndex: 'price',
-                      key: 'price',
-                    },
-                  ]}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </Modal>
+      <OrderDetailsModal order={detailOrder} onClose={() => setDetailOrder(null)} />
+      <EditOrderModal order={editOrder} onClose={() => setEditOrder(null)} onSaved={fetchOrders} />
     </div>
   );
 }

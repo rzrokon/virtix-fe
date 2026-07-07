@@ -68,6 +68,11 @@ export const CREATE_PRODUCT = 'api/ops/products/';
 export const UPDATE_PRODUCT = 'api/ops/products/';
 export const DELETE_PRODUCT = 'api/ops/products/';
 
+// Product images & variants
+export const PRODUCT_IMAGES = 'api/ops/product-images/';
+export const PRODUCT_VARIANTS = 'api/ops/product-variants/';
+export const CSV_IMPORT = (agentName) => `api/ops/${agentName}/products/import-csv/`;
+
 // Orders
 export const GET_ORDERS = 'api/ops/orders/';
 export const UPDATE_ORDER = 'api/ops/orders/';
