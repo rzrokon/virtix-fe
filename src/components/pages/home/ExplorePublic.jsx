@@ -19,7 +19,8 @@ export default function ExplorePublic() {
       accentIcon: ArrowRight,
       backgroundColor: '#ECF7DA',
       iconColor: '#95BF47',
-      link: 'https://urbanthread-6591.myshopify.com/'
+      link: null,
+      soon: true,
     },
     {
       title: 'Customer Support Agent',
@@ -62,22 +63,29 @@ export default function ExplorePublic() {
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-[#0C0900]">{agent.title}</h3>
+                  <h3 className="text-lg font-semibold text-[#0C0900] flex items-center gap-2">
+                    {agent.title}
+                    {agent.soon && <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Coming Soon</span>}
+                  </h3>
                   <p className="text-xs text-gray-500">Demo AI agent</p>
                 </div>
               </div>
 
               <p className="mt-5 text-sm leading-relaxed text-[#0C0900]/80">{agent.description}</p>
 
-              <Button
-                type="primary"
-                href={agent.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-7 w-full flex items-center justify-center gap-2"
-              >
-                Try Agent <ArrowRight size={16} />
-              </Button>
+              {agent.soon ? (
+                <Button disabled className="mt-7 w-full">Coming Soon</Button>
+              ) : (
+                <Button
+                  type="primary"
+                  href={agent.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-7 w-full flex items-center justify-center gap-2"
+                >
+                  Try Agent <ArrowRight size={16} />
+                </Button>
+              )}
             </div>
           ))}
         </div>

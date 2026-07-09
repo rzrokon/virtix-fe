@@ -55,7 +55,7 @@ const SECTIONS = [
     rows: [
       { label: 'Internal Commerce',       render: (p) => toBool(p.internal_commerce) },
       { label: 'WooCommerce',             render: (p) => toBool(p.woocommerce) },
-      { label: 'Shopify',                 render: (p) => toBool(p.shopify) },
+      { label: 'Shopify', soon: true,      render: () => false },
       { label: 'Product Recommendations', render: (p) => toBool(p.product_recommendations) },
       { label: 'Order Processing',        render: (p) => toBool(p.order_processing) },
       { label: 'Order Tracking',          render: (p) => toBool(p.order_tracking) },
@@ -171,7 +171,12 @@ export default function ComparePlans({ plans = [], loading = false }) {
                       key={`${si}-${ri}`}
                       className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-6 py-3.5 text-sm text-gray-700">{row.label}</td>
+                      <td className="px-6 py-3.5 text-sm text-gray-700">
+                        <span className="flex items-center gap-2">
+                          {row.label}
+                          {row.soon && <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Coming Soon</span>}
+                        </span>
+                      </td>
                       {plans.map((plan) => (
                         <td key={plan.code} className="px-4 py-3.5 text-center">
                           <CellValue value={row.render(plan)} />

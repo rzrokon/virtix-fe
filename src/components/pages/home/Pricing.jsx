@@ -57,7 +57,7 @@ const FeatureRow = ({ label, enabled, popular }) => (
 
 // Accepts optional plans/loading props so a parent page can share one fetch.
 // Falls back to internal fetch when props are not provided (e.g. Home page).
-const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
+const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = true } = {}) => {
   const [internalPlans, setInternalPlans] = useState([]);
   const [internalLoading, setInternalLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -172,8 +172,8 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
 
   return (
     <>
-    {/* Why Virtix + Trust */}
-    <section className="py-16 sm:py-20">
+    {/* Why Virtix + Trust — home page only */}
+    {showValueSection && <section className="py-16 sm:py-20">
       <div className="container max-w-5xl">
         <div className="rounded-[32px] border border-[#E5E7EB] bg-[linear-gradient(160deg,#ffffff_0%,#f6f2ff_50%,#f0f9ff_100%)] p-8 md:p-12 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -210,10 +210,17 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
                 <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#0C0900]/40">Works with</p>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {['Shopify', 'WooCommerce', 'Messenger', 'Instagram', 'Website Widget'].map((item) => (
-                    <div key={item} className="flex items-center gap-2 rounded-xl bg-[#f8f6ff] px-3 py-2">
+                  {[
+                    { label: 'Shopify', soon: true },
+                    { label: 'WooCommerce' },
+                    { label: 'Messenger' },
+                    { label: 'Instagram' },
+                    { label: 'Website Widget' },
+                  ].map(({ label, soon }) => (
+                    <div key={label} className="flex items-center gap-2 rounded-xl bg-[#f8f6ff] px-3 py-2">
                       <Check size={13} className="text-[#6200FF] shrink-0" />
-                      <span className="text-sm font-medium text-[#0C0900]">{item}</span>
+                      <span className="text-sm font-medium text-[#0C0900]">{label}</span>
+                      {soon && <span className="ml-auto inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Soon</span>}
                     </div>
                   ))}
                 </div>
@@ -226,7 +233,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* Pricing */}
     <section className="pricing py-16 sm:py-20">
@@ -418,7 +425,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp } = {}) => {
                 <div className="space-y-2">
                   <FeatureRow label="Internal Commerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
                   <FeatureRow label="WooCommerce" enabled={toBool(plan.woocommerce)} popular={popular} />
-                  <FeatureRow label="Shopify" enabled={toBool(plan.shopify)} popular={popular} />
+                  <FeatureRow label={<span className="flex items-center gap-1.5">Shopify <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Soon</span></span>} enabled={false} popular={popular} />
                   <FeatureRow label="Product Recommendations" enabled={toBool(plan.product_recommendations)} popular={popular} />
                   <FeatureRow label="Order Processing" enabled={toBool(plan.order_processing)} popular={popular} />
                   <FeatureRow label="Order Tracking" enabled={toBool(plan.order_tracking)} popular={popular} />

@@ -31,7 +31,7 @@ export default function Pricing() {
 
   return (
     <section className="hero-section py-20">
-      <HomePricing plans={plans} loading={plansLoading} />
+      <HomePricing plans={plans} loading={plansLoading} showValueSection={false} />
       <ComparePlans plans={plans} loading={plansLoading} />
       <CTA />
     </section>

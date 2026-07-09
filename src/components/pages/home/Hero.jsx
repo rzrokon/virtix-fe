@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const [videoOpen, setVideoOpen] = useState(false);
-  const youtubeEmbedUrl = 'https://www.youtube.com/embed/IZcjJMuH86w?autoplay=1&rel=0';
+  const youtubeEmbedUrl = 'https://www.youtube.com/embed/o8hAMR_9CbY?autoplay=1&rel=0';
 
   return (
     <section className="hero-section pt-40 pb-20">
@@ -71,12 +71,13 @@ const Hero = () => {
           </div>
 
           {/* Right: product visual */}
-          <div className="flex-1">
+          <div className="flex-1 flex justify-center">
             <div className="relative">
               <img
-                src="/assets/images/virtix-widget.png"
+                src="/assets/images/virtixai-chatbot.gif"
                 alt="Virtix AI website widget"
-                className="w-full rounded-2xl"
+                className="rounded-2xl object-contain"
+                style={{ height: 490 }}
               />
 
               {/* Play button — covers entire image so clicking anywhere opens the video */}

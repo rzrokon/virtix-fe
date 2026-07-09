@@ -299,16 +299,19 @@ export default function AgentFeatures() {
                   </label>
                 </UpgradeTooltip>
 
-                <UpgradeTooltip allowed={!planCaps || toBool(planCaps.shopify)}>
-                  <label className={`border rounded-xl p-4 block ${planCaps && !toBool(planCaps.shopify) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-                    <Radio value="SHOPIFY" disabled={planCaps ? !toBool(planCaps.shopify) : false}>
-                      <div className="font-semibold">Shopify</div>
+                <Tooltip title="Shopify integration is coming soon. Stay tuned!">
+                  <label className="border rounded-xl p-4 block cursor-not-allowed opacity-60 relative">
+                    <Radio value="SHOPIFY" disabled>
+                      <div className="font-semibold flex items-center gap-2">
+                        Shopify
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Coming Soon</span>
+                      </div>
                     </Radio>
                     <div className="text-sm text-gray-500 mt-2">
                       Use Shopify products and Shopify checkout flow.
                     </div>
                   </label>
-                </UpgradeTooltip>
+                </Tooltip>
               </div>
             </Radio.Group>
           </Form.Item>

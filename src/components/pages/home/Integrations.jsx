@@ -4,6 +4,7 @@ const Integrations = () => {
   const integrations = [
     {
       name: 'Shopify',
+      soon: true,
       Icon: ShoppingBag,
       color: 'text-[#95BF47]',
       bg: 'bg-[#95BF47]/10',
@@ -57,6 +58,9 @@ const Integrations = () => {
                 <integration.Icon size={22} />
               </span>
               <span className="text-base font-bold leading-[140%] text-[#0C0900]">{integration.name}</span>
+              {integration.soon && (
+                <span className="ml-auto inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 shrink-0">Coming Soon</span>
+              )}
             </div>
           ))}
         </div>
