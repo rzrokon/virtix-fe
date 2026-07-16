@@ -59,6 +59,12 @@ const Header = () => {
               Contact
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-200 group-hover:w-full"></span>
             </Link>
+            <Link
+              to="/shopify"
+              className="px-3 py-1.5 text-sm font-semibold text-[#6200FF] border border-[#6200FF]/30 rounded-full hover:bg-[#6200FF]/5 transition-colors duration-200"
+            >
+              Shopify Early Access
+            </Link>
           </nav>
 
           {/* Right side actions */}
@@ -117,6 +123,12 @@ const Header = () => {
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
                 Contact
+              </Link>
+              <Link
+                to="/shopify"
+                className="block px-3 py-2 text-base font-semibold text-[#6200FF] hover:bg-[#6200FF]/5 rounded-lg transition-colors duration-200"
+              >
+                Shopify Early Access
               </Link>
             </div>
           </div>

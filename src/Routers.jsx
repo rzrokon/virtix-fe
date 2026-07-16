@@ -59,6 +59,7 @@ import RefundPolicy from './pages/public/RefundPolicy.jsx';
 import Terms from './pages/public/Terms.jsx';
 import HelpCenter from './pages/public/HelpCenter.jsx';
 import BecomeAPartner from './pages/public/BecomeAPartner.jsx';
+import ShopifyEarlyAccess from './pages/public/ShopifyEarlyAccess.jsx';
 
 import SupportInboxPage from './pages/private/SupportInboxPage.jsx';
 import MyTickets from './pages/private/MyTickets.jsx';
@@ -84,6 +85,7 @@ export default function Routers() {
           <Route path='/refund-policy' element={<RefundPolicy />} />
           <Route path='/terms' element={<Terms />} />
           <Route path='/billing/success' element={<BillingSuccess />} />
+          <Route path='/shopify' element={<ShopifyEarlyAccess />} />
         </Route>
 
         {/* AUTH */}

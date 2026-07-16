@@ -84,6 +84,8 @@ export const CREATE_OFFER = 'api/ops/offers/';
 export const UPDATE_OFFER = 'api/ops/offers/';
 export const DELETE_OFFER = 'api/ops/offers/';
 
+export const SHOPIFY_EARLY_ACCESS = 'api/ops/public/shopify-early-access/';
+
 export const HANDOVER_CONVERSATIONS = (agentName) =>
   `api/agent/support/${agentName}/handover/conversations/`;
 
