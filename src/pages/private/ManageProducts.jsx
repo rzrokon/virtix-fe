@@ -692,8 +692,21 @@ export default function ManageProducts() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await getData(`${GET_PRODUCTS}?agent=${agentId}&ordering=-created`);
-      setProducts(res.results || res || []);
+      let all = [];
+      let url = `${GET_PRODUCTS}?agent=${agentId}&ordering=-created&page_size=100`;
+      while (url) {
+        const res = await getData(url);
+        if (Array.isArray(res)) { all = res; break; }
+        all = all.concat(res.results || []);
+        // res.next is a full absolute URL; extract just path+query for getData
+        if (res.next) {
+          const parsed = new URL(res.next);
+          url = parsed.pathname + parsed.search;
+        } else {
+          url = null;
+        }
+      }
+      setProducts(all);
     } catch {
       message.error('Failed to fetch products');
     } finally {
