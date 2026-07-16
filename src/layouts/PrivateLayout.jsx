@@ -23,6 +23,9 @@ import { GET_MY_SUBSCRIPTION } from '../scripts/api';
 
 const { Header, Content, Sider } = Layout;
 
+// Build states: UP_TO_DATE | UPDATE_REQUIRED | BUILDING | COMPLETED | FAILED
+const BUILD_STATES = { UP_TO_DATE: 'UP_TO_DATE', UPDATE_REQUIRED: 'UPDATE_REQUIRED', BUILDING: 'BUILDING', COMPLETED: 'COMPLETED', FAILED: 'FAILED' };
+
 export default function PrivateLayout() {
   const [collapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,6 +37,8 @@ export default function PrivateLayout() {
   const [indexProgress, setIndexProgress] = useState(0);
   const [featureFlags, setFeatureFlags] = useState(null);
   const [planCaps, setPlanCaps] = useState(null);
+  const [buildState, setBuildState] = useState(BUILD_STATES.UP_TO_DATE);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const { id } = useParams();
   const location = useLocation();
@@ -136,24 +141,47 @@ export default function PrivateLayout() {
     }
   };
 
-  const fetchAgent = async () => {
-    if (!id) return;
+const fetchAgent = async () => {
+  if (!id) return;
 
-    try {
-      setLoading(true);
-      const [agentData, subData] = await Promise.all([
-        getAgentById(id),
-        getData(GET_MY_SUBSCRIPTION).catch(() => null),
-      ]);
-      setAgent(agentData);
-      setCurrentAgentName(agentData?.agent_name || null);
-      if (subData?.subscription?.plan) setPlanCaps(subData.subscription.plan);
-      await fetchFeatureConfig(agentData?.agent_name);
-    } catch {
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const [agentData, subData] = await Promise.all([
+      getAgentById(id),
+      getData(GET_MY_SUBSCRIPTION).catch(() => null),
+    ]);
+
+    setAgent(agentData);
+    setCurrentAgentName(agentData?.agent_name || null);
+
+    if (subData?.subscription?.plan) {
+      setPlanCaps(subData.subscription.plan);
     }
-  };
+
+    await fetchFeatureConfig(agentData?.agent_name);
+
+    const updateRequired =
+      agentData?.knowledge_update_required === true;
+
+    const count =
+      agentData?.knowledge_change_count ?? 0;
+
+    setPendingCount(count);
+
+    if (buildState !== BUILD_STATES.BUILDING) {
+      setBuildState(
+        updateRequired
+          ? BUILD_STATES.UPDATE_REQUIRED
+          : BUILD_STATES.UP_TO_DATE
+      );
+    }
+  } catch {
+    message.error('Failed to load agent');
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (!token) {
@@ -189,6 +217,7 @@ export default function PrivateLayout() {
       return;
     }
 
+    setBuildState(BUILD_STATES.BUILDING);
     setIndexing(true);
     setIndexProgress(12);
 
@@ -201,25 +230,31 @@ export default function PrivateLayout() {
       const data = res?.data ?? res;
 
       const cleanError = (val) => {
-        if (typeof val !== 'string') return 'Index request failed';
+        if (typeof val !== 'string') return 'Build request failed';
         const looksLikeHtml = /<[^>]+>/.test(val);
-        return looksLikeHtml ? 'Index request failed' : val;
+        return looksLikeHtml ? 'Build request failed' : val;
       };
 
       if (data?.ok || data?.detail || (res?.status && res.status >= 200 && res.status < 300)) {
         setIndexProgress(100);
-        message.success('Agent indexing triggered successfully');
-        setTimeout(() => setIndexModalOpen(false), 500);
+        setPendingCount(0);
+        setBuildState(BUILD_STATES.COMPLETED);
+        setTimeout(() => setIndexModalOpen(false), 400);
+        setTimeout(() => setBuildState(BUILD_STATES.UP_TO_DATE), 2800);
       } else if (data?.error) {
         const errMsg = cleanError(data.errors || data.error);
         message.error(errMsg);
+        setBuildState(BUILD_STATES.FAILED);
       } else {
         setIndexProgress(100);
-        message.success('Index request sent');
-        setTimeout(() => setIndexModalOpen(false), 500);
+        setPendingCount(0);
+        setBuildState(BUILD_STATES.COMPLETED);
+        setTimeout(() => setIndexModalOpen(false), 400);
+        setTimeout(() => setBuildState(BUILD_STATES.UP_TO_DATE), 2800);
       }
     } catch {
       message.error('Failed to build AI knowledge');
+      setBuildState(BUILD_STATES.FAILED);
     } finally {
       clearInterval(tick);
       setIndexing(false);
@@ -417,13 +452,15 @@ export default function PrivateLayout() {
         style={{ background: colorBgContainer }}
         className='private-layout__header !pl-4'
       >
-        <PrivateHeader
-          isMobile={isMobile}
-          loading={loading}
-          agentName={agent?.agent_name}
-          onMenuOpen={() => setMobileMenuOpen(true)}
-          onIndexClick={() => setIndexModalOpen(true)}
-        />
+      <PrivateHeader
+        isMobile={isMobile}
+        loading={loading}
+        agentName={agent?.agent_name}
+        onMenuOpen={() => setMobileMenuOpen(true)}
+        onIndexClick={() => setIndexModalOpen(true)}
+        buildState={buildState}
+        pendingCount={pendingCount}
+      />
       </Header>
 
       <Layout className="private-layout__body">
