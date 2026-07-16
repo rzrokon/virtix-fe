@@ -556,19 +556,19 @@ const HELP_SECTIONS = [
         ],
         troubleshooting: [
           'If expected customers do not appear, widen the date range and clear message count filters.',
-          'If you need conversation details, move from Customers into Chat History for that contact.',
+          'If you need conversation details, move from Customers into Conversations for that contact.',
         ],
         related: ['chat-history', 'manage-leads', 'agent-report'],
       },
       {
         id: 'chat-history',
-        title: 'Inspect chat history and export conversation data',
+        title: 'Inspect conversations and export conversation data',
         summary: 'Review message timelines for each customer conversation and filter by date or text.',
-        keywords: ['chat history', 'conversation', 'messages', 'export', 'filters'],
+        keywords: ['conversations', 'conversation', 'messages', 'export', 'filters'],
         overview:
-          'Chat History shows past conversations in a split layout. The left side lists conversations, while the right side shows the message thread for the selected conversation with filters and export controls.',
+          'Conversations shows past chats in a split layout. The left side lists conversations, while the right side shows the message thread for the selected conversation with filters and export controls.',
         steps: [
-          'Open Chat History.',
+          'Open Conversations.',
           'Choose a conversation from the left sidebar list.',
           'Use the search field to find text inside the selected conversation.',
           'Optionally set a date range to narrow the visible messages.',
@@ -813,7 +813,7 @@ const HELP_SECTIONS = [
         ],
         troubleshooting: [
           'If the export looks incomplete, review active filters before downloading again.',
-          'If you need more context than the report table gives, inspect the same customer in Chat History.',
+          'If you need more context than the report table gives, inspect the same customer in Conversations.',
         ],
         related: ['chat-history', 'dashboard-overview', 'customers'],
       },

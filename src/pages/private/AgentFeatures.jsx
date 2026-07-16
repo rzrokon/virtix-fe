@@ -158,7 +158,7 @@ export default function AgentFeatures() {
       <Card>
         <div className="flex justify-between items-start gap-3">
           <div>
-            <Title level={3} className="!mb-1">Agent Features</Title>
+            <Title level={3} className="!mb-1">Agent Capabilities</Title>
             <Text type="secondary">Agent: <b>{agentSlug}</b></Text>
           </div>
 

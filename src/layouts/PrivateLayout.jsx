@@ -311,7 +311,7 @@ export default function PrivateLayout() {
         },
         {
           key: 'feature-config',
-          label: <Link to={`/${id}/agent-dashboard/features`}>Feature Config</Link>,
+          label: <Link to={`/${id}/agent-dashboard/features`}>Capabilities</Link>,
         },
       ],
     },
@@ -333,21 +333,21 @@ export default function PrivateLayout() {
       : null,
 
     {
-      key: 'customers',
-      icon: <Users size={18} />,
-      label: <Link to={`/${id}/agent-dashboard/customers`}>Customers</Link>,
+      key: 'support',
+      icon: <MessageSquareMore size={18} />,
+      label: <Link to={`/${id}/agent-dashboard/support`}>Support Inbox</Link>,
     },
 
     {
       key: 'chat-history',
       icon: <MessageCircleReply size={18} />,
-      label: <Link to={`/${id}/agent-dashboard/chat-history`}>Chat History</Link>,
+      label: <Link to={`/${id}/agent-dashboard/chat-history`}>Conversations</Link>,
     },
 
     {
-      key: 'support',
-      icon: <MessageSquareMore size={18} />,
-      label: <Link to={`/${id}/agent-dashboard/support`}>Support Inbox</Link>,
+      key: 'customers',
+      icon: <Users size={18} />,
+      label: <Link to={`/${id}/agent-dashboard/customers`}>Customers</Link>,
     },
 
     showBookingsMenu

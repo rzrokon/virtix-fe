@@ -294,7 +294,7 @@ export default function ChatHistory() {
                 />
                 <div>
                   <h1 className="text-xl font-semibold text-gray-900">
-                    {selectedConversation?.title || 'Chat History'}
+                    {selectedConversation?.title || 'Conversations'}
                   </h1>
                   <p className="text-sm text-gray-500 mb-0">
                     {selectedConversation?.customerLabel || (customerId ? `Customer ${customerId}` : 'All customers')}
