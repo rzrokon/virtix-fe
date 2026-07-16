@@ -213,6 +213,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                   {[
                     { label: 'Shopify', soon: true },
                     { label: 'WooCommerce' },
+                    { label: 'Custom eCommerce' },
                     { label: 'Messenger' },
                     { label: 'Instagram' },
                     { label: 'Website Widget' },
@@ -255,7 +256,14 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
               <div className="flex-1 space-y-2">
                 <p className="text-lg font-bold text-[#0C0900]">🚀 Founding Customer Program</p>
                 <p className="text-sm text-[#0C0900]/70">Join the first 100 stores and get 50% off for your first 12 months.</p>
-                <p className="text-sm text-[#0C0900]/55">Includes priority support, roadmap influence, and early access to new features.</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1">
+                  {['Priority support', 'Roadmap influence', 'Early access to features'].map((item) => (
+                    <div key={item} className="flex items-center gap-1.3 text-sm text-[#0C0900]/70">
+                      <Check size={14} className="text-green-500 shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="flex flex-col items-center gap-2 shrink-0 sm:pt-2">
                 <button
@@ -423,7 +431,7 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                 {/* Commerce */}
                 <SectionLabel popular={popular}>Commerce</SectionLabel>
                 <div className="space-y-2">
-                  <FeatureRow label="Internal Commerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
+                  <FeatureRow label="Custom eCommerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
                   <FeatureRow label="WooCommerce" enabled={toBool(plan.woocommerce)} popular={popular} />
                   <FeatureRow label={<span className="flex items-center gap-1.5">Shopify <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Soon</span></span>} enabled={false} popular={popular} />
                   <FeatureRow label="Product Recommendations" enabled={toBool(plan.product_recommendations)} popular={popular} />

@@ -228,7 +228,7 @@ export default function ChoosePlan() {
               toBool(plan.complaints) ? 'Complaints Management' : null,
               toBool(plan.website_data) ? 'Website Data' : null,
               toBool(plan.wordpress_data) ? 'WordPress Data' : null,
-              toBool(plan.internal_commerce) ? 'Internal Commerce' : null,
+              toBool(plan.internal_commerce) ? 'Custom eCommerce' : null,
               toBool(plan.woocommerce) ? 'WooCommerce' : null,
               toBool(plan.shopify) ? 'Shopify' : null,
               toBool(plan.product_recommendations) ? 'Product Recommendations' : null,

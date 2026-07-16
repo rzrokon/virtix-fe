@@ -1,4 +1,4 @@
-import { Facebook, Globe, Instagram, MessageCircle, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { Database, Facebook, Globe, Instagram, MessageCircle, ShoppingBag, ShoppingCart } from 'lucide-react';
 
 const Integrations = () => {
   const integrations = [
@@ -16,10 +16,16 @@ const Integrations = () => {
       bg: 'bg-[#7F54B3]/10',
     },
     {
-      name: 'Website Widget',
-      Icon: Globe,
+      name: 'Custom eCommerce',
+      Icon: Database,
       color: 'text-[#6200ff]',
       bg: 'bg-[#6200ff]/10',
+    },
+    {
+      name: 'Website Widget',
+      Icon: Globe,
+      color: 'text-[#0C0900]',
+      bg: 'bg-[#0C0900]/10',
     },
     {
       name: 'Facebook Messenger',

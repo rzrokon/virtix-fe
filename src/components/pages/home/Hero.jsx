@@ -16,7 +16,7 @@ const Hero = () => {
           <div className="flex-2 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-1.5 text-sm font-semibold text-[#6200FF]">
               <span className="h-2 w-2 rounded-full bg-[#6200FF] animate-pulse" />
-              Built for Shopify &amp; WooCommerce stores
+              Built for Shopify, WooCommerce &amp; Custom eCommerce stores
             </div>
 
             <h1 className="text-5xl leading-[120%] text-[#0C0900] font-bold">
@@ -24,7 +24,7 @@ const Hero = () => {
             </h1>
 
             <p className="font-normal text-xl leading-relaxed text-gray-600 max-w-xl">
-              Virtix AI helps Shopify and WooCommerce stores answer product questions, recommend products, track orders, and support customers 24/7.
+              Virtix AI helps Shopify, WooCommerce, and Custom eCommerce stores answer product questions, recommend products, track orders, and support customers 24/7.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">

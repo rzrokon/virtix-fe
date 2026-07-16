@@ -53,7 +53,7 @@ const SECTIONS = [
   {
     label: 'Commerce',
     rows: [
-      { label: 'Internal Commerce',       render: (p) => toBool(p.internal_commerce) },
+      { label: 'Custom eCommerce',         render: (p) => toBool(p.internal_commerce) },
       { label: 'WooCommerce',             render: (p) => toBool(p.woocommerce) },
       { label: 'Shopify', soon: true,      render: () => false },
       { label: 'Product Recommendations', render: (p) => toBool(p.product_recommendations) },

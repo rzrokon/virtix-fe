@@ -44,7 +44,7 @@ export default function ProblemSolution() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-gradient-to-br from-white via-[#f3f7ff] to-[#eef3ff] p-8 relative overflow-hidden">
+          <div className="rounded-2xl border border-black/10 bg-gradient-to-br from-white via-[#f3f7ff] to-[#eef3ff] p-8 relative overflow-hidden lg:mt-[100px]">
             <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#6200ff]/10 blur-2xl" />
             <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#00d4ff]/10 blur-2xl" />
             <p className="text-xs uppercase tracking-[0.3em] text-[#6200ff] font-semibold">The solution</p>

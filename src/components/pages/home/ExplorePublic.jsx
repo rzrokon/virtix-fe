@@ -19,8 +19,7 @@ export default function ExplorePublic() {
       accentIcon: ArrowRight,
       backgroundColor: '#ECF7DA',
       iconColor: '#95BF47',
-      link: null,
-      soon: true,
+      link: 'https://urbanthread-6591.myshopify.com/',
     },
     {
       title: 'Customer Support Agent',

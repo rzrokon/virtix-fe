@@ -199,7 +199,7 @@ const HELP_SECTIONS = [
       {
         id: 'feature-config',
         title: 'Enable agent features and choose order routing',
-        summary: 'Turn business capabilities on or off and define whether orders stay internal or go to WooCommerce.',
+        summary: 'Turn business capabilities on or off and define whether orders use Custom eCommerce or go to WooCommerce.',
         keywords: ['feature config', 'lead generation', 'bookings', 'orders provider', 'woocommerce'],
         overview:
           'Agent Features is where you decide what the agent can do. You can enable lead generation, bookings, complaints, products, orders, offers, and also toggle website and WooCommerce integrations.',
@@ -733,7 +733,7 @@ const HELP_SECTIONS = [
         ],
         details: [
           'Low stock indicators help both your team and your agent stay aligned with inventory reality.',
-          'Products can be maintained internally or sourced from WooCommerce depending on your setup.',
+          'Products can be managed via Custom eCommerce or sourced from WooCommerce depending on your setup.',
         ],
         troubleshooting: [
           'If product data is missing and you use WooCommerce, run a fresh sync from the WooCommerce integration page.',
@@ -757,7 +757,7 @@ const HELP_SECTIONS = [
           'Delete only invalid or duplicated orders.',
         ],
         details: [
-          'Internal and WooCommerce-routed orders may behave differently depending on Feature Config.',
+          'Custom eCommerce and WooCommerce-routed orders may behave differently depending on Feature Config.',
           'The summary cards are useful for spotting backlog growth or payment delays.',
         ],
         troubleshooting: [

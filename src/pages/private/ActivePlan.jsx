@@ -71,7 +71,7 @@ const FEATURE_SECTIONS = [
   {
     label: 'Commerce',
     items: [
-      { key: 'internal_commerce',       label: 'Internal Commerce' },
+      { key: 'internal_commerce',       label: 'Custom eCommerce' },
       { key: 'woocommerce',             label: 'WooCommerce' },
       { key: 'shopify',                 label: 'Shopify' },
       { key: 'product_recommendations', label: 'Product Recommendations' },

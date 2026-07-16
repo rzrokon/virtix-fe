@@ -146,7 +146,7 @@ export default function AgentFeatures() {
 
   const summaryCommerce =
     ecommerceMode === 'INTERNAL'
-      ? 'Internal Commerce'
+      ? 'Custom eCommerce'
       : ecommerceMode === 'WOOCOMMERCE'
         ? 'WooCommerce'
         : ecommerceMode === 'SHOPIFY'
@@ -280,10 +280,10 @@ export default function AgentFeatures() {
                 <UpgradeTooltip allowed={!planCaps || toBool(planCaps.internal_commerce)}>
                   <label className={`border rounded-xl p-4 block ${planCaps && !toBool(planCaps.internal_commerce) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
                     <Radio value="INTERNAL" disabled={planCaps ? !toBool(planCaps.internal_commerce) : false}>
-                      <div className="font-semibold">Internal</div>
+                      <div className="font-semibold">Custom eCommerce</div>
                     </Radio>
                     <div className="text-sm text-gray-500 mt-2">
-                      Use Virtix internal products, orders, and offers.
+                      Use your own products, orders, and offers managed in Virtix.
                     </div>
                   </label>
                 </UpgradeTooltip>
@@ -321,7 +321,7 @@ export default function AgentFeatures() {
               type="info"
               showIcon
               message="One commerce flow at a time"
-              description="This agent can use only one commerce mode: Internal, WooCommerce, or Shopify."
+              description="This agent can use only one commerce mode: Custom eCommerce, WooCommerce, or Shopify."
             />
           </div>
         </Card>
@@ -350,7 +350,7 @@ export default function AgentFeatures() {
 
             <div>
               <Text strong>Offers:</Text>{' '}
-              <Text>{ecommerceMode === 'INTERNAL' ? 'Enabled through Internal Commerce' : 'Not available'}</Text>
+              <Text>{ecommerceMode === 'INTERNAL' ? 'Enabled through Custom eCommerce' : 'Not available'}</Text>
             </div>
           </div>
         </Card>
