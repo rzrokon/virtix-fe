@@ -23,7 +23,7 @@ export default function PrivateHeader({ isMobile, loading, agentName, onMenuOpen
         className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
         aria-label="Go to dashboard"
       >
-        <img src="/assets/logo/favicon.png" alt="Virtix" className="w-6 h-6 object-contain" />
+        <img src="/assets/logo/favicon.png" alt="Virtix" className="w-8 h-8 object-contain" />
       </button>
 
       <div className="private-layout__agent-title">
@@ -43,7 +43,7 @@ export default function PrivateHeader({ isMobile, loading, agentName, onMenuOpen
             onClick={onIndexClick}
             disabled={loading}
           >
-            Index Agent
+            Build AI Knowledge
           </Button>
           <UserMenu />
         </div>

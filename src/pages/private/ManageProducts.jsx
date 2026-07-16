@@ -701,7 +701,7 @@ export default function ManageProducts() {
         // res.next is a full absolute URL; extract just path+query for getData
         if (res.next) {
           const parsed = new URL(res.next);
-          url = parsed.pathname + parsed.search;
+          url = (parsed.pathname + parsed.search).replace(/^\//, '');
         } else {
           url = null;
         }

@@ -219,7 +219,7 @@ export default function PrivateLayout() {
         setTimeout(() => setIndexModalOpen(false), 500);
       }
     } catch {
-      message.error('Failed to index agent');
+      message.error('Failed to build AI knowledge');
     } finally {
       clearInterval(tick);
       setIndexing(false);
@@ -477,7 +477,7 @@ export default function PrivateLayout() {
       <Modal
         title={
           <div className="flex items-center gap-2">
-            <span>Index Agent</span>
+            <span>Build AI Knowledge</span>
             {agent?.agent_name ? <Tag>{agent.agent_name}</Tag> : null}
           </div>
         }
@@ -487,12 +487,12 @@ export default function PrivateLayout() {
           setIndexProgress(0);
         }}
         onOk={handleIndexAgent}
-        okText="Start indexing"
+        okText="Build Now"
         confirmLoading={indexing}
       >
         <div className="space-y-4">
           <Text className="text-slate-600 block">
-            Choose whether to rebuild from scratch (`fresh=true`) or reuse existing index data.
+            Teach your AI agent about your store — it will learn from your website content, products, and settings so it can answer customer questions accurately.
           </Text>
 
           <Radio.Group
@@ -500,17 +500,27 @@ export default function PrivateLayout() {
             onChange={(e) => setIndexFresh(e.target.value)}
             disabled={indexing}
           >
-            <div className="flex flex-col gap-2">
-              <Radio value={true}>fresh=true (full rebuild)</Radio>
-              <Radio value={false}>fresh=false (incremental)</Radio>
+            <div className="flex flex-col gap-3">
+              <Radio value={true}>
+                <div>
+                  <div className="font-medium">Full rebuild</div>
+                  <div className="text-xs text-slate-500">Start fresh — recommended after major content changes or when the agent gives outdated answers.</div>
+                </div>
+              </Radio>
+              <Radio value={false}>
+                <div>
+                  <div className="font-medium">Quick update</div>
+                  <div className="text-xs text-slate-500">Only sync new or changed content — faster, ideal for minor updates.</div>
+                </div>
+              </Radio>
             </div>
           </Radio.Group>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
             <div className="flex items-center justify-between mb-2">
-              <Text strong>Indexing progress</Text>
-              <Text type="secondary" className="text-xs uppercase tracking-wide">
-                {indexLabel}
+              <Text strong>Build progress</Text>
+              <Text type="secondary" className="text-xs">
+                {indexFresh ? 'Full rebuild' : 'Quick update'}
               </Text>
             </div>
             <Progress percent={indexProgress} status={indexing ? 'active' : undefined} />
