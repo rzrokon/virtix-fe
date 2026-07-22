@@ -191,6 +191,17 @@ const fetchAgent = async () => {
     }
   }, [token, id]);
 
+  useEffect(() => {
+    const onFeaturesUpdated = (event) => {
+      const data = event?.detail;
+      if (!data) return;
+      setFeatureFlags((prev) => ({ ...(prev || {}), ...data }));
+    };
+
+    window.addEventListener('virtix-agent-features-updated', onFeaturesUpdated);
+    return () => window.removeEventListener('virtix-agent-features-updated', onFeaturesUpdated);
+  }, []);
+
   const toBool = (v) => v === true || v === 'true' || v === 1;
 
   const showBookingsMenu = featureFlags ? toBool(featureFlags.booking) : true;

@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Form,
+  Modal,
   Radio,
   Spin,
   Switch,
@@ -12,7 +13,7 @@ import {
   message,
 } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { getData, patchData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
@@ -30,6 +31,7 @@ const UpgradeTooltip = ({ allowed, children }) =>
 
 export default function AgentFeatures() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { currentAgentName } = useContentApi();
   const [form] = Form.useForm();
 
@@ -115,7 +117,35 @@ export default function AgentFeatures() {
         return;
       }
 
+      const data = res?.data ?? res;
+      const values = {
+        booking: toBool(data.booking),
+        complaints: toBool(data.complaints),
+        website_source_type: data.website_source_type || 'NONE',
+        ecommerce_mode: data.ecommerce_mode || 'NONE',
+      };
+      form.setFieldsValue(values);
+      lastGoodValues.current = values;
+
+      if (data?.next_action === 'migration_required') {
+        window.dispatchEvent(new CustomEvent('virtix-agent-features-updated', { detail: data }));
+        Modal.warning({
+          title: 'Stripe migration required',
+          content: 'This account is still billed through Stripe. Complete Stripe-to-Shopify billing migration before switching billing ownership to Shopify.',
+          okText: 'Close',
+          maskClosable: false,
+        });
+        return;
+      }
+
+      window.dispatchEvent(new CustomEvent('virtix-agent-features-updated', { detail: data }));
+
       message.success('Features updated');
+      if (data?.next_action === 'shopify_connect') {
+        navigate(`/${id}/agent-dashboard/shopify`);
+        return;
+      }
+
       fetchFeatures(true);
     } catch {
       message.error('Failed to save features');
@@ -126,6 +156,7 @@ export default function AgentFeatures() {
 
   const websiteSourceType = Form.useWatch('website_source_type', form);
   const ecommerceMode = Form.useWatch('ecommerce_mode', form);
+  const canSelectShopify = !planCaps || toBool(planCaps.shopify) || planCaps.code === 'starter';
 
   if (!agentSlug || loading) {
     return (
@@ -299,19 +330,16 @@ export default function AgentFeatures() {
                   </label>
                 </UpgradeTooltip>
 
-                <Tooltip title="Shopify integration is coming soon. Stay tuned!">
-                  <label className="border rounded-xl p-4 block cursor-not-allowed opacity-60 relative">
-                    <Radio value="SHOPIFY" disabled>
-                      <div className="font-semibold flex items-center gap-2">
-                        Shopify
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Coming Soon</span>
-                      </div>
+                <UpgradeTooltip allowed={canSelectShopify}>
+                  <label className={`border rounded-xl p-4 block ${canSelectShopify ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                    <Radio value="SHOPIFY" disabled={!canSelectShopify}>
+                      <div className="font-semibold">Shopify</div>
                     </Radio>
                     <div className="text-sm text-gray-500 mt-2">
-                      Use Shopify products and Shopify checkout flow.
+                      Use Shopify as this agent&apos;s ecommerce journey and begin Shopify onboarding.
                     </div>
                   </label>
-                </Tooltip>
+                </UpgradeTooltip>
               </div>
             </Radio.Group>
           </Form.Item>

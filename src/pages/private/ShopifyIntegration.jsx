@@ -21,8 +21,6 @@ import { useContentApi } from "../../contexts/ContentApiContext";
 const { Title, Text } = Typography;
 
 const api = {
-  install: (agentName, shop) =>
-    `api/integrations/agents/${agentName}/shopify/install/?shop=${encodeURIComponent(shop)}`,
   source: (agentName) => `api/integrations/agents/${agentName}/shopify/source/`,
   disconnect: (agentName) => `api/integrations/agents/${agentName}/shopify/disconnect/`,
   sync: (agentName) => `api/integrations/agents/${agentName}/shopify/sync/`,
@@ -178,35 +176,18 @@ export default function ShopifyIntegration() {
   }, [shopDomain, agentName, isConnected]);
 
   const startInstall = async () => {
-    if (!agentName) {
-      messageApi.error("Agent is not loaded yet. Please refresh.");
-      return;
-    }
-
     const normalizedShop = normalizeShopDomain(shopDomain);
     if (!normalizedShop) {
       messageApi.warning("Please enter a valid Shopify shop domain.");
       return;
     }
 
-    setLoadingInstall(true);
-    setError(null);
-
-    try {
-      const res = await getData(api.install(agentName, normalizedShop));
-      const installUrl = res?.install_url;
-
-      if (!installUrl) {
-        throw new Error("Install URL not returned by server.");
-      }
-
-      window.location.href = installUrl;
-    } catch (e) {
-      const msg = prettyErr(e);
-      setError(msg);
-      messageApi.error(msg);
-      setLoadingInstall(false);
-    }
+    Modal.info({
+      title: "Shopify connection will be enabled in a later phase",
+      content:
+        "This page is prepared for Shopify data settings, but OAuth install is intentionally not started in Phase 2. Shopify-connected accounts are billed through Shopify.",
+      okText: "Close",
+    });
   };
 
   const disconnectShopify = async () => {
@@ -330,7 +311,7 @@ export default function ShopifyIntegration() {
 
       <div>
         <Title level={2} style={{ marginBottom: 0 }}>
-          Shopify Integration
+          Shopify Data Settings
         </Title>
         <Text type="secondary">
           Agent: <Text code>{agentName}</Text>
@@ -350,7 +331,7 @@ export default function ShopifyIntegration() {
 
       <Card
         loading={loadingSource}
-        title="Connect Shopify Store"
+        title="Shopify Store Settings"
         extra={
           isConnected ? (
             <Tag color="green">ACTIVE</Tag>
@@ -361,7 +342,7 @@ export default function ShopifyIntegration() {
       >
         <div className="space-y-4" style={{ maxWidth: 820 }}>
           <Input
-            placeholder="Shop domain (example: mystore.myshopify.com or mystore)"
+            placeholder="Store URL (example: mystore.myshopify.com or mystore)"
             value={shopDomain}
             onChange={(e) => setShopDomain(e.target.value)}
             disabled={isConnected}
@@ -397,9 +378,8 @@ export default function ShopifyIntegration() {
           <div className="text-gray-500">
             <ul className="list-disc ml-5 space-y-1">
               <li>Enter your Shopify store domain, for example <b>mystore.myshopify.com</b>.</li>
-              <li>You will be redirected to Shopify to approve the connection.</li>
-              <li>After approval, you will be returned to your dashboard.</li>
-              <li>We recommend using an offline token for background sync and webhooks.</li>
+              <li>Shopify-connected accounts are billed through Shopify.</li>
+              <li>Phase 2 prepares this settings page only. OAuth install is not started yet.</li>
             </ul>
           </div>
         </div>
