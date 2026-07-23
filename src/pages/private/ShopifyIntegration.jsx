@@ -21,6 +21,7 @@ import { useContentApi } from "../../contexts/ContentApiContext";
 const { Title, Text } = Typography;
 
 const api = {
+  install: (agentName, shop) => `api/integrations/agents/${agentName}/shopify/install/?shop=${encodeURIComponent(shop)}`,
   source: (agentName) => `api/integrations/agents/${agentName}/shopify/source/`,
   disconnect: (agentName) => `api/integrations/agents/${agentName}/shopify/disconnect/`,
   sync: (agentName) => `api/integrations/agents/${agentName}/shopify/sync/`,
@@ -182,12 +183,21 @@ export default function ShopifyIntegration() {
       return;
     }
 
-    Modal.info({
-      title: "Shopify connection will be enabled in a later phase",
-      content:
-        "This page is prepared for Shopify data settings, but OAuth install is intentionally not started in Phase 2. Shopify-connected accounts are billed through Shopify.",
-      okText: "Close",
-    });
+    setLoadingInstall(true);
+    setError(null);
+    try {
+      const data = await getData(api.install(agentName, normalizedShop));
+      if (!data?.install_url) {
+        throw new Error("Install URL was not returned.");
+      }
+      window.location.assign(data.install_url);
+    } catch (e) {
+      const msg = prettyErr(e);
+      setError(msg);
+      messageApi.error(msg);
+    } finally {
+      setLoadingInstall(false);
+    }
   };
 
   const disconnectShopify = async () => {
@@ -331,7 +341,7 @@ export default function ShopifyIntegration() {
 
       <Card
         loading={loadingSource}
-        title="Shopify Store Settings"
+        title={isConnected ? "Connected Shopify Store" : "Connect Your Shopify Store"}
         extra={
           isConnected ? (
             <Tag color="green">ACTIVE</Tag>
@@ -341,22 +351,25 @@ export default function ShopifyIntegration() {
         }
       >
         <div className="space-y-4" style={{ maxWidth: 820 }}>
-          <Input
-            placeholder="Store URL (example: mystore.myshopify.com or mystore)"
-            value={shopDomain}
-            onChange={(e) => setShopDomain(e.target.value)}
-            disabled={isConnected}
-          />
+          {!isConnected ? (
+            <Input
+              placeholder="Store URL (example: mystore.myshopify.com or mystore)"
+              value={shopDomain}
+              onChange={(e) => setShopDomain(e.target.value)}
+            />
+          ) : null}
 
           <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              type="primary"
-              onClick={startInstall}
-              loading={loadingInstall}
-              disabled={!canInstall}
-            >
-              Connect Shopify
-            </Button>
+            {!isConnected ? (
+              <Button
+                type="primary"
+                onClick={startInstall}
+                loading={loadingInstall}
+                disabled={!canInstall}
+              >
+                Connect Shopify
+              </Button>
+            ) : null}
 
             <Button onClick={loadSource} disabled={!agentName}>
               Refresh Connection
@@ -378,8 +391,9 @@ export default function ShopifyIntegration() {
           <div className="text-gray-500">
             <ul className="list-disc ml-5 space-y-1">
               <li>Enter your Shopify store domain, for example <b>mystore.myshopify.com</b>.</li>
+              <li>Sign in to Shopify and approve the Virtix app installation.</li>
+              <li>After approval, you will return here with the store connected.</li>
               <li>Shopify-connected accounts are billed through Shopify.</li>
-              <li>Phase 2 prepares this settings page only. OAuth install is not started yet.</li>
             </ul>
           </div>
         </div>
@@ -424,7 +438,7 @@ export default function ShopifyIntegration() {
         </div>
       </Card>
 
-      <Card title="Connected Shopify Store">
+      <Card title="Store Details">
         {source ? (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-3">
