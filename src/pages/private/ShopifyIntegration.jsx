@@ -23,6 +23,7 @@ const { Title, Text } = Typography;
 const api = {
   install: (agentName, shop) => `api/integrations/agents/${agentName}/shopify/install/?shop=${encodeURIComponent(shop)}`,
   source: (agentName) => `api/integrations/agents/${agentName}/shopify/source/`,
+  refresh: (agentName) => `api/integrations/agents/${agentName}/shopify/source/refresh/`,
   disconnect: (agentName) => `api/integrations/agents/${agentName}/shopify/disconnect/`,
   sync: (agentName) => `api/integrations/agents/${agentName}/shopify/sync/`,
   products: (agentName) => `api/integrations/agents/${agentName}/shopify/products/`,
@@ -79,10 +80,14 @@ export default function ShopifyIntegration() {
 
   const [q, setQ] = useState("");
   const [activeOnly, setActiveOnly] = useState(true);
-
-  const isConnected = useMemo(() => source?.status === "ACTIVE", [source]);
-  const hasStorefrontToken = useMemo(
-    () => !!source?.has_storefront_token,
+  const isConnected = useMemo(() => source?.connected === true, [source]);
+  const hasStorefrontToken = useMemo(() => !!source?.has_storefront_token, [source]);
+  const needsReconnect = useMemo(
+    () => source?.next_action === "shopify_reconnect" && !isConnected,
+    [source, isConnected]
+  );
+  const hasHistoricalConnection = useMemo(
+    () => !!source?.shop_domain || !!source?.shop_name,
     [source]
   );
 
@@ -94,15 +99,8 @@ export default function ShopifyIntegration() {
 
     try {
       const res = await getData(api.source(agentName));
-
-      if (res?.connected && res?.source) {
-        setSource(res.source);
-        if (res.source.shop_domain) {
-          setShopDomain(res.source.shop_domain);
-        }
-      } else {
-        setSource(null);
-      }
+      setSource(res || null);
+      if (res?.shop_domain) setShopDomain(res.shop_domain);
     } catch (e) {
       setSource(null);
       setError(prettyErr(e));
@@ -110,6 +108,27 @@ export default function ShopifyIntegration() {
       setLoadingSource(false);
     }
   }, [agentName]);
+
+  const refreshConnection = async () => {
+    if (!agentName) return;
+    setLoadingSource(true);
+    setError(null);
+    try {
+      const res = await postData(api.refresh(agentName), {});
+      const data = res?.data ?? res;
+      if (data?.detail && !data?.connection_status && !data?.connected) {
+        throw new Error(data.detail);
+      }
+      setSource(data || null);
+      if (data?.shop_domain) setShopDomain(data.shop_domain);
+    } catch (e) {
+      const msg = prettyErr(e);
+      setError(msg);
+      messageApi.error(msg);
+    } finally {
+      setLoadingSource(false);
+    }
+  };
 
   const loadProducts = useCallback(async () => {
     if (!agentName || !isConnected) return;
@@ -220,8 +239,7 @@ export default function ShopifyIntegration() {
 
           if (data?.detail === "disconnected") {
             messageApi.success("Shopify disconnected");
-            setSource(null);
-            setProducts([]);
+            setSource(data);
           } else {
             throw new Error(data?.detail || "Disconnect failed");
           }
@@ -255,8 +273,11 @@ export default function ShopifyIntegration() {
         messageApi.success(
           `Sync done: ${data.fetched_products || 0} products, created ${data.created_products || 0}, updated ${data.updated_products || 0}`
         );
-        await loadSource();
+        setSource(data);
         await loadProducts();
+        if (data?.changed) {
+          window.dispatchEvent(new CustomEvent("virtix-agent-knowledge-changed"));
+        }
       } else {
         throw new Error(data?.detail || "Sync failed");
       }
@@ -330,6 +351,15 @@ export default function ShopifyIntegration() {
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
+      {needsReconnect && hasHistoricalConnection ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Shopify connection requires reconnection"
+          description="This agent still uses Shopify mode, but the previous Shopify connection is inactive. Connect Shopify again to resume sync and product access."
+        />
+      ) : null}
+
       {!hasStorefrontToken && isConnected ? (
         <Alert
           type="warning"
@@ -345,6 +375,8 @@ export default function ShopifyIntegration() {
         extra={
           isConnected ? (
             <Tag color="green">ACTIVE</Tag>
+          ) : needsReconnect ? (
+            <Tag color="gold">RECONNECT REQUIRED</Tag>
           ) : (
             <Tag color="orange">NOT CONNECTED</Tag>
           )
@@ -367,11 +399,11 @@ export default function ShopifyIntegration() {
                 loading={loadingInstall}
                 disabled={!canInstall}
               >
-                Connect Shopify
+                {needsReconnect ? "Connect Shopify Again" : "Connect Shopify"}
               </Button>
             ) : null}
 
-            <Button onClick={loadSource} disabled={!agentName}>
+            <Button onClick={isConnected ? refreshConnection : loadSource} disabled={!agentName}>
               Refresh Connection
             </Button>
 
@@ -417,11 +449,11 @@ export default function ShopifyIntegration() {
               <Text>Mark missing products inactive</Text>
             </Space>
 
-            <Button onClick={confirmSync} loading={loadingSync} disabled={!isConnected}>
-              Sync Now
+            <Button onClick={confirmSync} loading={loadingSync} disabled={!isConnected || loadingSync}>
+              Sync Products
             </Button>
 
-            <Button onClick={loadSource} disabled={!agentName}>
+            <Button onClick={refreshConnection} disabled={!agentName}>
               Refresh Connection
             </Button>
           </div>
@@ -431,6 +463,7 @@ export default function ShopifyIntegration() {
           <div className="text-gray-500">
             <ul className="list-disc ml-5 space-y-1">
               <li>Sync pulls products and variants from Shopify Admin GraphQL.</li>
+              <li>Inventory, pricing, images, status, and collections are refreshed together.</li>
               <li>Products are stored in your local catalog for search and later RAG indexing.</li>
               <li>After sync, products appear in the list below.</li>
             </ul>
@@ -452,28 +485,52 @@ export default function ShopifyIntegration() {
 
             <div className="space-y-1">
               <div>
-                <Text type="secondary">Shop Domain:</Text>{" "}
+                <Text type="secondary">Store Name:</Text>{" "}
+                <Text>{source.shop_name || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Shopify Domain:</Text>{" "}
                 <Text code>{source.shop_domain || "-"}</Text>
               </div>
               <div>
-                <Text type="secondary">Shop Name:</Text>{" "}
-                <Text>{source.shop_name || "-"}</Text>
+                <Text type="secondary">Connection Status:</Text>{" "}
+                <Text>{source.connection_status || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Connected Since:</Text>{" "}
+                <Text>{source.connected_at || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Last Verified:</Text>{" "}
+                <Text>{source.last_verified_at || "-"}</Text>
               </div>
               <div>
                 <Text type="secondary">Currency:</Text>{" "}
                 <Text>{source.currency || "-"}</Text>
               </div>
               <div>
-                <Text type="secondary">Timezone:</Text>{" "}
-                <Text>{source.timezone || "-"}</Text>
+                <Text type="secondary">Country:</Text>{" "}
+                <Text>{source.country_code || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Products Synced:</Text>{" "}
+                <Text>{source.synced_product_count ?? 0}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Last Product Sync:</Text>{" "}
+                <Text>{source.last_product_sync_at || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Last Inventory Sync:</Text>{" "}
+                <Text>{source.last_inventory_sync_at || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Sync Status:</Text>{" "}
+                <Text>{source.last_sync_status || "-"}</Text>
               </div>
               <div>
                 <Text type="secondary">Storefront Checkout:</Text>{" "}
                 <Text>{hasStorefrontToken ? "Configured" : "Not configured"}</Text>
-              </div>
-              <div>
-                <Text type="secondary">Last Synced:</Text>{" "}
-                <Text>{source.last_synced_at || "-"}</Text>
               </div>
             </div>
           </div>

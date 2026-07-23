@@ -198,8 +198,16 @@ const fetchAgent = async () => {
       setFeatureFlags((prev) => ({ ...(prev || {}), ...data }));
     };
 
+    const onKnowledgeChanged = () => {
+      fetchAgent();
+    };
+
     window.addEventListener('virtix-agent-features-updated', onFeaturesUpdated);
-    return () => window.removeEventListener('virtix-agent-features-updated', onFeaturesUpdated);
+    window.addEventListener('virtix-agent-knowledge-changed', onKnowledgeChanged);
+    return () => {
+      window.removeEventListener('virtix-agent-features-updated', onFeaturesUpdated);
+      window.removeEventListener('virtix-agent-knowledge-changed', onKnowledgeChanged);
+    };
   }, []);
 
   const toBool = (v) => v === true || v === 'true' || v === 1;
