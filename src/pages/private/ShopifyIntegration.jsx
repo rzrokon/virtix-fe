@@ -24,6 +24,9 @@ const api = {
   install: (agentName, shop) => `api/integrations/agents/${agentName}/shopify/install/?shop=${encodeURIComponent(shop)}`,
   source: (agentName) => `api/integrations/agents/${agentName}/shopify/source/`,
   refresh: (agentName) => `api/integrations/agents/${agentName}/shopify/source/refresh/`,
+  health: (agentName) => `api/integrations/agents/${agentName}/shopify/health/`,
+  reconcile: (agentName) => `api/integrations/agents/${agentName}/shopify/reconcile/`,
+  webhookHealth: (agentName) => `api/integrations/agents/${agentName}/shopify/webhook-health/`,
   disconnect: (agentName) => `api/integrations/agents/${agentName}/shopify/disconnect/`,
   sync: (agentName) => `api/integrations/agents/${agentName}/shopify/sync/`,
   products: (agentName) => `api/integrations/agents/${agentName}/shopify/products/`,
@@ -64,6 +67,8 @@ export default function ShopifyIntegration() {
 
   const [shopDomain, setShopDomain] = useState("");
   const [source, setSource] = useState(null);
+  const [health, setHealth] = useState(null);
+  const [webhookHealth, setWebhookHealth] = useState(null);
   const [error, setError] = useState(null);
 
   const [products, setProducts] = useState([]);
@@ -72,6 +77,7 @@ export default function ShopifyIntegration() {
   const [loadingInstall, setLoadingInstall] = useState(false);
   const [loadingDisconnect, setLoadingDisconnect] = useState(false);
   const [loadingSync, setLoadingSync] = useState(false);
+  const [loadingReconcile, setLoadingReconcile] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
   const [first, setFirst] = useState(50);
@@ -90,6 +96,20 @@ export default function ShopifyIntegration() {
     () => !!source?.shop_domain || !!source?.shop_name,
     [source]
   );
+  const needsVerification = useMemo(
+    () => !!(source?.requires_reconciliation || health?.requires_reconciliation),
+    [source, health]
+  );
+  const hasConfigWarning = useMemo(
+    () => ["missing", "error"].includes(source?.webhook_registration_status || health?.webhook_registration_status),
+    [source, health]
+  );
+  const healthDegraded = useMemo(
+    () =>
+      ["degraded", "error"].includes(source?.webhook_health || webhookHealth?.webhook_health || "") ||
+      source?.connection_status === "error",
+    [source, webhookHealth]
+  );
 
   const loadSource = useCallback(async () => {
     if (!agentName) return;
@@ -98,11 +118,20 @@ export default function ShopifyIntegration() {
     setError(null);
 
     try {
-      const res = await getData(api.source(agentName));
-      setSource(res || null);
-      if (res?.shop_domain) setShopDomain(res.shop_domain);
+      const [sourceRes, healthRes, webhookRes] = await Promise.all([
+        getData(api.source(agentName)),
+        getData(api.health(agentName)),
+        getData(api.webhookHealth(agentName)),
+      ]);
+      const merged = { ...(sourceRes || {}), ...(healthRes || {}), ...(webhookRes || {}) };
+      setSource(merged || null);
+      setHealth(healthRes || null);
+      setWebhookHealth(webhookRes || null);
+      if (merged?.shop_domain) setShopDomain(merged.shop_domain);
     } catch (e) {
       setSource(null);
+      setHealth(null);
+      setWebhookHealth(null);
       setError(prettyErr(e));
     } finally {
       setLoadingSource(false);
@@ -119,14 +148,32 @@ export default function ShopifyIntegration() {
       if (data?.detail && !data?.connection_status && !data?.connected) {
         throw new Error(data.detail);
       }
-      setSource(data || null);
-      if (data?.shop_domain) setShopDomain(data.shop_domain);
+      await loadSource();
     } catch (e) {
       const msg = prettyErr(e);
       setError(msg);
       messageApi.error(msg);
     } finally {
       setLoadingSource(false);
+    }
+  };
+
+  const reconcileBilling = async () => {
+    if (!agentName) return;
+    setLoadingReconcile(true);
+    setError(null);
+    try {
+      const res = await postData(api.reconcile(agentName), {});
+      const data = res?.data ?? res;
+      setSource((prev) => ({ ...(prev || {}), ...(data || {}) }));
+      await loadSource();
+      messageApi.success("Shopify billing reconciled");
+    } catch (e) {
+      const msg = prettyErr(e);
+      setError(msg);
+      messageApi.error(msg);
+    } finally {
+      setLoadingReconcile(false);
     }
   };
 
@@ -165,6 +212,8 @@ export default function ShopifyIntegration() {
       messageApi.warning(
         "Shopify connected, but storefront checkout is not ready yet. Update Storefront API scopes, then reconnect."
       );
+    } else if (params.get("config") === "warning") {
+      messageApi.warning("Shopify connected, but webhook configuration still needs verification.");
     } else {
       messageApi.success("Shopify connected successfully");
     }
@@ -174,6 +223,7 @@ export default function ShopifyIntegration() {
     const url = new URL(window.location.href);
     url.searchParams.delete("status");
     url.searchParams.delete("checkout");
+    url.searchParams.delete("config");
     window.history.replaceState({}, "", url.toString());
   }
 
@@ -360,6 +410,33 @@ export default function ShopifyIntegration() {
         />
       ) : null}
 
+      {source?.requires_reconciliation ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Verification Recommended"
+          description="Virtix detected Shopify lifecycle changes that should be verified before you rely on billing or product state."
+        />
+      ) : null}
+
+      {hasConfigWarning ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Configuration Warning"
+          description="Required Shopify webhooks are missing or need to be reverified. Refresh the connection to recheck the app configuration."
+        />
+      ) : null}
+
+      {healthDegraded ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Reconnect"
+          description="Shopify health checks found a connection issue. Refresh the connection first. If the warning remains, reconnect Shopify and verify billing."
+        />
+      ) : null}
+
       {!hasStorefrontToken && isConnected ? (
         <Alert
           type="warning"
@@ -405,6 +482,10 @@ export default function ShopifyIntegration() {
 
             <Button onClick={isConnected ? refreshConnection : loadSource} disabled={!agentName}>
               Refresh Connection
+            </Button>
+
+            <Button onClick={reconcileBilling} loading={loadingReconcile} disabled={!agentName || !source?.shop_domain}>
+              Verify Billing
             </Button>
 
             {isConnected ? (
@@ -497,12 +578,44 @@ export default function ShopifyIntegration() {
                 <Text>{source.connection_status || "-"}</Text>
               </div>
               <div>
+                <Text type="secondary">Lifecycle Status:</Text>{" "}
+                <Text>{source.lifecycle_status || health?.lifecycle_status || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Webhook Health:</Text>{" "}
+                <Text>{source.webhook_health || webhookHealth?.webhook_health || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Webhook Registration:</Text>{" "}
+                <Text>{source.webhook_registration_status || health?.webhook_registration_status || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Missing Webhooks:</Text>{" "}
+                <Text>{(source.missing_webhook_topics || health?.missing_webhook_topics || []).join(", ") || "-"}</Text>
+              </div>
+              <div>
                 <Text type="secondary">Connected Since:</Text>{" "}
                 <Text>{source.connected_at || "-"}</Text>
               </div>
               <div>
+                <Text type="secondary">Last Webhook:</Text>{" "}
+                <Text>{source.last_webhook_at || webhookHealth?.last_webhook_at || "-"}</Text>
+              </div>
+              <div>
                 <Text type="secondary">Last Verified:</Text>{" "}
                 <Text>{source.last_verified_at || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Last Billing Reconciliation:</Text>{" "}
+                <Text>{source.last_reconciled_at || health?.last_reconciled_at || "-"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Requires Reconciliation:</Text>{" "}
+                <Text>{source.requires_reconciliation ? "Yes" : "No"}</Text>
+              </div>
+              <div>
+                <Text type="secondary">Next Action:</Text>{" "}
+                <Text>{source.next_action || health?.next_action || "-"}</Text>
               </div>
               <div>
                 <Text type="secondary">Currency:</Text>{" "}

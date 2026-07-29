@@ -277,6 +277,19 @@ export default function ActivePlan() {
 
   return (
     <div className="p-6 space-y-6">
+      {subData?.subscription?.billing_provider === 'shopify' ? (
+        <Card>
+          <div className="text-sm text-gray-700 space-y-1">
+            <div className="font-semibold">Shopify-managed billing</div>
+            <div>
+              Billing provider: Shopify. Current billing status: {subData?.subscription?.shopify_billing_status || 'unknown'}.
+            </div>
+            {subData?.subscription?.shopify_requires_reconciliation ? (
+              <div>Billing reconciliation is required before the latest Shopify lifecycle change can be fully reflected.</div>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
 
       {/* Header */}
       <Card>
@@ -291,7 +304,7 @@ export default function ActivePlan() {
             <Button icon={<RefreshCw size={15} />} onClick={refreshAll} loading={pageLoading}>
               Refresh
             </Button>
-            {subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
+            {subData?.subscription?.billing_provider === 'shopify' ? null : subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
               <Button
                 icon={<ExternalLink size={15} />}
                 onClick={openStripePortal}
