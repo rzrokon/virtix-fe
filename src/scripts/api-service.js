@@ -99,13 +99,13 @@ const requestWithAuth = async (config, options = {}) => {
 
 /* query ---> api url to query with
    no_token ---> acts as a flag for no need to use token */
-export const getData = async (query, no_token) => {
+export const getData = async (query, no_token, suppressAuthRedirect = false) => {
   const response = await requestWithAuth(
     {
       method: 'get',
       url: query,
     },
-    { no_token }
+    { no_token, suppressAuthRedirect }
   )
 
   return response?.data

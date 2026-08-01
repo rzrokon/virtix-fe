@@ -34,14 +34,94 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContentApi } from '../../contexts/ContentApiContext';
 import { DELETE_AGENT, UPDATE_AGENT } from '../../scripts/api';
-import { deleteData, patchData, postData } from '../../scripts/api-service';
+import { deleteData, getData, patchData, postData } from '../../scripts/api-service';
 
 const { Text } = Typography;
 const { TextArea } = Input;
+const SHOPIFY_LAUNCH_SELECTION_KEY = 'virtix_shopify_launch_last_selected';
+
+const normalizeShopDomain = (value = '') => {
+  let v = String(value || '').trim().toLowerCase();
+  v = v.replace(/^https?:\/\//, '');
+  v = v.replace(/\/.*$/, '');
+  if (!v) return '';
+  if (!v.endsWith('.myshopify.com')) v = `${v}.myshopify.com`;
+  return v;
+};
+
+const launchContextApi = (shop, host) =>
+  `api/integrations/shopify/launch-context/?shop=${encodeURIComponent(shop)}&host=${encodeURIComponent(host)}`;
+
+const getStoredSelections = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SHOPIFY_LAUNCH_SELECTION_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
+const getStoredSelectionForShop = (shop) => {
+  const normalizedShop = normalizeShopDomain(shop);
+  if (!normalizedShop) return null;
+
+  const value = getStoredSelections()[normalizedShop];
+  if (!value) return null;
+
+  if (typeof value === 'number' || typeof value === 'string') {
+    const agentId = Number(value);
+    return agentId ? { last_selected_agent_id: agentId, last_selected_at: null } : null;
+  }
+
+  if (typeof value === 'object') {
+    const agentId = Number(value.last_selected_agent_id || 0);
+    if (!agentId) return null;
+    return {
+      last_selected_agent_id: agentId,
+      last_selected_at: value.last_selected_at || null,
+    };
+  }
+
+  return null;
+};
+
+const logShopifyLaunchSelectionEvent = (eventName, payload = {}) => {
+  console.info(eventName, payload);
+};
+
+const rememberLaunchSelection = (shop, agentId) => {
+  const normalizedShop = normalizeShopDomain(shop);
+  if (!normalizedShop || !agentId) return;
+
+  const current = getStoredSelections();
+  current[normalizedShop] = {
+    last_selected_agent_id: Number(agentId),
+    last_selected_at: new Date().toISOString(),
+  };
+  localStorage.setItem(SHOPIFY_LAUNCH_SELECTION_KEY, JSON.stringify(current));
+  logShopifyLaunchSelectionEvent('SHOPIFY_LAST_AGENT_SELECTED', {
+    shop_domain: normalizedShop,
+    agent_id: Number(agentId),
+  });
+};
+
+const clearLaunchSelection = (shop, reason = 'cleared') => {
+  const normalizedShop = normalizeShopDomain(shop);
+  if (!normalizedShop) return;
+
+  const current = getStoredSelections();
+  if (!(normalizedShop in current)) return;
+
+  delete current[normalizedShop];
+  localStorage.setItem(SHOPIFY_LAUNCH_SELECTION_KEY, JSON.stringify(current));
+  logShopifyLaunchSelectionEvent('SHOPIFY_LAST_AGENT_CLEARED', {
+    shop_domain: normalizedShop,
+    reason,
+  });
+};
 
 const QUICK_GUIDES = [
   {
@@ -80,6 +160,8 @@ const QUICK_GUIDES = [
 
 export default function Dashboard() {
   const { agents, fetchAgents, refreshAgents } = useContentApi();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [viewMode, setViewMode]                 = useState('grid');
   const [selectedAgent, setSelectedAgent]       = useState(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -95,8 +177,89 @@ export default function Dashboard() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editForm]                              = Form.useForm();
   const [updating, setUpdating]                 = useState(false);
+  const [launchState, setLaunchState]           = useState({
+    active: false,
+    loading: false,
+    error: '',
+    shop: '',
+    host: '',
+    data: null,
+  });
+  const [showConnectExisting, setShowConnectExisting] = useState(false);
+  const [showAllLaunchAgents, setShowAllLaunchAgents] = useState(false);
 
   useEffect(() => { fetchAgents(); }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const shop = normalizeShopDomain(params.get('shop') || '');
+    const host = (params.get('host') || '').trim();
+
+    if (!shop || !host) {
+      setLaunchState({
+        active: false,
+        loading: false,
+        error: '',
+        shop: '',
+        host: '',
+        data: null,
+      });
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadLaunchContext = async () => {
+      setLaunchState({
+        active: true,
+        loading: true,
+        error: '',
+        shop,
+        host,
+        data: null,
+      });
+
+      try {
+        const data = await getData(launchContextApi(shop, host), false, true);
+        if (cancelled) return;
+
+        if (data?.status === 'single_agent' && data?.agent?.redirect_url) {
+          rememberLaunchSelection(shop, data.agent.id);
+          navigate(data.agent.redirect_url, { replace: true });
+          return;
+        }
+
+        setLaunchState({
+          active: true,
+          loading: false,
+          error: '',
+          shop,
+          host,
+          data,
+        });
+      } catch (error) {
+        if (cancelled) return;
+        const detail =
+          error?.response?.data?.detail ||
+          (error?.response?.status === 403
+            ? 'You do not have access to the Virtix agents connected to this Shopify store.'
+            : 'Shopify launch context could not be resolved.');
+        setLaunchState({
+          active: true,
+          loading: false,
+          error: detail,
+          shop,
+          host,
+          data: null,
+        });
+      }
+    };
+
+    loadLaunchContext();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, navigate]);
 
   const handleEditAgent = async (values) => {
     if (!selectedAgent) return;
@@ -210,10 +373,71 @@ export default function Dashboard() {
   });
 
   const totalAgents = agents?.count ?? agents?.results?.length ?? 0;
+  const lastSelectedLaunch = useMemo(() => getStoredSelectionForShop(launchState.shop), [launchState.shop]);
+  const lastSelectedAgentId = lastSelectedLaunch?.last_selected_agent_id || 0;
+  const launchAgents = useMemo(
+    () => (Array.isArray(launchState.data?.agents) ? [...launchState.data.agents] : []),
+    [launchState.data]
+  );
+  const lastSelectedLaunchAgent = useMemo(
+    () => launchAgents.find((agent) => agent.id === lastSelectedAgentId) || null,
+    [launchAgents, lastSelectedAgentId]
+  );
+  const sortedLaunchAgents = useMemo(() => {
+    const list = [...launchAgents];
+    if (!lastSelectedLaunchAgent) {
+      return list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return list.sort((a, b) => {
+      if (a.id === lastSelectedLaunchAgent.id) return -1;
+      if (b.id === lastSelectedLaunchAgent.id) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [launchAgents, lastSelectedLaunchAgent]);
+
+  useEffect(() => {
+    if (!(launchState.active && launchState.data?.status === 'multiple_agents')) {
+      setShowAllLaunchAgents(false);
+      return;
+    }
+
+    if (!lastSelectedAgentId) {
+      setShowAllLaunchAgents(true);
+      return;
+    }
+
+    if (lastSelectedLaunchAgent) {
+      logShopifyLaunchSelectionEvent('SHOPIFY_LAST_AGENT_USED', {
+        shop_domain: launchState.shop,
+        agent_id: lastSelectedLaunchAgent.id,
+      });
+      setShowAllLaunchAgents(false);
+      return;
+    }
+
+    logShopifyLaunchSelectionEvent('SHOPIFY_LAST_AGENT_INVALID', {
+      shop_domain: launchState.shop,
+      agent_id: lastSelectedAgentId,
+    });
+    clearLaunchSelection(launchState.shop, 'invalid');
+    setShowAllLaunchAgents(true);
+  }, [
+    launchState.active,
+    launchState.data,
+    launchState.shop,
+    lastSelectedAgentId,
+    lastSelectedLaunchAgent,
+  ]);
 
   const openCreateAgentModal = () => {
     window.dispatchEvent(new CustomEvent('open-create-agent'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openLaunchAgent = (agent) => {
+    rememberLaunchSelection(launchState.shop, agent.id);
+    navigate(agent.redirect_url || `/${agent.id}/agent-dashboard/shopify`);
   };
 
   const agentMenuItems = [
@@ -221,6 +445,221 @@ export default function Dashboard() {
     { key: '3', label: <Space><ReloadOutlined /> Index agent</Space> },
     { key: '2', label: <Space><DeleteOutlined /> Delete agent</Space>, danger: true },
   ];
+
+  if (launchState.active && launchState.loading) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-md mx-auto p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0ebff]">
+              <Sparkles size={24} className="text-[#6200FF]" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Opening Shopify workspace</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Resolving the Virtix agents connected to <strong>{launchState.shop}</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (launchState.active && launchState.data?.status === 'multiple_agents') {
+    const showContinueScreen = !!lastSelectedLaunchAgent && !showAllLaunchAgents;
+
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-lg mx-auto p-6 space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8">
+            <p className="text-sm font-semibold text-[#6200FF]">Connected Shopify Store</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">{launchState.shop}</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              {showContinueScreen
+                ? 'Continue with your last used Virtix agent or choose another connected agent.'
+                : 'Choose which Virtix agent you want to manage from Shopify Admin.'}
+            </p>
+          </div>
+
+          {showContinueScreen ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm font-semibold text-slate-500">Continue with your last used Virtix Agent?</p>
+              <div className="mt-5 flex items-start gap-4">
+                <Avatar
+                  size={56}
+                  src={lastSelectedLaunchAgent.logo || undefined}
+                  icon={!lastSelectedLaunchAgent.logo ? <RobotOutlined /> : undefined}
+                  className="bg-[#f0ebff] text-[#6200FF]"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-xl font-semibold text-slate-900">{lastSelectedLaunchAgent.name}</h2>
+                    <Tag color="purple">Last Used</Tag>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {lastSelectedLaunchAgent.description || 'No description added yet.'}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Tag color={lastSelectedLaunchAgent.health_status === 'Healthy' ? 'green' : 'gold'}>
+                      {lastSelectedLaunchAgent.health_status}
+                    </Tag>
+                    <Tag>{lastSelectedLaunchAgent.billing_status}</Tag>
+                    <Tag>{lastSelectedLaunchAgent.connection_status}</Tag>
+                  </div>
+                  <p className="mt-3 text-xs text-slate-400">
+                    Last Sync:{' '}
+                    {lastSelectedLaunchAgent.last_sync_at
+                      ? new Date(lastSelectedLaunchAgent.last_sync_at).toLocaleString()
+                      : 'No sync yet'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button
+                  type="primary"
+                  className="bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]"
+                  onClick={() => openLaunchAgent(lastSelectedLaunchAgent)}
+                >
+                  Continue
+                </Button>
+                <Button onClick={() => setShowAllLaunchAgents(true)}>Choose Another Agent</Button>
+              </div>
+            </div>
+          ) : null}
+
+          {showAllLaunchAgents ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {sortedLaunchAgents.map((agent) => (
+                <div key={agent.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <Avatar
+                      size={48}
+                      src={agent.logo || undefined}
+                      icon={!agent.logo ? <RobotOutlined /> : undefined}
+                      className="bg-[#f0ebff] text-[#6200FF]"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-lg font-semibold text-slate-900">{agent.name}</h2>
+                        {agent.id === lastSelectedAgentId ? (
+                          <Tag color="purple">Last Used</Tag>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">{agent.description || 'No description added yet.'}</p>
+                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-500">
+                        <div>
+                          <p className="font-medium text-slate-900">Connection Status</p>
+                          <p>{agent.connection_status}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">Health Status</p>
+                          <p>{agent.health_status}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">Billing Status</p>
+                          <p>{agent.billing_status}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">Last Sync</p>
+                          <p>{agent.last_sync_at ? new Date(agent.last_sync_at).toLocaleString() : 'No sync yet'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    type="primary"
+                    className="mt-5 bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]"
+                    onClick={() => openLaunchAgent(agent)}
+                  >
+                    Open
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (launchState.active && launchState.error) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-md mx-auto p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8">
+            <p className="text-sm font-semibold text-[#6200FF]">Shopify Launch</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">Access unavailable</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              This Shopify Store is connected to Virtix, but your account does not have permission to access any
+              connected agent.
+            </p>
+            <p className="mt-2 text-sm text-slate-400">{launchState.error}</p>
+            <Button className="mt-6" type="primary" onClick={() => navigate('/dashboard', { replace: true })}>
+              Return to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (launchState.active && launchState.data?.status === 'not_connected') {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-xl mx-auto p-6 space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8">
+            <p className="text-sm font-semibold text-[#6200FF]">Shopify Launch</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">{launchState.shop || 'Shopify Store'}</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              This Shopify Store isn&apos;t connected to any Virtix Agent.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
+                type="primary"
+                icon={<Plus size={15} />}
+                className="bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]"
+                onClick={openCreateAgentModal}
+              >
+                Create a new Agent
+              </Button>
+              <Button onClick={() => setShowConnectExisting((prev) => !prev)}>
+                Connect an existing Agent
+              </Button>
+            </div>
+          </div>
+
+          {showConnectExisting ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Available Virtix Agents</h2>
+                <p className="text-sm text-slate-500">
+                  Open an agent’s Shopify settings to connect <strong>{launchState.shop}</strong>.
+                </p>
+              </div>
+              {filteredAgents.length === 0 ? (
+                <Empty description="No accessible agents found." image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredAgents.map((agent) => (
+                    <div key={agent.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                      <p className="font-semibold text-slate-900">{agent.agent_heading || agent.agent_name}</p>
+                      <p className="mt-1 text-sm text-slate-500">{agent.agent_description || 'No description added yet.'}</p>
+                      <Button
+                        className="mt-4"
+                        type="primary"
+                        onClick={() => navigate(`/${agent.id}/agent-dashboard/shopify?shop=${encodeURIComponent(launchState.shop)}`)}
+                      >
+                        Open Shopify Settings
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

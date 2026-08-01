@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Alert,
   Button,
@@ -63,6 +64,7 @@ function normalizeShopDomain(value) {
 
 export default function ShopifyIntegration() {
   const { currentAgentName: agentName } = useContentApi();
+  const location = useLocation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const [shopDomain, setShopDomain] = useState("");
@@ -201,6 +203,14 @@ export default function ShopifyIntegration() {
     if (!agentName) return;
     loadSource();
   }, [agentName, loadSource]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const shopFromQuery = normalizeShopDomain(params.get("shop") || "");
+    if (shopFromQuery) {
+      setShopDomain((current) => current || shopFromQuery);
+    }
+  }, [location.search]);
 
   useEffect(() => {
   const params = new URLSearchParams(window.location.search);
