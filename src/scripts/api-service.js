@@ -32,7 +32,7 @@ const refreshAccessToken = async () => {
 
   if (!refreshRequest) {
     refreshRequest = axios
-      .post(`${base_url}api/user/token/refresh/`, { refresh })
+      .post(`${base_url}api/user/token/refresh/`, { refresh }, { withCredentials: true })
       .then((res) => {
         const data = res?.data
 
@@ -66,6 +66,7 @@ const requestWithAuth = async (config, options = {}) => {
     return await axios({
       ...config,
       url: `${base_url}${config.url}`,
+      withCredentials: true,
       headers: {
         ...(config.headers || {}),
         ...(no_token ? {} : { Authorization: token ? `Bearer ${token}` : null }),
@@ -241,7 +242,7 @@ export const refreshToken = async () => {
 
 export const refreshTokenWithValue = async (refresh) => {
   try {
-    const res = await axios.post(`${base_url}api/user/token/refresh/`, { refresh })
+    const res = await axios.post(`${base_url}api/user/token/refresh/`, { refresh }, { withCredentials: true })
     const data = res?.data
 
     if (!data?.access) {
