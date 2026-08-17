@@ -1,4 +1,4 @@
-import { Button, Card, message, Modal, Radio, Select, Spin, Tag } from 'antd';
+import { Button, Card, message, Modal, Radio, Select, Spin, Tag, Tooltip } from 'antd';
 import Cookies from 'js-cookie';
 import { ArrowUpDown, Ban, Check, ExternalLink, Minus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -110,6 +110,7 @@ export default function ActivePlan() {
   const isShopifyBilling = subData?.subscription?.billing_provider === 'shopify';
   const shopifyBillingAgentName = shopifyBilling?.billing_agent_name || subData?.subscription?.shopify_billing_agent_name;
   const shopifyManageUrl = shopifyBilling?.shopify_manage_url;
+  const hasPaidShopifySubscription = Boolean(subData?.subscription?.shopify_subscription_gid);
 
   const publicPlans = useMemo(() => {
     return (Array.isArray(plans) ? plans : [])
@@ -322,6 +323,11 @@ export default function ActivePlan() {
             <div>
               Current Virtix plan: {currentPlan?.name || 'Starter'}.
             </div>
+            {!hasPaidShopifySubscription ? (
+              <div>
+                You are currently using the free Starter plan. Upgrade to Growth or Business to manage billing through Shopify.
+              </div>
+            ) : null}
             {subData?.subscription?.shopify_requires_reconciliation ? (
               <div>Billing reconciliation is required before the latest Shopify lifecycle change can be fully reflected.</div>
             ) : null}
@@ -346,14 +352,17 @@ export default function ActivePlan() {
               Refresh
             </Button>
             {isShopifyBilling ? (
-              <Button
-                type="primary"
-                icon={<ExternalLink size={15} />}
-                onClick={() => startShopifyPlanSelection(currentPlanCode || 'starter', subData?.subscription?.billing_cycle || 'monthly')}
-                loading={actionLoading}
-              >
-                Manage in Shopify
-              </Button>
+              <Tooltip title={hasPaidShopifySubscription ? '' : 'No Shopify subscription exists for the free Starter plan.'}>
+                <Button
+                  type="primary"
+                  icon={<ExternalLink size={15} />}
+                  onClick={() => startShopifyPlanSelection(currentPlanCode || 'starter', subData?.subscription?.billing_cycle || 'monthly')}
+                  loading={actionLoading}
+                  disabled={!hasPaidShopifySubscription}
+                >
+                  Manage in Shopify
+                </Button>
+              </Tooltip>
             ) : subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
               <Button
                 icon={<ExternalLink size={15} />}

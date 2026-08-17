@@ -15,6 +15,7 @@ import {
   message,
   InputNumber,
   Tooltip,
+  Badge,
 } from "antd";
 import { getData, postData } from "../../scripts/api-service";
 import { useContentApi } from "../../contexts/ContentApiContext";
@@ -27,10 +28,13 @@ const api = {
   refresh: (agentName) => `api/integrations/agents/${agentName}/shopify/source/refresh/`,
   health: (agentName) => `api/integrations/agents/${agentName}/shopify/health/`,
   reconcile: (agentName) => `api/integrations/agents/${agentName}/shopify/reconcile/`,
+  billingStatus: (agentName) => `api/integrations/agents/${agentName}/shopify/billing/status/`,
   webhookHealth: (agentName) => `api/integrations/agents/${agentName}/shopify/webhook-health/`,
   disconnect: (agentName) => `api/integrations/agents/${agentName}/shopify/disconnect/`,
   sync: (agentName) => `api/integrations/agents/${agentName}/shopify/sync/`,
   products: (agentName) => `api/integrations/agents/${agentName}/shopify/products/`,
+  plans: () => "api/billing/plans/",
+  subscribe: (agentName) => `api/integrations/agents/${agentName}/shopify/billing/subscribe/`,
 };
 
 function prettyErr(e) {
@@ -62,6 +66,37 @@ function normalizeShopDomain(value) {
   return v;
 }
 
+function formatShortDate(value) {
+  if (!value) return "—";
+  try {
+    return new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  } catch {
+    return value;
+  }
+}
+
+function statusColor(status) {
+  const normalized = (status || "").toUpperCase();
+  if (["ACTIVE", "HEALTHY", "CONNECTED"].includes(normalized)) return "green";
+  if (["PENDING", "UNKNOWN", "RECONNECT_REQUIRED"].includes(normalized)) return "gold";
+  if (["CANCELLED", "EXPIRED", "DECLINED", "ERROR", "FROZEN"].includes(normalized)) return "red";
+  return "blue";
+}
+
+function planCardFeatureList(plan) {
+  const items = [];
+  if (plan?.max_agents) items.push(`${plan.max_agents} Agent${Number(plan.max_agents) > 1 ? "s" : ""}`);
+  if (plan?.max_messages_per_month) items.push(`${plan.max_messages_per_month} Messages`);
+  if (plan?.website_widget) items.push("Website Widget");
+  if (plan?.woocommerce) items.push("WooCommerce");
+  if (plan?.shopify) items.push("Shopify");
+  if (plan?.product_recommendations) items.push("Product Recommendations");
+  if (plan?.booking) items.push("Booking");
+  if (plan?.analytics) items.push("Analytics");
+  if (plan?.max_team_members && Number(plan.max_team_members) > 1) items.push("Team Members");
+  return items.slice(0, 4);
+}
+
 export default function ShopifyIntegration() {
   const { currentAgentName: agentName } = useContentApi();
   const location = useLocation();
@@ -71,6 +106,8 @@ export default function ShopifyIntegration() {
   const [source, setSource] = useState(null);
   const [health, setHealth] = useState(null);
   const [webhookHealth, setWebhookHealth] = useState(null);
+  const [billing, setBilling] = useState(null);
+  const [plans, setPlans] = useState([]);
   const [error, setError] = useState(null);
 
   const [products, setProducts] = useState([]);
@@ -81,6 +118,7 @@ export default function ShopifyIntegration() {
   const [loadingSync, setLoadingSync] = useState(false);
   const [loadingReconcile, setLoadingReconcile] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingPlanAction, setLoadingPlanAction] = useState(false);
 
   const [first, setFirst] = useState(50);
   const [maxPages, setMaxPages] = useState(20);
@@ -98,10 +136,6 @@ export default function ShopifyIntegration() {
     () => !!source?.shop_domain || !!source?.shop_name,
     [source]
   );
-  const needsVerification = useMemo(
-    () => !!(source?.requires_reconciliation || health?.requires_reconciliation),
-    [source, health]
-  );
   const hasConfigWarning = useMemo(
     () => ["missing", "error"].includes(source?.webhook_registration_status || health?.webhook_registration_status),
     [source, health]
@@ -112,6 +146,18 @@ export default function ShopifyIntegration() {
       source?.connection_status === "error",
     [source, webhookHealth]
   );
+  const currentPlanCode = billing?.plan_code || "starter";
+  const currentPlanName = billing?.plan_name || "Starter";
+  const isFreeStarter = currentPlanCode === "starter" && !billing?.shopify_subscription_gid;
+  const availablePlans = useMemo(
+    () => (plans || []).filter((plan) => ["starter", "growth", "business"].includes(plan.code)),
+    [plans]
+  );
+  const billingPeriodLabel = useMemo(() => {
+    if (!billing?.current_period_end) return "—";
+    const start = billing?.current_period_start ? formatShortDate(billing.current_period_start) : "—";
+    return `${start} – ${formatShortDate(billing.current_period_end)}`;
+  }, [billing]);
 
   const loadSource = useCallback(async () => {
     if (!agentName) return;
@@ -120,20 +166,25 @@ export default function ShopifyIntegration() {
     setError(null);
 
     try {
-      const [sourceRes, healthRes, webhookRes] = await Promise.all([
+      const [sourceRes, healthRes, webhookRes, billingRes, plansRes] = await Promise.all([
         getData(api.source(agentName)),
         getData(api.health(agentName)),
         getData(api.webhookHealth(agentName)),
+        getData(api.billingStatus(agentName)),
+        getData(api.plans(), true),
       ]);
-      const merged = { ...(sourceRes || {}), ...(healthRes || {}), ...(webhookRes || {}) };
+      const merged = { ...(sourceRes || {}), ...(healthRes || {}), ...(webhookRes || {}), ...(billingRes || {}) };
       setSource(merged || null);
       setHealth(healthRes || null);
       setWebhookHealth(webhookRes || null);
+      setBilling(billingRes || null);
+      setPlans(Array.isArray(plansRes) ? plansRes : (plansRes?.results || []));
       if (merged?.shop_domain) setShopDomain(merged.shop_domain);
     } catch (e) {
       setSource(null);
       setHealth(null);
       setWebhookHealth(null);
+      setBilling(null);
       setError(prettyErr(e));
     } finally {
       setLoadingSource(false);
@@ -169,13 +220,37 @@ export default function ShopifyIntegration() {
       const data = res?.data ?? res;
       setSource((prev) => ({ ...(prev || {}), ...(data || {}) }));
       await loadSource();
-      messageApi.success("Shopify billing reconciled");
+      messageApi.success("Shopify billing synchronized.");
+    } catch (e) {
+      const msg = prettyErr(e);
+      setError(msg);
+      messageApi.error("Unable to synchronize billing. Please try again.");
+    } finally {
+      setLoadingReconcile(false);
+    }
+  };
+
+  const openShopifyBilling = async (planCode, billingCycle = "monthly") => {
+    if (!agentName) return;
+    setLoadingPlanAction(true);
+    setError(null);
+    try {
+      const res = await postData(api.subscribe(agentName), {
+        plan_code: planCode,
+        billing_cycle: billingCycle,
+      });
+      const data = res?.data ?? res;
+      const redirectUrl = data?.pricing_url || data?.confirmation_url;
+      if (!redirectUrl) {
+        throw new Error(data?.detail || "Unable to open Shopify billing.");
+      }
+      window.location.assign(redirectUrl);
     } catch (e) {
       const msg = prettyErr(e);
       setError(msg);
       messageApi.error(msg);
     } finally {
-      setLoadingReconcile(false);
+      setLoadingPlanAction(false);
     }
   };
 
@@ -495,7 +570,7 @@ export default function ShopifyIntegration() {
             </Button>
 
             <Button onClick={reconcileBilling} loading={loadingReconcile} disabled={!agentName || !source?.shop_domain}>
-              Verify Billing
+              Refresh Billing
             </Button>
 
             {isConnected ? (
@@ -519,6 +594,134 @@ export default function ShopifyIntegration() {
               <li>Shopify-connected accounts are billed through Shopify.</li>
             </ul>
           </div>
+        </div>
+      </Card>
+
+      <Card
+        title="Current Shopify Billing"
+        styles={{ body: { padding: 24 } }}
+      >
+        <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Provider</div>
+                <div className="mt-1 text-base font-semibold text-[#0C0900]">Shopify</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Current Plan</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-base font-semibold text-[#0C0900]">{currentPlanName}</span>
+                  {currentPlanCode === "starter" ? <Tag color="green">Current Plan</Tag> : null}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Status</div>
+                <div className="mt-1">
+                  <Badge color={statusColor(billing?.status || billing?.subscription_status)} text={billing?.status || billing?.subscription_status || "Unknown"} />
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Auto Renewal</div>
+                <div className="mt-1 text-base font-semibold text-[#0C0900]">{billing?.requires_reconciliation ? "Pending sync" : (billing?.shopify_billing_status === "CANCELLED" || billing?.status === "free" ? "No" : "Yes")}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Current Billing Period</div>
+                <div className="mt-1 text-base font-semibold text-[#0C0900]">{billingPeriodLabel}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Next Renewal</div>
+                <div className="mt-1 text-base font-semibold text-[#0C0900]">{formatShortDate(billing?.current_period_end)}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Shopify Subscription ID</div>
+                <div className="mt-1 text-sm font-medium text-gray-700 break-all">{billing?.shopify_subscription_gid || "No Shopify subscription for Starter"}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Shopify Status</div>
+                <div className="mt-1 text-sm font-medium text-gray-700">{billing?.shopify_billing_status || "No paid subscription"}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-[#FCFBFF] p-5 shadow-sm">
+            <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Billing Action</div>
+            <div className="mt-2 text-lg font-semibold text-[#0C0900]">
+              {isFreeStarter ? "Free Starter plan" : "Manage paid Shopify billing"}
+            </div>
+            <div className="mt-2 text-sm text-gray-500">
+              {isFreeStarter
+                ? "You are currently using the free Starter plan. The Starter plan does not create a Shopify subscription. Upgrade to Growth or Business to manage billing through Shopify."
+                : "Manage upgrades, renewals, and cancellations in Shopify's billing flow."}
+            </div>
+            <Tooltip title={isFreeStarter ? "No Shopify subscription exists for the free Starter plan." : ""}>
+              <Button
+                type="primary"
+                className="mt-5 h-11 rounded-xl border-0 bg-[#6D28D9] px-5 font-semibold shadow-sm hover:!bg-[#5B21B6]"
+                disabled={isFreeStarter || !billing?.shopify_subscription_gid}
+                loading={loadingPlanAction}
+                onClick={() => openShopifyBilling(currentPlanCode || "starter", billing?.billing_interval === "ANNUAL" ? "yearly" : "monthly")}
+              >
+                Manage in Shopify
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
+      </Card>
+
+      <Card title="Available Plans" styles={{ body: { padding: 24 } }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {availablePlans.map((plan) => {
+            const isCurrent = plan.code === currentPlanCode;
+            const featureItems = planCardFeatureList(plan);
+            const planPrice = Number(plan.price_usd || 0) > 0 ? `$${plan.price_usd}/month` : "Free";
+            return (
+              <div
+                key={plan.code}
+                className={`rounded-2xl border p-5 shadow-sm transition-all ${
+                  isCurrent ? "border-green-400 bg-green-50/60" : "border-gray-200 bg-white"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xl font-semibold text-[#0C0900]">{plan.name}</div>
+                    <div className="mt-1 text-sm font-medium text-gray-500">{planPrice}</div>
+                    {!Number(plan.price_usd || 0) && plan.code === "starter" ? (
+                      <div className="mt-1 text-xs text-gray-400">No Shopify subscription is created for Starter.</div>
+                    ) : null}
+                  </div>
+                  {isCurrent ? <Tag color="green">Current Plan</Tag> : null}
+                </div>
+
+                <div className="mt-5 space-y-2 text-sm text-gray-700">
+                  {featureItems.map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  {isCurrent ? (
+                    <div className="rounded-xl border border-green-200 bg-white px-4 py-3 text-center text-sm font-semibold text-green-700">
+                      Current Plan
+                    </div>
+                  ) : (
+                    <Button
+                      type="primary"
+                      block
+                      className="h-11 rounded-xl border-0 bg-[#6D28D9] font-semibold shadow-sm hover:!bg-[#5B21B6]"
+                      loading={loadingPlanAction}
+                      onClick={() => openShopifyBilling(plan.code, "monthly")}
+                    >
+                      {plan.code === "starter" ? "Downgrade in Shopify" : "Upgrade in Shopify"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
 
