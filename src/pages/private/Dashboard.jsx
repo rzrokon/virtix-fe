@@ -44,7 +44,6 @@ import { deleteData, getData, patchData, postData } from '../../scripts/api-serv
 const { Text } = Typography;
 const { TextArea } = Input;
 const SHOPIFY_LAUNCH_SELECTION_KEY = 'virtix_shopify_launch_last_selected';
-const SHOPIFY_BOOTSTRAP_API = 'api/integrations/shopify/bootstrap/';
 const SHOPIFY_PENDING_INSTALL_API = 'api/integrations/shopify/pending-install/';
 const SHOPIFY_PENDING_INSTALL_ATTACH_API = 'api/integrations/shopify/pending-install/attach/';
 
@@ -217,7 +216,7 @@ export default function Dashboard() {
     const hmac = (params.get('hmac') || '').trim();
     const timestamp = (params.get('timestamp') || '').trim();
 
-    if (!shop || !host) {
+    if (!shop) {
       setLaunchState({
         active: false,
         loading: false,
@@ -244,19 +243,16 @@ export default function Dashboard() {
       try {
         if (!isAuthenticated) {
           if (!hmac || !timestamp) {
-            throw new Error('Missing Shopify launch signature.');
-          }
-          const data = await getData(
-            `${SHOPIFY_BOOTSTRAP_API}?shop=${encodeURIComponent(shop)}&host=${encodeURIComponent(host)}&hmac=${encodeURIComponent(hmac)}&timestamp=${encodeURIComponent(timestamp)}`,
-            true,
-            true
-          );
-          if (cancelled) return;
-          if (data?.authorize_url) {
-            window.location.href = data.authorize_url;
+            setLaunchState({
+              active: true,
+              loading: false,
+              error: 'Sign in to continue to your connected Shopify workspace.',
+              shop,
+              host,
+              data: { status: 'signin_required' },
+            });
             return;
           }
-          throw new Error('Shopify authorization could not be started.');
         }
 
         const data = await getData(launchContextApi(shop, host), false, true);
@@ -282,9 +278,7 @@ export default function Dashboard() {
           error?.response?.data?.detail ||
           (error?.response?.status === 403
             ? 'You do not have access to the Virtix agents connected to this Shopify store.'
-            : !isAuthenticated
-              ? 'Shopify authentication could not be started.'
-              : 'Shopify launch context could not be resolved.');
+            : 'Shopify launch context could not be resolved.');
         setLaunchState({
           active: true,
           loading: false,
@@ -860,20 +854,37 @@ export default function Dashboard() {
   }
 
   if (launchState.active && launchState.error) {
+    const signinRequired = launchState.data?.status === 'signin_required';
     return (
       <div className="min-h-screen bg-slate-50">
         <div className="max-w-screen-md mx-auto p-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-8">
             <p className="text-sm font-semibold text-[#6200FF]">Shopify Launch</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">Access unavailable</h1>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">
+              {signinRequired ? 'Sign in required' : 'Access unavailable'}
+            </h1>
             <p className="mt-3 text-sm text-slate-500">
-              This Shopify Store is connected to Virtix, but your account does not have permission to access any
-              connected agent.
+              {signinRequired
+                ? 'This Shopify store is already connected to Virtix. Sign in to continue to your workspace.'
+                : 'This Shopify Store is connected to Virtix, but your account does not have permission to access any connected agent.'}
             </p>
             <p className="mt-2 text-sm text-slate-400">{launchState.error}</p>
-            <Button className="mt-6" type="primary" onClick={() => navigate('/dashboard', { replace: true })}>
-              Return to Dashboard
-            </Button>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {signinRequired ? (
+                <>
+                  <Button type="primary" onClick={() => navigate('/signin')}>
+                    Sign In
+                  </Button>
+                  <Button onClick={() => navigate('/signup')}>
+                    Sign Up
+                  </Button>
+                </>
+              ) : (
+                <Button type="primary" onClick={() => navigate('/dashboard', { replace: true })}>
+                  Return to Dashboard
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
