@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getData, postData } from '../../scripts/api-service';
-import { CHANGE_SUBSCRIPTION, GET_BILLING_PLANS, GET_MY_SUBSCRIPTION, STRIPE_PORTAL } from '../../scripts/api';
+import { CHANGE_SUBSCRIPTION, GET_BILLING_PLANS, GET_MY_SUBSCRIPTION, SHOPIFY_BILLING_SUBSCRIBE, STRIPE_PORTAL } from '../../scripts/api';
 
 const toBool = (v) => v === true || v === 'true' || v === 1;
 
@@ -106,6 +106,10 @@ export default function ActivePlan() {
   const currentPlanCode = currentPlan?.code;
   const usage = subData?.usage || {};
   const limits = subData?.limits || {};
+  const shopifyBilling = subData?.shopify_billing;
+  const isShopifyBilling = subData?.subscription?.billing_provider === 'shopify';
+  const shopifyBillingAgentName = shopifyBilling?.billing_agent_name || subData?.subscription?.shopify_billing_agent_name;
+  const shopifyManageUrl = shopifyBilling?.shopify_manage_url;
 
   const publicPlans = useMemo(() => {
     return (Array.isArray(plans) ? plans : [])
@@ -216,6 +220,37 @@ export default function ActivePlan() {
     }
   };
 
+  const startShopifyPlanSelection = async (planCode, billingCycle = 'monthly') => {
+    if (!shopifyBillingAgentName) {
+      message.error('Shopify billing source is not ready yet. Refresh the page and try again.');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const res = await postData(SHOPIFY_BILLING_SUBSCRIBE(shopifyBillingAgentName), {
+        plan_code: planCode,
+        billing_cycle: billingCycle,
+      });
+      const data = res?.data ?? res;
+
+      if (res?.error) {
+        message.error(extractError(res));
+        return;
+      }
+
+      const redirectUrl = data?.pricing_url || data?.confirmation_url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
+
+      message.error('Could not open Shopify billing. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const submitCancelToFree = async () => {
     if (!starterPlan?.code) { message.error('Free plan not found'); return; }
 
@@ -284,8 +319,14 @@ export default function ActivePlan() {
             <div>
               Billing provider: Shopify. Current billing status: {subData?.subscription?.shopify_billing_status || 'unknown'}.
             </div>
+            <div>
+              Current Virtix plan: {currentPlan?.name || 'Starter'}.
+            </div>
             {subData?.subscription?.shopify_requires_reconciliation ? (
               <div>Billing reconciliation is required before the latest Shopify lifecycle change can be fully reflected.</div>
+            ) : null}
+            {shopifyBilling?.shopify_billing_mode === 'app_pricing' ? (
+              <div>Plan upgrades, downgrades, and cancellations are managed in Shopify&apos;s hosted pricing flow.</div>
             ) : null}
           </div>
         </Card>
@@ -304,7 +345,16 @@ export default function ActivePlan() {
             <Button icon={<RefreshCw size={15} />} onClick={refreshAll} loading={pageLoading}>
               Refresh
             </Button>
-            {subData?.subscription?.billing_provider === 'shopify' ? null : subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
+            {isShopifyBilling ? (
+              <Button
+                type="primary"
+                icon={<ExternalLink size={15} />}
+                onClick={() => startShopifyPlanSelection(currentPlanCode || 'starter', subData?.subscription?.billing_cycle || 'monthly')}
+                loading={actionLoading}
+              >
+                Manage in Shopify
+              </Button>
+            ) : subData?.subscription?.provider === 'stripe' && subData?.subscription?.status === 'active' ? (
               <Button
                 icon={<ExternalLink size={15} />}
                 onClick={openStripePortal}
@@ -450,6 +500,65 @@ export default function ActivePlan() {
           </div>
         </Card>
       </div>
+
+      {isShopifyBilling ? (
+        <Card>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+            <div>
+              <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">Shopify plans</div>
+              <div className="text-xl font-bold text-[#0C0900]">Manage your Virtix plan in Shopify</div>
+              <div className="text-sm text-gray-500 mt-2">
+                Shopify is the canonical billing provider for this account. Stripe checkout is disabled here.
+              </div>
+            </div>
+            {shopifyManageUrl ? (
+              <Button
+                icon={<ExternalLink size={15} />}
+                onClick={() => { window.location.href = shopifyManageUrl; }}
+              >
+                Open pricing page
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {publicPlans.filter(p => ['starter', 'growth', 'business'].includes(p.code)).map((plan) => {
+              const isCurrent = currentPlanCode === plan.code;
+              const isStarter = plan.code === 'starter';
+              const monthlyPrice = parseFloat(plan.price_usd || 0);
+              const yearlyPrice = parseFloat(plan.price_usd_yearly || 0);
+              let cta = 'Current Plan';
+              if (!isCurrent) {
+                cta = isStarter ? 'Downgrade to Starter' : `Choose ${plan.name}`;
+              }
+              return (
+                <Card key={plan.code} className={isCurrent ? 'border-[#6200FF]' : ''}>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-lg font-semibold">{plan.name}</div>
+                      <div className="text-sm text-gray-500">
+                        {isStarter ? 'Free' : `$${monthlyPrice}/month`}
+                      </div>
+                      {!isStarter && yearlyPrice > 0 ? (
+                        <div className="text-xs text-gray-400 mt-1">${yearlyPrice}/year</div>
+                      ) : null}
+                    </div>
+                    <Button
+                      type={isCurrent ? 'default' : 'primary'}
+                      block
+                      disabled={isCurrent || actionLoading}
+                      loading={actionLoading && !isCurrent}
+                      onClick={() => startShopifyPlanSelection(plan.code, subData?.subscription?.billing_cycle || 'monthly')}
+                    >
+                      {cta}
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </Card>
+      ) : null}
 
       {/* Change Plan Modal */}
       <Modal

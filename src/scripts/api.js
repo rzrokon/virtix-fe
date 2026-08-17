@@ -40,6 +40,7 @@ export const START_SUBSCRIPTION = 'api/billing/me/subscription/start/'
 export const GET_MY_SUBSCRIPTION = 'api/billing/me/subscription/';
 export const CHANGE_SUBSCRIPTION = 'api/billing/me/subscription/change/';
 export const STRIPE_PORTAL = 'api/billing/stripe/portal/';
+export const SHOPIFY_BILLING_SUBSCRIBE = (agentName) => `api/integrations/agents/${agentName}/shopify/billing/subscribe/`;
 
 // Leads
 export const GET_LEADS = 'api/ops/leads/';
