@@ -1,7 +1,7 @@
 import { Button, Form, Input, Layout, message, Modal, theme } from 'antd';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
 import { useContentApi } from '../contexts/ContentApiContext';
 import { CREATE_AGENT } from '../scripts/api';
@@ -14,6 +14,7 @@ export default function CreateAgentLayout() {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const location = useLocation();
   const { refreshAgents } = useContentApi();
   const {
     token: { colorBgContainer },
@@ -49,10 +50,10 @@ export default function CreateAgentLayout() {
 
 
   useEffect(() => {
-    if (!token) {
+    if (!token && location.pathname !== '/dashboard') {
       navigate('/');
     }
-  }, [token, navigate]);
+  }, [location.pathname, token, navigate]);
 
   useEffect(() => {
     const handleOpenModal = () => setOpen(true);
@@ -74,8 +75,17 @@ export default function CreateAgentLayout() {
         </Link>
 
         <div className='ml-auto flex items-center gap-3'>
-          <Button type="primary" onClick={() => setOpen(true)}>Create Agent</Button>
-          <UserMenu />
+          {token ? (
+            <>
+              <Button type="primary" onClick={() => setOpen(true)}>Create Agent</Button>
+              <UserMenu />
+            </>
+          ) : (
+            <>
+              <Button onClick={() => navigate('/signin')}>Sign In</Button>
+              <Button type="primary" onClick={() => navigate('/signup')}>Sign Up</Button>
+            </>
+          )}
         </div>
       </Header>
       <Outlet />

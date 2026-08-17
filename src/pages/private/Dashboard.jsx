@@ -21,6 +21,7 @@ import {
   Typography,
   message,
 } from 'antd';
+import Cookies from 'js-cookie';
 import {
   ArrowRight,
   BookOpen,
@@ -37,12 +38,15 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContentApi } from '../../contexts/ContentApiContext';
-import { DELETE_AGENT, UPDATE_AGENT } from '../../scripts/api';
+import { DELETE_AGENT, GET_MY_SUBSCRIPTION, UPDATE_AGENT } from '../../scripts/api';
 import { deleteData, getData, patchData, postData } from '../../scripts/api-service';
 
 const { Text } = Typography;
 const { TextArea } = Input;
 const SHOPIFY_LAUNCH_SELECTION_KEY = 'virtix_shopify_launch_last_selected';
+const SHOPIFY_BOOTSTRAP_API = 'api/integrations/shopify/bootstrap/';
+const SHOPIFY_PENDING_INSTALL_API = 'api/integrations/shopify/pending-install/';
+const SHOPIFY_PENDING_INSTALL_ATTACH_API = 'api/integrations/shopify/pending-install/attach/';
 
 const normalizeShopDomain = (value = '') => {
   let v = String(value || '').trim().toLowerCase();
@@ -162,6 +166,7 @@ export default function Dashboard() {
   const { agents, fetchAgents, refreshAgents } = useContentApi();
   const location = useLocation();
   const navigate = useNavigate();
+  const isAuthenticated = !!Cookies.get('kotha_token');
   const [viewMode, setViewMode]                 = useState('grid');
   const [selectedAgent, setSelectedAgent]       = useState(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -187,13 +192,30 @@ export default function Dashboard() {
   });
   const [showConnectExisting, setShowConnectExisting] = useState(false);
   const [showAllLaunchAgents, setShowAllLaunchAgents] = useState(false);
+  const [pendingInstall, setPendingInstall] = useState({
+    loading: true,
+    status: 'none',
+    shop: '',
+    host: '',
+    attached_agent_id: null,
+    oauth_completed_at: null,
+    attached_at: null,
+    error: '',
+  });
+  const [attachingPendingInstall, setAttachingPendingInstall] = useState(false);
+  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
 
-  useEffect(() => { fetchAgents(); }, []);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchAgents();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const shop = normalizeShopDomain(params.get('shop') || '');
     const host = (params.get('host') || '').trim();
+    const hmac = (params.get('hmac') || '').trim();
+    const timestamp = (params.get('timestamp') || '').trim();
 
     if (!shop || !host) {
       setLaunchState({
@@ -220,6 +242,23 @@ export default function Dashboard() {
       });
 
       try {
+        if (!isAuthenticated) {
+          if (!hmac || !timestamp) {
+            throw new Error('Missing Shopify launch signature.');
+          }
+          const data = await getData(
+            `${SHOPIFY_BOOTSTRAP_API}?shop=${encodeURIComponent(shop)}&host=${encodeURIComponent(host)}&hmac=${encodeURIComponent(hmac)}&timestamp=${encodeURIComponent(timestamp)}`,
+            true,
+            true
+          );
+          if (cancelled) return;
+          if (data?.authorize_url) {
+            window.location.href = data.authorize_url;
+            return;
+          }
+          throw new Error('Shopify authorization could not be started.');
+        }
+
         const data = await getData(launchContextApi(shop, host), false, true);
         if (cancelled) return;
 
@@ -243,7 +282,9 @@ export default function Dashboard() {
           error?.response?.data?.detail ||
           (error?.response?.status === 403
             ? 'You do not have access to the Virtix agents connected to this Shopify store.'
-            : 'Shopify launch context could not be resolved.');
+            : !isAuthenticated
+              ? 'Shopify authentication could not be started.'
+              : 'Shopify launch context could not be resolved.');
         setLaunchState({
           active: true,
           loading: false,
@@ -259,7 +300,76 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [location.search, navigate]);
+  }, [isAuthenticated, location.search, navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPendingInstall = async () => {
+      try {
+        const data = await getData(SHOPIFY_PENDING_INSTALL_API, true, true);
+        if (cancelled) return;
+        setPendingInstall({
+          loading: false,
+          status: data?.status || 'none',
+          shop: data?.shop || '',
+          host: data?.host || '',
+          attached_agent_id: data?.attached_agent_id || null,
+          oauth_completed_at: data?.oauth_completed_at || null,
+          attached_at: data?.attached_at || null,
+          error: '',
+        });
+      } catch (error) {
+        if (cancelled) return;
+        setPendingInstall((prev) => ({
+          ...prev,
+          loading: false,
+          error: error?.response?.data?.detail || 'Pending Shopify install could not be loaded.',
+        }));
+      }
+    };
+
+    loadPendingInstall();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.key]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setSubscriptionChecked(true);
+      return;
+    }
+    if (launchState.active) return;
+    if (pendingInstall.loading) return;
+    if (pendingInstall.status === 'oauth_completed') {
+      setSubscriptionChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+    const checkSubscription = async () => {
+      try {
+        const data = await getData(GET_MY_SUBSCRIPTION, false, true);
+        if (cancelled) return;
+        const planCode = data?.subscription?.plan?.code;
+        if (!planCode) {
+          navigate('/choose-plan', { replace: true, state: { from: location.pathname } });
+          return;
+        }
+        setSubscriptionChecked(true);
+      } catch {
+        if (!cancelled) {
+          navigate('/choose-plan', { replace: true, state: { from: location.pathname } });
+        }
+      }
+    };
+
+    checkSubscription();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, launchState.active, location.pathname, navigate, pendingInstall.loading, pendingInstall.status]);
 
   const handleEditAgent = async (values) => {
     if (!selectedAgent) return;
@@ -435,10 +545,50 @@ export default function Dashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const attachPendingInstall = async (agentId) => {
+    if (!agentId || attachingPendingInstall) return;
+    setAttachingPendingInstall(true);
+    try {
+      const response = await postData(
+        SHOPIFY_PENDING_INSTALL_ATTACH_API,
+        { agent_id: agentId },
+        false,
+        undefined,
+        undefined,
+        true
+      );
+      const data = response?.data || response;
+      const redirectUrl = data?.agent?.redirect_url;
+      if (redirectUrl) {
+        message.success('Shopify store connected.');
+        navigate(redirectUrl, { replace: true });
+        return;
+      }
+      throw new Error(data?.detail || 'Shopify store could not be attached.');
+    } catch (error) {
+      const detail =
+        error?.response?.data?.detail ||
+        error?.message ||
+        'Shopify store could not be attached.';
+      message.error(detail);
+      setPendingInstall((prev) => ({ ...prev, error: detail }));
+    } finally {
+      setAttachingPendingInstall(false);
+    }
+  };
+
   const openLaunchAgent = (agent) => {
     rememberLaunchSelection(launchState.shop, agent.id);
     navigate(agent.redirect_url || `/${agent.id}/agent-dashboard/shopify`);
   };
+
+  useEffect(() => {
+    if (!isAuthenticated || pendingInstall.loading || pendingInstall.status !== 'oauth_completed') return;
+    if (attachingPendingInstall) return;
+    const accessibleAgents = agents?.results || [];
+    if (accessibleAgents.length !== 1) return;
+    attachPendingInstall(accessibleAgents[0].id);
+  }, [agents, attachingPendingInstall, isAuthenticated, pendingInstall.loading, pendingInstall.status]);
 
   const agentMenuItems = [
     { key: '1', label: <Space><EditOutlined /> Edit agent</Space> },
@@ -454,10 +604,138 @@ export default function Dashboard() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0ebff]">
               <Sparkles size={24} className="text-[#6200FF]" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900">Opening Shopify workspace</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              {isAuthenticated ? 'Opening Shopify workspace' : 'Connecting Shopify to Virtix'}
+            </h2>
             <p className="mt-2 text-sm text-slate-500">
-              Resolving the Virtix agents connected to <strong>{launchState.shop}</strong>.
+              {isAuthenticated
+                ? <>Resolving the Virtix agents connected to <strong>{launchState.shop}</strong>.</>
+                : <>Starting secure Shopify authentication for <strong>{launchState.shop}</strong>.</>}
             </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pendingInstall.loading && !launchState.active) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-md mx-auto p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <h2 className="text-xl font-bold text-slate-900">Loading workspace</h2>
+            <p className="mt-2 text-sm text-slate-500">Checking for an active Shopify installation.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pendingInstall.status === 'oauth_completed' && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-md mx-auto p-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold text-[#6200FF]">Shopify Installed</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">{pendingInstall.shop}</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              Shopify authentication is complete. Sign in or create a Virtix account to attach this store to an agent.
+            </p>
+            {pendingInstall.error ? <p className="mt-3 text-sm text-red-500">{pendingInstall.error}</p> : null}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button type="primary" className="bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]" onClick={() => navigate('/signin')}>
+                Sign In to Continue
+              </Button>
+              <Button onClick={() => navigate('/signup')}>Create Account</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pendingInstall.status === 'oauth_completed' && isAuthenticated) {
+    const accessibleAgents = agents?.results || [];
+
+    if (attachingPendingInstall) {
+      return (
+        <div className="min-h-screen bg-slate-50">
+          <div className="max-w-screen-md mx-auto p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+              <h2 className="text-xl font-bold text-slate-900">Attaching Shopify store</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Connecting <strong>{pendingInstall.shop}</strong> to your Virtix workspace.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-xl mx-auto p-6 space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold text-[#6200FF]">Shopify Installed</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">{pendingInstall.shop}</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              Choose which Virtix agent should use this Shopify store. Your existing multi-agent architecture remains unchanged.
+            </p>
+            {pendingInstall.error ? <p className="mt-3 text-sm text-red-500">{pendingInstall.error}</p> : null}
+          </div>
+
+          {accessibleAgents.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8">
+              <h2 className="text-xl font-semibold text-slate-900">Create an agent to continue</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                This Shopify store is authenticated, but your Virtix workspace does not have an agent yet.
+              </p>
+              <Button
+                type="primary"
+                icon={<Plus size={15} />}
+                className="mt-6 bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]"
+                onClick={openCreateAgentModal}
+              >
+                Create Agent
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Choose an Agent</h2>
+                <p className="text-sm text-slate-500">
+                  Attach <strong>{pendingInstall.shop}</strong> to one of your existing Virtix agents.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {accessibleAgents.map((agent) => (
+                  <div key={agent.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <p className="font-semibold text-slate-900">{agent.agent_heading || agent.agent_name}</p>
+                    <p className="mt-1 text-sm text-slate-500">{agent.agent_description || 'No description added yet.'}</p>
+                    <Button
+                      className="mt-4 bg-[#6200FF] border-[#6200FF] hover:bg-[#5000CC]"
+                      type="primary"
+                      onClick={() => attachPendingInstall(agent.id)}
+                    >
+                      Attach Shopify Store
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && !launchState.active && !subscriptionChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-screen-md mx-auto p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <h2 className="text-xl font-bold text-slate-900">Loading workspace</h2>
+            <p className="mt-2 text-sm text-slate-500">Checking your Virtix subscription.</p>
           </div>
         </div>
       </div>

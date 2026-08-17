@@ -115,9 +115,7 @@ export default function Routers() {
           <Route
             path='/dashboard'
             element={
-              <RequireActivePlan>
-                <Dashboard />
-              </RequireActivePlan>
+              <Dashboard />
             }
           />
           <Route
