@@ -37,6 +37,9 @@ const api = {
   subscribe: (agentName) => `api/integrations/agents/${agentName}/shopify/billing/subscribe/`,
 };
 
+const SHOPIFY_APP_API_KEY = "503de667e0134f4bd719c2dcde4264e8";
+const SHOPIFY_CHAT_EMBED_HANDLE = "virtix-chat";
+
 function prettyErr(e) {
   if (!e) return "Request failed";
 
@@ -128,6 +131,11 @@ export default function ShopifyIntegration() {
   const [activeOnly, setActiveOnly] = useState(true);
   const isConnected = useMemo(() => source?.connected === true, [source]);
   const hasStorefrontToken = useMemo(() => !!source?.has_storefront_token, [source]);
+  const themeEditorUrl = useMemo(() => {
+    const shop = normalizeShopDomain(source?.shop_domain);
+    if (!shop) return "";
+    return `https://${shop}/admin/themes/current/editor?context=apps&activateAppId=${SHOPIFY_APP_API_KEY}/${SHOPIFY_CHAT_EMBED_HANDLE}`;
+  }, [source?.shop_domain]);
   const needsReconnect = useMemo(
     () => source?.next_action === "shopify_reconnect" && !isConnected,
     [source, isConnected]
@@ -596,6 +604,24 @@ export default function ShopifyIntegration() {
           </div>
         </div>
       </Card>
+
+      {isConnected ? (
+        <Card title="Storefront Chat Widget">
+          <div className="space-y-3" style={{ maxWidth: 820 }}>
+            <Text>
+              Add Virtix to your storefront through Shopify's Theme Editor. No theme code changes are required.
+            </Text>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Button type="primary" onClick={() => window.location.assign(themeEditorUrl)} disabled={!themeEditorUrl}>
+                Enable Chat in Theme Editor
+              </Button>
+            </div>
+            <Text type="secondary">
+              Shopify opens App embeds with Virtix selected. Turn on “Sales and support chat”, preview it, then save the theme.
+            </Text>
+          </div>
+        </Card>
+      ) : null}
 
       <Card
         title="Current Shopify Billing"
