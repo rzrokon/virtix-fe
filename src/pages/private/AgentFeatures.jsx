@@ -63,6 +63,8 @@ export default function AgentFeatures() {
       const values = {
         booking: toBool(data.booking),
         complaints: toBool(data.complaints),
+        widget_require_auth: toBool(data.widget_require_auth),
+        widget_human_handover: toBool(data.widget_human_handover),
         website_source_type: data.website_source_type || 'NONE',
         ecommerce_mode: data.ecommerce_mode || 'NONE',
       };
@@ -100,6 +102,8 @@ export default function AgentFeatures() {
     const payload = {
       booking: !!v.booking,
       complaints: !!v.complaints,
+      widget_require_auth: !!v.widget_require_auth,
+      widget_human_handover: !!v.widget_human_handover,
       website_source_type: v.website_source_type || 'NONE',
       ecommerce_mode: v.ecommerce_mode || 'NONE',
     };
@@ -121,6 +125,8 @@ export default function AgentFeatures() {
       const values = {
         booking: toBool(data.booking),
         complaints: toBool(data.complaints),
+        widget_require_auth: toBool(data.widget_require_auth),
+        widget_human_handover: toBool(data.widget_human_handover),
         website_source_type: data.website_source_type || 'NONE',
         ecommerce_mode: data.ecommerce_mode || 'NONE',
       };
@@ -245,6 +251,45 @@ export default function AgentFeatures() {
               </div>
             </div>
           </div>
+        </Card>
+
+        <Card title="Storefront Chat" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="border rounded-xl p-4">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <div className="font-semibold">Require email verification</div>
+                  <div className="text-sm text-gray-500">
+                    Ask storefront visitors to verify their email before they can chat.
+                  </div>
+                </div>
+                <Form.Item name="widget_require_auth" valuePropName="checked" className="!mb-0">
+                  <Switch />
+                </Form.Item>
+              </div>
+            </div>
+
+            <div className="border rounded-xl p-4">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <div className="font-semibold">Human handover</div>
+                  <div className="text-sm text-gray-500">
+                    Allow verified visitors to request a human agent.
+                  </div>
+                </div>
+                <Form.Item name="widget_human_handover" valuePropName="checked" className="!mb-0">
+                  <Switch />
+                </Form.Item>
+              </div>
+            </div>
+          </div>
+          <Alert
+            className="mt-4"
+            type="info"
+            showIcon
+            message="Both capabilities are off by default"
+            description="Human handover is available only when email verification is enabled."
+          />
         </Card>
 
         <Card title="Website Knowledge Source" className="mt-6">
