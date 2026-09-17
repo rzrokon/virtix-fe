@@ -121,9 +121,13 @@
     );
   }
 
+  const tunnelHeaders = new URL(CONFIG.baseUrl).hostname.endsWith(".ngrok-free.dev")
+    ? { "ngrok-skip-browser-warning": "true" }
+    : {};
+
   // ── API helpers ───────────────────────────────────────────────────────────
   async function api(path, { method = "GET", body = null, auth = false } = {}) {
-    const headers = { "Content-Type": "application/json" };
+    const headers = { "Content-Type": "application/json", ...tunnelHeaders };
     if (auth && state.access) headers.Authorization = `Bearer ${state.access}`;
     const res = await fetch(`${CONFIG.baseUrl}${path}`, {
       method,
@@ -142,7 +146,7 @@
     try {
       const res = await fetch(`${CONFIG.baseUrl}/api/user/token/refresh/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...tunnelHeaders },
         body: JSON.stringify({ refresh: state.refresh }),
       });
       const data = await res.json().catch(() => ({}));

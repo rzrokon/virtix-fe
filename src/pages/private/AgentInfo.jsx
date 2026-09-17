@@ -170,13 +170,13 @@ export default function AgentSettings() {
     ? `<!--Start of Virtix AI Script-->
 <script>
   window.VirtixWidget = {
-    baseUrl: "https://api.virtixai.com",
+    baseUrl: "${import.meta.env.VITE_BASE_URL.replace(/\/$/, '')}",
     agent: "${agentName}",
     widgetKey: "${widgetKey}",
     position: "right" // right|left
   };
 </script>
-<script async src="https://virtixai.com/widget/v1/virtix-widget.js"></script>
+<script async src="${(import.meta.env.VITE_FRONTEND_URL || window.location.origin).replace(/\/$/, '')}/widget/v1/virtix-widget.js"></script>
 <!--End of Virtix AI Script-->`
     : '// widget_key not available yet';
 

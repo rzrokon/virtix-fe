@@ -69,7 +69,7 @@ const buildSnippet = ({ agentName, widgetKey, position, theme, content, quickRep
   return `<!--Start of Vertix AI Script-->
 <script>
   window.VirtixWidget = {
-    baseUrl:   "https://api.virtixai.com",
+    baseUrl:   "${import.meta.env.VITE_BASE_URL.replace(/\/$/, '')}",
     agent:     "${agentName || 'your-agent-name'}",
     widgetKey: "${widgetKey || 'your-widget-key'}",
     position:  "${position}",
@@ -98,7 +98,7 @@ const buildSnippet = ({ agentName, widgetKey, position, theme, content, quickRep
     },${qr}
   };
 </script>
-<script async src="https://virtixai.com/widget/v1/virtix-widget.js"></script>
+<script async src="${(import.meta.env.VITE_FRONTEND_URL || window.location.origin).replace(/\/$/, '')}/widget/v1/virtix-widget.js"></script>
 <!--End of Vertix AI Script-->`;
 };
 

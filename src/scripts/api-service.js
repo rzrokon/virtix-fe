@@ -3,6 +3,12 @@ import Cookies from 'js-cookie'
 
 const base_url = import.meta.env.VITE_BASE_URL
 
+const apiClient = axios.create({
+  headers: import.meta.env.DEV && import.meta.env.VITE_NGROK_SKIP_BROWSER_WARNING === 'true'
+    ? { 'ngrok-skip-browser-warning': 'true' }
+    : {},
+})
+
 let refreshRequest = null
 
 const clearAuthState = () => {
@@ -31,7 +37,7 @@ const refreshAccessToken = async () => {
   }
 
   if (!refreshRequest) {
-    refreshRequest = axios
+    refreshRequest = apiClient
       .post(`${base_url}api/user/token/refresh/`, { refresh }, { withCredentials: true })
       .then((res) => {
         const data = res?.data
@@ -63,7 +69,7 @@ const requestWithAuth = async (config, options = {}) => {
   const token = Cookies.get('kotha_token')
 
   try {
-    return await axios({
+    return await apiClient({
       ...config,
       url: `${base_url}${config.url}`,
       withCredentials: true,
@@ -242,7 +248,7 @@ export const refreshToken = async () => {
 
 export const refreshTokenWithValue = async (refresh) => {
   try {
-    const res = await axios.post(`${base_url}api/user/token/refresh/`, { refresh }, { withCredentials: true })
+    const res = await apiClient.post(`${base_url}api/user/token/refresh/`, { refresh }, { withCredentials: true })
     const data = res?.data
 
     if (!data?.access) {
