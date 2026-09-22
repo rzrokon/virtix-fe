@@ -12,11 +12,11 @@ function Home() {
   return (
     <>
       <Hero />
+      <Integrations />
       <ProblemSolution />
       <ExploreAgents />
       <ActionBlocks />
       <HowItWorks />
-      <Integrations />
       <ExplorePublic />
       <Pricing />
       <CTA />

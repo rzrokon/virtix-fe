@@ -1020,7 +1020,7 @@ export default function Dashboard() {
                     Create your first agent
                   </Button>
                   <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                    {['Give the agent a name and heading', 'Add knowledge so it can answer questions', 'Connect a channel like website widget or WhatsApp'].map((step, i) => (
+                    {['Give the agent a name and heading', 'Add knowledge so it can answer questions', 'Install your website widget or connect Facebook or Instagram'].map((step, i) => (
                       <div key={i} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                         <div className="mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#6200FF] text-xs font-bold text-white">{i + 1}</div>
                         <p className="text-sm text-slate-700">{step}</p>

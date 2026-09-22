@@ -11,10 +11,10 @@ const CTA = () => {
           <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-4 max-w-2xl">
               <h2 className="text-3xl md:text-5xl leading-[120%] font-extrabold">
-                Turn store conversations into more sales
+                Put your WooCommerce or custom store to work with AI
               </h2>
               <p className="text-base md:text-lg leading-[160%] text-white/80 font-semibold">
-                Answer product questions faster, support customers 24/7, and recover lost revenue with Virtix AI.
+                Give shoppers the answers they need to buy. Start with your catalog and build an assistant that knows your products and business.
               </p>
             </div>
 

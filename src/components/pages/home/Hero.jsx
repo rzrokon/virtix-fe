@@ -16,15 +16,15 @@ const Hero = () => {
           <div className="flex-2 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E6E6] bg-[#F8F7FF] px-4 py-1.5 text-sm font-semibold text-[#6200FF]">
               <span className="h-2 w-2 rounded-full bg-[#6200FF] animate-pulse" />
-              Built for Shopify, WooCommerce &amp; Custom eCommerce stores
+              Now available for WooCommerce &amp; custom commerce
             </div>
 
             <h1 className="text-5xl leading-[120%] text-[#0C0900] font-bold">
-              AI Sales &amp; Support Agent for Shopify &amp; WooCommerce Stores
+              AI Sales &amp; Support for WooCommerce &amp; Custom Stores
             </h1>
 
             <p className="font-normal text-xl leading-relaxed text-gray-600 max-w-xl">
-              Virtix AI helps Shopify, WooCommerce, and Custom eCommerce stores answer product questions, recommend products, track orders, and support customers 24/7.
+              Turn product questions into confident purchases. Connect your WooCommerce store or add your own catalog to help shoppers find products, check orders, and get support 24/7.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -44,7 +44,7 @@ const Hero = () => {
             </div>
 
             <p className="text-sm text-gray-400">
-              No credit card required · Setup in under 5 minutes
+              Start free · No credit card required
             </p>
 
             <div className="pt-2">

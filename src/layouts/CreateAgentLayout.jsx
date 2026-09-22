@@ -43,9 +43,15 @@ export default function CreateAgentLayout() {
       return;
     }
 
+    const created = response?.data;
+    if (!created?.id || !response?.status || response.status >= 300) {
+      message.error('Could not create agent. Please try again.');
+      return;
+    }
     message.success('Agent created successfully!');
     refreshAgents();
     handleModalClose();
+    navigate(`/${created.id}/agent-dashboard`);
   };
 
 

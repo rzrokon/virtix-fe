@@ -5,7 +5,7 @@ const HowItWorks = () => {
     {
       number: '01',
       title: 'Connect your store',
-      description: 'Import products and business knowledge from Shopify or WooCommerce.',
+      description: 'Sync your WooCommerce catalog, or add products manually and import a CSV for your custom store.',
       Icon: Store,
     },
     {
@@ -17,7 +17,7 @@ const HowItWorks = () => {
     {
       number: '03',
       title: 'Start assisting shoppers',
-      description: 'Answer questions, recommend products, and support customers automatically.',
+      description: 'Add the website widget to answer questions, recommend products, and help customers with order updates.',
       Icon: Bot,
     },
   ];
@@ -28,10 +28,10 @@ const HowItWorks = () => {
         <div className="mx-auto max-w-3xl space-y-3 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200ff]">How it works</p>
           <h2 className="text-4xl font-bold leading-[120%] text-[#0C0900] md:text-5xl">
-            Launch your AI store assistant in minutes
+            From your catalog to customer conversations
           </h2>
           <p className="text-base leading-[160%] text-[#0C0900]/70">
-            Connect your store knowledge, shape the assistant, and let it start helping shoppers right away.
+            Bring in your products, add your business knowledge, and place the assistant on your website.
           </p>
         </div>
 

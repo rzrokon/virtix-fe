@@ -1,5 +1,5 @@
 import { Button } from 'antd';
-import { ArrowRight, BriefcaseBusiness, Headphones, PackageCheck, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Headphones, PackageCheck, ShoppingCart } from 'lucide-react';
 
 export default function ExplorePublic() {
   const agents = [
@@ -11,15 +11,6 @@ export default function ExplorePublic() {
       backgroundColor: '#F1E7FF',
       iconColor: '#7F54B3',
       link: 'https://demo1.virtixai.xyz/'
-    },
-    {
-      title: 'Shopify Store Agent',
-      description: 'Guide Shopify customers with instant answers about availability, variants, delivery, and product fit.',
-      Icon: ShoppingBag,
-      accentIcon: ArrowRight,
-      backgroundColor: '#ECF7DA',
-      iconColor: '#95BF47',
-      link: 'https://urbanthread-6591.myshopify.com/',
     },
     {
       title: 'Customer Support Agent',
@@ -41,11 +32,11 @@ export default function ExplorePublic() {
             See Virtix AI in action
           </h2>
           <p className="font-normal text-base leading-[160%] text-[#0C0900]">
-            Try store-focused demo agents and see how Virtix AI answers questions, recommends products, and supports customers.
+            Explore our WooCommerce and customer support demos to see product answers, recommendations, and helpful conversations in action.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-5xl mx-auto">
           {agents.map((agent, index) => (
             <div
               key={index}

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import AgentLaunchGuide from '../components/onboarding/AgentLaunchGuide';
 import PrivateHeader from '../components/common/privateLayout/PrivateHeader';
 import { useContentApi } from '../contexts/ContentApiContext';
 import { getAgentById, getData, postData } from '../scripts/api-service';
@@ -254,7 +255,8 @@ const fetchAgent = async () => {
         return looksLikeHtml ? 'Build request failed' : val;
       };
 
-      if (data?.ok || data?.detail || (res?.status && res.status >= 200 && res.status < 300)) {
+      if (!res?.error && res?.status >= 200 && res?.status < 300) {
+        window.dispatchEvent(new Event("virtix-agent-setup-updated"));
         setIndexProgress(100);
         setPendingCount(0);
         setBuildState(BUILD_STATES.COMPLETED);
@@ -265,11 +267,8 @@ const fetchAgent = async () => {
         message.error(errMsg);
         setBuildState(BUILD_STATES.FAILED);
       } else {
-        setIndexProgress(100);
-        setPendingCount(0);
-        setBuildState(BUILD_STATES.COMPLETED);
-        setTimeout(() => setIndexModalOpen(false), 400);
-        setTimeout(() => setBuildState(BUILD_STATES.UP_TO_DATE), 2800);
+        message.error('Build did not complete. Please try again.');
+        setBuildState(BUILD_STATES.FAILED);
       }
     } catch {
       message.error('Failed to build AI knowledge');
@@ -281,7 +280,6 @@ const fetchAgent = async () => {
     }
   };
 
-  const indexLabel = indexFresh ? 'Index with fresh=true' : 'Index without fresh';
 
   const knowledgeChildren = [
     {
@@ -524,6 +522,7 @@ const fetchAgent = async () => {
             }}
           >
             <div className="private-layout__content-inner">
+              <AgentLaunchGuide key={id} agentName={agent?.id === Number(id) ? agent.agent_name : null} agentId={id} onBuild={() => setIndexModalOpen(true)} />
               <Outlet />
             </div>
           </Content>

@@ -211,17 +211,17 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                 <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#0C0900]/40">Works with</p>
                 <div className="grid grid-cols-2 gap-2.5">
                   {[
-                    { label: 'Shopify', soon: true },
                     { label: 'WooCommerce' },
-                    { label: 'Custom eCommerce' },
+                    { label: 'Custom Commerce' },
                     { label: 'Messenger' },
                     { label: 'Instagram' },
                     { label: 'Website Widget' },
+                    { label: 'Shopify', soon: true },
                   ].map(({ label, soon }) => (
                     <div key={label} className="flex items-center gap-2 rounded-xl bg-[#f8f6ff] px-3 py-2">
-                      <Check size={13} className="text-[#6200FF] shrink-0" />
+                      <Check size={13} className={`shrink-0 ${soon ? 'invisible' : 'text-[#6200FF]'}`} />
                       <span className="text-sm font-medium text-[#0C0900]">{label}</span>
-                      {soon && <span className="ml-auto inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Soon</span>}
+                      {soon && <span className="ml-auto inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Coming soon</span>}
                     </div>
                   ))}
                 </div>
@@ -431,9 +431,9 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                 {/* Commerce */}
                 <SectionLabel popular={popular}>Commerce</SectionLabel>
                 <div className="space-y-2">
-                  <FeatureRow label="Custom eCommerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
+                  <FeatureRow label="Custom Commerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
                   <FeatureRow label="WooCommerce" enabled={toBool(plan.woocommerce)} popular={popular} />
-                  <FeatureRow label={<span className="flex items-center gap-1.5">Shopify <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Soon</span></span>} enabled={false} popular={popular} />
+                  <FeatureRow label={<span className="flex items-center gap-1.5">Shopify <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Coming soon</span></span>} enabled={false} popular={popular} />
                   <FeatureRow label="Product Recommendations" enabled={toBool(plan.product_recommendations)} popular={popular} />
                   <FeatureRow label="Order Processing" enabled={toBool(plan.order_processing)} popular={popular} />
                   <FeatureRow label="Order Tracking" enabled={toBool(plan.order_tracking)} popular={popular} />

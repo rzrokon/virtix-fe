@@ -153,6 +153,7 @@ export default function AgentSettings() {
       }
 
       message.success('Agent settings updated!');
+      window.dispatchEvent(new Event('virtix-agent-setup-updated'));
       await fetchAgent();
     } catch (e) {
       console.error('[AgentSettings] update error', e);
