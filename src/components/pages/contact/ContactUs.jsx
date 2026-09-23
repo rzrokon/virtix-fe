@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Button, Col, Form, Input, Row, message } from 'antd';
 import { Mail, Phone } from 'lucide-react';
 import { postData } from '../../../scripts/api-service';
@@ -6,6 +7,7 @@ const { TextArea } = Input;
 
 export default function ContactUs() {
   const [form] = Form.useForm();
+  const formStartedAt = useRef(Date.now());
 
   const onFinish = async (values) => {
     try {
@@ -23,6 +25,8 @@ export default function ContactUs() {
         company: company,
         industry: industry,
         message: helpMessage,
+        website: values['Website'] || '',
+        form_started_at: formStartedAt.current,
       };
 
       const res = await postData('api/support/contact/submit/', payload, false);
@@ -30,6 +34,7 @@ export default function ContactUs() {
       if (res?.data?.ok) {
         message.success(`Thanks! You request ID: ${res?.data?.id}`);
         form.resetFields();
+        formStartedAt.current = Date.now();
       } else if (res?.error) {
         const errors = res?.errors;
         const msg = errors ? (Array.isArray(errors) ? errors.join(', ') : Object.values(errors).flat().join(', ')) : 'Submission failed.';
@@ -95,6 +100,9 @@ export default function ContactUs() {
             name="control-hooks"
             onFinish={onFinish}
           >
+            <Form.Item name="Website" className="hidden" aria-hidden="true">
+              <Input tabIndex={-1} autoComplete="off" />
+            </Form.Item>
             <Row gutter={[16, 6]}>
               <Col xs={24} md={12}>
                 <Form.Item name="Name" label="Name" rules={[{ required: true }]}>
@@ -129,7 +137,7 @@ export default function ContactUs() {
                   label="How can we help?"
                   rules={[
                     { required: true, message: 'Please share what you need help with.' },
-                    { min: 6, message: 'Please add a bit more detail.' },
+                    { min: 12, message: 'Please add a bit more detail.' },
                   ]}
                 >
                   <TextArea
