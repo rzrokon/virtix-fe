@@ -24,7 +24,7 @@ import {
 } from 'antd';
 import { Paperclip, Send, X, Lock } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { getData, postData } from '../../scripts/api-service';
 import { useContentApi } from '../../contexts/ContentApiContext';
 import { GET_MY_SUBSCRIPTION } from '../../scripts/api';
@@ -140,6 +140,8 @@ export default function AgentSettings() {
   const [draggedItem, setDraggedItem] = useState(null);
   const [previewMode, setPreviewMode] = useState('widget');
   const [showHumanHandover, setShowHumanHandover] = useState(false);
+  const [commerceMode, setCommerceMode] = useState(null);
+  const [commerceModeLoaded, setCommerceModeLoaded] = useState(false);
   const codeRef = useRef(null);
 
   const setThemeKey   = (k, v) => setTheme(p => ({ ...p, [k]: v }));
@@ -206,6 +208,20 @@ export default function AgentSettings() {
       catch { setWidgetKey(''); }
     })();
   }, [id]);
+
+  useEffect(() => {
+    if (!currentAgentName) return;
+    (async () => {
+      try {
+        const features = await getData(`api/agent/${currentAgentName}/features/`);
+        setCommerceMode(features?.ecommerce_mode || 'NONE');
+      } catch {
+        setCommerceMode('NONE');
+      } finally {
+        setCommerceModeLoaded(true);
+      }
+    })();
+  }, [currentAgentName]);
 
   // Fetch subscription to determine plan
   useEffect(() => {
@@ -452,6 +468,10 @@ export default function AgentSettings() {
       ),
     },
   ];
+
+  if (commerceModeLoaded && commerceMode === 'SHOPIFY') {
+    return <Navigate replace to={`/${id}/agent-dashboard/shopify`} />;
+  }
 
   return (
     <div className="space-y-6">

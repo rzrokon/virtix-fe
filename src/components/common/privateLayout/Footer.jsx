@@ -1,6 +1,7 @@
 import { FacebookFilled, InstagramFilled, LinkedinFilled, XOutlined, YoutubeFilled } from "@ant-design/icons";
 import { Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ASK_BUY_SHOPIFY_URL } from "../../../constants/askBuy";
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
@@ -102,6 +103,7 @@ const Footer = () => {
               <Link to="/refund-policy" className="block text-white/70 hover:text-white">Refund Policy</Link>
               <Link to="/help-center" className="block text-white/70 hover:text-white">Help Center</Link>
               <Link to="/partners" className="block text-white/70 hover:text-white">Become a Partner</Link>
+              <a href={ASK_BUY_SHOPIFY_URL} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white">Ask &amp; Buy for Shopify</a>
             </div>
           </div>
 

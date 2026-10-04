@@ -28,6 +28,7 @@ export default function AgentSettings() {
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [commerceMode, setCommerceMode] = useState('NONE');
 
   const fetchAgent = async () => {
     if (!id) return;
@@ -36,6 +37,11 @@ export default function AgentSettings() {
     try {
       const data = await getData(`api/agent/agents/${id}/`);
       setAgent(data);
+
+      if (data?.agent_name) {
+        const features = await getData(`api/agent/${data.agent_name}/features/`).catch(() => null);
+        setCommerceMode(features?.ecommerce_mode || 'NONE');
+      }
 
       form.setFieldsValue({
         // identity
@@ -166,6 +172,7 @@ export default function AgentSettings() {
   const widgetKey = watchedWidgetKey || agent?.widget_key || '';
   const widgetEnabled = !!agent?.widget_enabled;
   const agentName = agent?.agent_name || form.getFieldValue('agent_name') || 'kotha';
+  const isShopifyAgent = commerceMode === 'SHOPIFY';
 
   const widgetSnippet = widgetKey
     ? `<!--Start of Virtix AI Script-->
@@ -301,25 +308,43 @@ export default function AgentSettings() {
             />
           </Form.Item>
 
-          <div className="border border-gray-200 rounded-2xl p-4 bg-white mt-8">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="text-sm font-semibold text-gray-900">Widget Embed Snippet</div>
-              <Button
-                size="small"
-                icon={<CopyOutlined />}
-                onClick={() => copyToClipboard(widgetSnippet)}
-                disabled={!widgetKey}
+          {isShopifyAgent ? (
+            <div className="border border-[#6200FF]/20 rounded-2xl p-4 bg-[#6200FF]/5 mt-8">
+              <div className="text-sm font-semibold text-gray-900">Shopify storefront installation</div>
+              <p className="mt-2 text-sm text-gray-600">
+                Shopify stores use the Virtix theme app embed. No theme code editing or script copying is required.
+              </p>
+              <a
+                href={`/${id}/agent-dashboard/shopify`}
+                className="mt-3 inline-flex text-sm font-semibold text-[#6200FF] hover:underline"
               >
-                Copy
-              </Button>
+                Open Shopify setup
+              </a>
+              <div className="text-xs text-gray-500 mt-3">
+                Status: <b>{widgetEnabled ? 'Enabled' : 'Disabled'}</b>
+              </div>
             </div>
-            <pre className="text-xs text-gray-600 whitespace-pre-wrap break-words">
-              {widgetSnippet}
-            </pre>
-            <div className="text-xs text-gray-500 mt-2">
-              Status: <b>{widgetEnabled ? 'Enabled' : 'Disabled'}</b>
+          ) : (
+            <div className="border border-gray-200 rounded-2xl p-4 bg-white mt-8">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="text-sm font-semibold text-gray-900">Widget Embed Snippet</div>
+                <Button
+                  size="small"
+                  icon={<CopyOutlined />}
+                  onClick={() => copyToClipboard(widgetSnippet)}
+                  disabled={!widgetKey}
+                >
+                  Copy
+                </Button>
+              </div>
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap break-words">
+                {widgetSnippet}
+              </pre>
+              <div className="text-xs text-gray-500 mt-2">
+                Status: <b>{widgetEnabled ? 'Enabled' : 'Disabled'}</b>
+              </div>
             </div>
-          </div>
+          )}
 
           <Divider />
 

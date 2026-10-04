@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserMenu from './UserMenu';
+import { ASK_BUY_SHOPIFY_URL } from '../../../constants/askBuy';
 
 const Header = () => {
   const token = Cookies.get('kotha_token')
@@ -59,12 +60,14 @@ const Header = () => {
               Contact
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link
-              to="/shopify"
+            <a
+              href={ASK_BUY_SHOPIFY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-3 py-1.5 text-sm font-semibold text-[#6200FF] border border-[#6200FF]/30 rounded-full hover:bg-[#6200FF]/5 transition-colors duration-200"
             >
-              Shopify Early Access
-            </Link>
+              Ask &amp; Buy for Shopify
+            </a>
           </nav>
 
           {/* Right side actions */}
@@ -124,12 +127,14 @@ const Header = () => {
               >
                 Contact
               </Link>
-              <Link
-                to="/shopify"
+              <a
+                href={ASK_BUY_SHOPIFY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block px-3 py-2 text-base font-semibold text-[#6200FF] hover:bg-[#6200FF]/5 rounded-lg transition-colors duration-200"
               >
-                Shopify Early Access
-              </Link>
+                Ask &amp; Buy for Shopify
+              </a>
             </div>
           </div>
         )}

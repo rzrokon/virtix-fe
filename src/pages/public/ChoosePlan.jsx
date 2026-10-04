@@ -230,7 +230,6 @@ export default function ChoosePlan() {
               toBool(plan.wordpress_data) ? 'WordPress Data' : null,
               toBool(plan.internal_commerce) ? 'Custom eCommerce' : null,
               toBool(plan.woocommerce) ? 'WooCommerce' : null,
-              toBool(plan.shopify) ? 'Shopify' : null,
               toBool(plan.product_recommendations) ? 'Product Recommendations' : null,
               toBool(plan.order_processing) ? 'Order Processing' : null,
               toBool(plan.order_tracking) ? 'Order Tracking' : null,

@@ -553,11 +553,12 @@ export default function ShopifyIntegration() {
         }
       >
         <div className="space-y-4" style={{ maxWidth: 820 }}>
-          {!isConnected ? (
-            <Input
-              placeholder="Store URL (example: mystore.myshopify.com or mystore)"
-              value={shopDomain}
-              onChange={(e) => setShopDomain(e.target.value)}
+          {!isConnected && !canInstall ? (
+            <Alert
+              type="info"
+              showIcon
+              message="Open Virtix AI from Shopify Admin"
+              description="Shopify securely supplies your store identity during installation. You never need to enter a store domain manually."
             />
           ) : null}
 
@@ -596,8 +597,8 @@ export default function ShopifyIntegration() {
 
           <div className="text-gray-500">
             <ul className="list-disc ml-5 space-y-1">
-              <li>Enter your Shopify store domain, for example <b>mystore.myshopify.com</b>.</li>
-              <li>Sign in to Shopify and approve the Virtix app installation.</li>
+              <li>Install or open Virtix AI from Shopify Admin.</li>
+              <li>Shopify securely identifies your store and completes authorization.</li>
               <li>After approval, you will return here with the store connected.</li>
               <li>Shopify-connected accounts are billed through Shopify.</li>
             </ul>
@@ -609,7 +610,7 @@ export default function ShopifyIntegration() {
         <Card title="Storefront Chat Widget">
           <div className="space-y-3" style={{ maxWidth: 820 }}>
             <Text>
-              Add Virtix to your storefront through Shopify's Theme Editor. No theme code changes are required.
+              Add Virtix through Shopify&apos;s Theme Editor app embed. No theme code changes, script copying, or manual installation are required.
             </Text>
             <div className="flex items-center gap-3 flex-wrap">
               <Button type="primary" onClick={() => window.location.assign(themeEditorUrl)} disabled={!themeEditorUrl}>

@@ -319,7 +319,7 @@ const fetchAgent = async () => {
   ].filter(Boolean);
 
   const integrationsChildren = [
-    !planCaps || toBool(planCaps.website_widget)
+    ecommerceMode !== 'SHOPIFY' && (!planCaps || toBool(planCaps.website_widget))
       ? { key: 'chat-widget', label: <Link to={`/${id}/agent-dashboard/chat-widget`}>Website Widget</Link> }
       : null,
     !planCaps || toBool(planCaps.messenger)

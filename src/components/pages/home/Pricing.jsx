@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GET_BILLING_PLANS } from '../../../scripts/api';
 import { getData } from '../../../scripts/api-service';
+import { ASK_BUY_SHOPIFY_URL } from '../../../constants/askBuy';
 
 const toBool = (v) => v === true || v === 'true' || v === 1;
 
@@ -216,11 +217,15 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                     { label: 'Messenger' },
                     { label: 'Instagram' },
                     { label: 'Website Widget' },
-                    { label: 'Shopify', soon: true },
-                  ].map(({ label, soon }) => (
+                    { label: 'Shopify: Ask & Buy', externalUrl: ASK_BUY_SHOPIFY_URL },
+                  ].map(({ label, soon, externalUrl }) => (
                     <div key={label} className="flex items-center gap-2 rounded-xl bg-[#f8f6ff] px-3 py-2">
-                      <Check size={13} className={`shrink-0 ${soon ? 'invisible' : 'text-[#6200FF]'}`} />
-                      <span className="text-sm font-medium text-[#0C0900]">{label}</span>
+                      <Check size={13} className="shrink-0 text-[#6200FF]" />
+                      {externalUrl ? (
+                        <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-[#6200FF] hover:underline">{label}</a>
+                      ) : (
+                        <span className="text-sm font-medium text-[#0C0900]">{label}</span>
+                      )}
                       {soon && <span className="ml-auto inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Coming soon</span>}
                     </div>
                   ))}
@@ -433,7 +438,10 @@ const Pricing = ({ plans: plansProp, loading: loadingProp, showValueSection = tr
                 <div className="space-y-2">
                   <FeatureRow label="Custom Commerce" enabled={toBool(plan.internal_commerce)} popular={popular} />
                   <FeatureRow label="WooCommerce" enabled={toBool(plan.woocommerce)} popular={popular} />
-                  <FeatureRow label={<span className="flex items-center gap-1.5">Shopify <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">Coming soon</span></span>} enabled={false} popular={popular} />
+                  <a href={ASK_BUY_SHOPIFY_URL} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-sm font-medium hover:underline ${popular ? 'text-[#62F5A8]' : 'text-[#6200FF]'}`}>
+                    <Check size={14} className="shrink-0" />
+                    Shopify merchants: Install Ask &amp; Buy
+                  </a>
                   <FeatureRow label="Product Recommendations" enabled={toBool(plan.product_recommendations)} popular={popular} />
                   <FeatureRow label="Order Processing" enabled={toBool(plan.order_processing)} popular={popular} />
                   <FeatureRow label="Order Tracking" enabled={toBool(plan.order_tracking)} popular={popular} />

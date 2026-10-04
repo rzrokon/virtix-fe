@@ -1,5 +1,6 @@
 import { Spin } from 'antd';
 import { Check, Minus } from 'lucide-react';
+import { ASK_BUY_SHOPIFY_URL } from '../../../constants/askBuy';
 
 const toBool = (v) => v === true || v === 'true' || v === 1;
 
@@ -55,7 +56,6 @@ const SECTIONS = [
     rows: [
       { label: 'Custom eCommerce',         render: (p) => toBool(p.internal_commerce) },
       { label: 'WooCommerce',             render: (p) => toBool(p.woocommerce) },
-      { label: 'Shopify', soon: true,      render: () => false },
       { label: 'Product Recommendations', render: (p) => toBool(p.product_recommendations) },
       { label: 'Order Processing',        render: (p) => toBool(p.order_processing) },
       { label: 'Order Tracking',          render: (p) => toBool(p.order_tracking) },
@@ -192,6 +192,14 @@ export default function ComparePlans({ plans = [], loading = false }) {
         </div>
 
         <p className="text-center text-sm text-gray-400 mt-6">
+          Using Shopify?{' '}
+          <a href={ASK_BUY_SHOPIFY_URL} target="_blank" rel="noopener noreferrer" className="text-[#6200FF] hover:underline font-medium">
+            Install Ask &amp; Buy
+          </a>
+          , our Shopify-native AI sales assistant.
+        </p>
+
+        <p className="text-center text-sm text-gray-400 mt-3">
           Need something custom?{' '}
           <a href="/contact" className="text-[#6200FF] hover:underline font-medium">
             Talk to us

@@ -1,5 +1,6 @@
 import { ArrowRight, Database, Facebook, Globe, Instagram, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ASK_BUY_SHOPIFY_URL } from '../../../constants/askBuy';
 
 const stores = [
   {
@@ -16,6 +17,15 @@ const stores = [
     color: 'text-[#6200ff]',
     bg: 'bg-[#6200ff]/10',
   },
+  {
+    name: 'Shopify with Ask & Buy',
+    description: 'Install our Shopify-native AI sales assistant to recommend products, answer store questions, and guide shoppers from conversation to checkout.',
+    Icon: ShoppingBag,
+    color: 'text-[#70952E]',
+    bg: 'bg-[#70952E]/10',
+    externalUrl: ASK_BUY_SHOPIFY_URL,
+    cta: 'Install Ask & Buy',
+  },
 ];
 
 const Integrations = () => (
@@ -24,14 +34,14 @@ const Integrations = () => (
       <div className="mx-auto max-w-3xl space-y-3 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#6200ff]">Available now</p>
         <h2 className="text-4xl font-bold leading-[120%] text-[#0C0900] md:text-5xl">
-          Two ways to bring AI to your store
+          AI assistance for every storefront
         </h2>
         <p className="text-base leading-[160%] text-[#0C0900]/70">
-          Connect WooCommerce or bring your own catalog. Start with the setup that fits your business.
+          Use Virtix AI for WooCommerce and custom commerce, or install Ask &amp; Buy for Shopify.
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-3">
         {stores.map((store) => (
           <div key={store.name} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
             <div className="flex flex-wrap items-center gap-3">
@@ -42,9 +52,15 @@ const Integrations = () => (
               <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Available now</span>
             </div>
             <p className="mt-5 text-base leading-relaxed text-[#0C0900]/70">{store.description}</p>
-            <Link to="/signup" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#6200ff] hover:underline">
-              Get started <ArrowRight size={16} />
-            </Link>
+            {store.externalUrl ? (
+              <a href={store.externalUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#6200ff] hover:underline">
+                {store.cta} <ArrowRight size={16} />
+              </a>
+            ) : (
+              <Link to="/signup" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#6200ff] hover:underline">
+                Get started <ArrowRight size={16} />
+              </Link>
+            )}
           </div>
         ))}
       </div>
@@ -62,18 +78,6 @@ const Integrations = () => (
         ))}
       </div>
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <ShoppingBag size={22} className="mt-1 shrink-0 text-[#70952E]" />
-          <div>
-            <p className="font-semibold text-[#0C0900]">Shopify is coming soon</p>
-            <p className="mt-1 text-sm leading-relaxed text-[#0C0900]/70">Join the early access list to hear when Shopify becomes available.</p>
-          </div>
-        </div>
-        <Link to="/shopify" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[#6200ff] hover:underline">
-          Join Shopify early access <ArrowRight size={16} />
-        </Link>
-      </div>
     </div>
   </section>
 );
