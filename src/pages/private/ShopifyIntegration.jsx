@@ -545,7 +545,7 @@ export default function ShopifyIntegration() {
         extra={
           isConnected ? (
             <Tag color="green">ACTIVE</Tag>
-          ) : needsReconnect ? (
+          ) : needsReconnect && hasHistoricalConnection ? (
             <Tag color="gold">RECONNECT REQUIRED</Tag>
           ) : (
             <Tag color="orange">NOT CONNECTED</Tag>
@@ -574,13 +574,16 @@ export default function ShopifyIntegration() {
               </Button>
             ) : null}
 
-            <Button onClick={isConnected ? refreshConnection : loadSource} disabled={!agentName}>
-              Refresh Connection
-            </Button>
-
-            <Button onClick={reconcileBilling} loading={loadingReconcile} disabled={!agentName || !source?.shop_domain}>
-              Refresh Billing
-            </Button>
+            {isConnected ? (
+              <>
+                <Button onClick={refreshConnection} disabled={!agentName}>
+                  Refresh Connection
+                </Button>
+                <Button onClick={reconcileBilling} loading={loadingReconcile} disabled={!agentName || !source?.shop_domain}>
+                  Refresh Billing
+                </Button>
+              </>
+            ) : null}
 
             {isConnected ? (
               <Button
@@ -752,6 +755,7 @@ export default function ShopifyIntegration() {
         </div>
       </Card>
 
+      {isConnected ? (
       <Card title="Sync Products">
         <div className="space-y-3" style={{ maxWidth: 900 }}>
           <div className="flex flex-wrap items-center gap-4">
@@ -791,7 +795,9 @@ export default function ShopifyIntegration() {
           </div>
         </div>
       </Card>
+      ) : null}
 
+      {hasHistoricalConnection ? (
       <Card title="Store Details">
         {source ? (
           <div className="space-y-3">
@@ -893,7 +899,9 @@ export default function ShopifyIntegration() {
           </div>
         )}
       </Card>
+      ) : null}
 
+      {isConnected ? (
       <Card
         title="Indexed Shopify Products"
         extra={
@@ -1015,6 +1023,7 @@ export default function ShopifyIntegration() {
           </div>
         )}
       </Card>
+      ) : null}
     </div>
   );
 }
