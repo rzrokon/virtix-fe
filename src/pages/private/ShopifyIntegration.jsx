@@ -69,6 +69,10 @@ function normalizeShopDomain(value) {
   return v;
 }
 
+function isValidShopDomain(value) {
+  return /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(normalizeShopDomain(value));
+}
+
 function formatShortDate(value) {
   if (!value) return "—";
   try {
@@ -335,13 +339,13 @@ export default function ShopifyIntegration() {
   }, [agentName, isConnected, loadProducts]);
 
   const canInstall = useMemo(() => {
-    return !!normalizeShopDomain(shopDomain) && !!agentName && !isConnected;
+    return isValidShopDomain(shopDomain) && !!agentName && !isConnected;
   }, [shopDomain, agentName, isConnected]);
 
   const startInstall = async () => {
     const normalizedShop = normalizeShopDomain(shopDomain);
-    if (!normalizedShop) {
-      messageApi.warning("Please enter a valid Shopify shop domain.");
+    if (!isValidShopDomain(shopDomain)) {
+      messageApi.warning("Enter a valid store URL such as your-store.myshopify.com.");
       return;
     }
 
@@ -553,25 +557,35 @@ export default function ShopifyIntegration() {
         }
       >
         <div className="space-y-4" style={{ maxWidth: 820 }}>
-          {!isConnected && !canInstall ? (
+          {!isConnected ? (
             <Alert
               type="info"
               showIcon
-              message="Open Virtix AI from Shopify Admin"
-              description="Shopify securely supplies your store identity during installation. You never need to enter a store domain manually."
+              message="Enter your Shopify store URL"
+              description="Use the permanent .myshopify.com address shown in Shopify Admin under Settings → Domains. You will be redirected to Shopify to approve the secure connection."
             />
           ) : null}
 
           <div className="flex items-center gap-3 flex-wrap">
             {!isConnected ? (
-              <Button
-                type="primary"
-                onClick={startInstall}
-                loading={loadingInstall}
-                disabled={!canInstall}
-              >
-                {needsReconnect ? "Connect Shopify Again" : "Connect Shopify"}
-              </Button>
+              <>
+                <Input
+                  aria-label="Shopify store URL"
+                  placeholder="your-store.myshopify.com"
+                  value={shopDomain}
+                  onChange={(event) => setShopDomain(event.target.value)}
+                  onPressEnter={() => { if (canInstall) startInstall(); }}
+                  style={{ width: 360, maxWidth: "100%" }}
+                />
+                <Button
+                  type="primary"
+                  onClick={startInstall}
+                  loading={loadingInstall}
+                  disabled={!canInstall}
+                >
+                  {needsReconnect && hasHistoricalConnection ? "Connect Shopify Again" : "Connect Shopify Store"}
+                </Button>
+              </>
             ) : null}
 
             {isConnected ? (
@@ -600,8 +614,8 @@ export default function ShopifyIntegration() {
 
           <div className="text-gray-500">
             <ul className="list-disc ml-5 space-y-1">
-              <li>Install or open Virtix AI from Shopify Admin.</li>
-              <li>Shopify securely identifies your store and completes authorization.</li>
+              <li>Enter your store&apos;s permanent <strong>.myshopify.com</strong> URL.</li>
+              <li>Shopify will ask you to install or authorize Virtix AI.</li>
               <li>After approval, you will return here with the store connected.</li>
               <li>Shopify-connected accounts are billed through Shopify.</li>
             </ul>
