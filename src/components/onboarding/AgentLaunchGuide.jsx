@@ -12,6 +12,7 @@ export default function AgentLaunchGuide({ agentName, agentId, onBuild }) {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [stepBusy, setStepBusy] = useState('');
   const [previewError, setPreviewError] = useState('');
   const requestVersion = useRef(0);
   const activeAgent = useRef(agentName);
@@ -76,10 +77,39 @@ export default function AgentLaunchGuide({ agentName, agentId, onBuild }) {
   const dashboard = location.pathname.replace(/\/$/, '') === `/${agentId}/agent-dashboard`;
   const next = status.steps.find((step) => !step.complete);
   const current = status.steps.find((step) => step.path === location.pathname);
+  const syncShopify = async (step) => {
+    setStepBusy(step.id); setError('');
+    try {
+      const result = await postData(
+        `api/integrations/agents/${agentName}/shopify/sync/`,
+        { first: 50, max_pages: 20, mark_missing_inactive: true },
+        false,
+        undefined,
+        undefined,
+        true
+      );
+      if (!result?.status || result.status < 200 || result.status >= 300 || result.error) {
+        throw new Error(result?.errors?.detail || result?.data?.detail || 'Shopify products could not be synced.');
+      }
+      window.dispatchEvent(new CustomEvent('virtix-agent-knowledge-changed'));
+      await load();
+    } catch (err) {
+      setError(err.message || 'Shopify products could not be synced.');
+    } finally {
+      setStepBusy('');
+    }
+  };
   const continueStep = (step) => {
     if (step.action === 'build') onBuild();
+    else if (step.action === 'shopify_sync') syncShopify(step);
     else if (step.action === 'preview') { setPreviewError(''); setPreviewOpen(true); }
     else navigate(step.path);
+  };
+  const stepButtonLabel = (step) => {
+    if (step.complete) return 'Review';
+    if (step.blocked) return 'Complete earlier steps';
+    if (step.action === 'shopify_sync') return 'Sync products';
+    return 'Continue';
   };
   const checklist = (
     <div className="space-y-3">
@@ -90,8 +120,8 @@ export default function AgentLaunchGuide({ agentName, agentId, onBuild }) {
             <p className="font-semibold text-slate-900">{index + 1}. {step.title}</p>
             <p className="mt-1 text-sm text-slate-500">{step.description}</p>
           </div>
-          <Button disabled={step.blocked} type={!step.complete && next?.id === step.id ? 'primary' : 'default'} onClick={() => continueStep(step)}>
-            {step.complete ? 'Review' : step.blocked ? 'Complete earlier steps' : 'Continue'}
+          <Button loading={stepBusy === step.id} disabled={step.blocked || !!stepBusy} type={!step.complete && next?.id === step.id ? 'primary' : 'default'} onClick={() => continueStep(step)}>
+            {stepButtonLabel(step)}
           </Button>
         </div>
       ))}
@@ -114,7 +144,7 @@ export default function AgentLaunchGuide({ agentName, agentId, onBuild }) {
       {error && <Alert className="mt-3" type="warning" message={error} />}
       {status.inactive && <Alert className="mt-3" type="warning" message="Set the agent status to Active in Agent Info before launching." />}
       <Progress className="mt-3" percent={Math.round(status.completed / status.total * 100)} strokeColor="#6200FF" />
-      {!dashboard && next && <div className="mb-3 flex flex-wrap items-center gap-3"><span className="text-sm text-slate-600">{current?.complete ? `${current.title} is saved. Continue your launch setup.` : next.description}</span><Button type="primary" disabled={next.blocked} onClick={() => continueStep(next)}>{next.title}<ArrowRight size={14} /></Button></div>}
+      {!dashboard && next && <div className="mb-3 flex flex-wrap items-center gap-3"><span className="text-sm text-slate-600">{current?.complete ? `${current.title} is saved. Continue your launch setup.` : next.description}</span><Button type="primary" loading={stepBusy === next.id} disabled={next.blocked || !!stepBusy} onClick={() => continueStep(next)}>{next.action === 'shopify_sync' ? 'Sync products' : next.title}<ArrowRight size={14} /></Button></div>}
       {dashboard && !status.live ? checklist : <Collapse ghost items={[{ key: 'setup', label: status.live ? 'Review setup and channels' : 'View launch checklist', children: checklist }]} />}
       <Modal title="Test your agent" open={previewOpen} onCancel={() => { if (!busy) setPreviewOpen(false); }} footer={<Button type="primary" loading={busy} disabled={!status.has_preview || !status.preview_ready} onClick={() => send(true)}>Answers look good — continue</Button>} width={680}>
         <p className="mb-4 text-sm text-slate-500">Try product questions, business policies, and order-support questions. Preview does not create orders, bookings, or complaints. Test messages use your plan's message allowance.</p>

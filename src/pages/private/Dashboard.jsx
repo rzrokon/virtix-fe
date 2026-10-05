@@ -437,6 +437,9 @@ export default function Dashboard() {
       const res  = await postData(`api/agent/${slug}/index/`, { fresh: indexFresh });
       const data = res?.data ?? res;
       const cleanError = (val) => {
+        if (val && typeof val === 'object') {
+          return cleanError(val.detail || val.message || Object.values(val).flat().join(' '));
+        }
         if (typeof val !== 'string') return 'Index request failed';
         return /<[^>]+>/.test(val) ? 'Index request failed' : val;
       };
@@ -535,7 +538,24 @@ export default function Dashboard() {
   ]);
 
   const openCreateAgentModal = () => {
-    window.dispatchEvent(new CustomEvent('open-create-agent'));
+    const shopHandle = (pendingInstall.shop || '').split('.')[0];
+    const shopLabel = shopHandle
+      .split('-')
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+    window.dispatchEvent(new CustomEvent('open-create-agent', {
+      detail: pendingInstall.status === 'oauth_completed' && shopHandle
+        ? {
+            initialValues: {
+              agent_name: shopHandle,
+              agent_heading: `${shopLabel || shopHandle} AI Assistant`,
+              agent_description: `AI sales and support assistant for ${shopLabel || shopHandle}.`,
+            },
+            onCreated: (createdAgent) => attachPendingInstall(createdAgent?.id),
+          }
+        : {},
+    }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

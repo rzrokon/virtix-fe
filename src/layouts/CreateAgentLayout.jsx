@@ -1,6 +1,6 @@
 import { Button, Form, Input, Layout, message, Modal, theme } from 'antd';
 import Cookies from 'js-cookie';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import UserMenu from '../components/common/privateLayout/UserMenu';
 import { useContentApi } from '../contexts/ContentApiContext';
@@ -13,6 +13,7 @@ const { TextArea } = Input;
 export default function CreateAgentLayout() {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
+  const afterCreateRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { refreshAgents } = useContentApi();
@@ -25,6 +26,7 @@ export default function CreateAgentLayout() {
   const handleModalClose = () => {
     setOpen(false);
     form.resetFields();
+    afterCreateRef.current = null;
   };
 
   const handleCreate = async (values) => {
@@ -49,9 +51,14 @@ export default function CreateAgentLayout() {
       return;
     }
     message.success('Agent created successfully!');
-    refreshAgents();
+    await refreshAgents();
+    const afterCreate = afterCreateRef.current;
     handleModalClose();
-    navigate(`/${created.id}/agent-dashboard`);
+    if (afterCreate) {
+      await afterCreate(created);
+    } else {
+      navigate(`/${created.id}/agent-dashboard`);
+    }
   };
 
 
@@ -62,10 +69,15 @@ export default function CreateAgentLayout() {
   }, [location.pathname, token, navigate]);
 
   useEffect(() => {
-    const handleOpenModal = () => setOpen(true);
+    const handleOpenModal = (event) => {
+      const detail = event?.detail || {};
+      afterCreateRef.current = typeof detail.onCreated === 'function' ? detail.onCreated : null;
+      form.setFieldsValue(detail.initialValues || {});
+      setOpen(true);
+    };
     window.addEventListener('open-create-agent', handleOpenModal);
     return () => window.removeEventListener('open-create-agent', handleOpenModal);
-  }, []);
+  }, [form]);
 
   return (
     <div>

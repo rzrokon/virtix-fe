@@ -250,6 +250,9 @@ const fetchAgent = async () => {
       const data = res?.data ?? res;
 
       const cleanError = (val) => {
+        if (val && typeof val === 'object') {
+          return cleanError(val.detail || val.message || Object.values(val).flat().join(' '));
+        }
         if (typeof val !== 'string') return 'Build request failed';
         const looksLikeHtml = /<[^>]+>/.test(val);
         return looksLikeHtml ? 'Build request failed' : val;
