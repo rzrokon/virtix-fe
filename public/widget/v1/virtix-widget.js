@@ -726,6 +726,12 @@
       .product-card-price {
         font-size:12px; font-weight:700; color:var(--c-theme);
       }
+      .product-card-cta {
+        display:block; width:100%; padding:6px 8px; margin-top:4px;
+        text-align:center; background:var(--c-theme); color:#fff;
+        border-radius:var(--br-sm); box-sizing:border-box;
+        font-size:11px; font-weight:600; font-family:var(--font);
+      }
       /* ── Inline links ── */
       .chat-link {
         color:var(--c-theme); text-decoration:underline;
@@ -1055,6 +1061,7 @@
         : `<div class="product-card-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
       const priceHtml = price ? `<div class="product-card-price">${esc(symbol)}${esc(price)}</div>` : "";
       const productUrl = safeExternalUrl(card.url);
+      const actionHtml = productUrl ? `<span class="product-card-cta">View product ↗</span>` : "";
       const openTag = productUrl
         ? `<a class="product-card" href="${esc(productUrl)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(card.title || 'product')} in a new tab">`
         : `<div class="product-card">`;
@@ -1065,6 +1072,7 @@
           <div class="product-card-body">
             <div class="product-card-title">${esc(card.title || '')}</div>
             ${priceHtml}
+            ${actionHtml}
           </div>
         ${closeTag}`;
     }).join("");
