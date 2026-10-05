@@ -121,6 +121,15 @@
     );
   }
 
+  function safeExternalUrl(value) {
+    try {
+      const url = new URL(String(value || ""), window.location.href);
+      return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+    } catch {
+      return "";
+    }
+  }
+
   const tunnelHeaders = new URL(CONFIG.baseUrl).hostname.endsWith(".ngrok-free.dev")
     ? { "ngrok-skip-browser-warning": "true" }
     : {};
@@ -686,6 +695,16 @@
         border:1px solid ${hex2rgba(T.themeColor, 0.2)};
         border-radius:var(--br); overflow:hidden;
         display:flex; flex-direction:column;
+        color:inherit; text-decoration:none;
+      }
+      .product-card[href] { cursor:pointer; transition:transform .15s, border-color .15s, box-shadow .15s; }
+      .product-card[href]:hover {
+        transform:translateY(-2px);
+        border-color:${hex2rgba(T.themeColor, 0.55)};
+        box-shadow:0 6px 16px ${hex2rgba(T.themeColor, 0.16)};
+      }
+      .product-card[href]:focus-visible {
+        outline:2px solid var(--c-theme); outline-offset:2px;
       }
       .product-card-img {
         width:100%; height:110px; object-fit:cover; display:block;
@@ -707,15 +726,6 @@
       .product-card-price {
         font-size:12px; font-weight:700; color:var(--c-theme);
       }
-      .product-card-btn {
-        display:block; width:100%; padding:5px 8px; margin-top:auto;
-        text-align:center; background:var(--c-theme); color:#fff;
-        text-decoration:none; border-radius:var(--br-sm);
-        font-size:11px; font-weight:600; font-family:var(--font);
-        box-sizing:border-box; transition:opacity .15s;
-      }
-      .product-card-btn:hover { opacity:.85; }
-
       /* ── Inline links ── */
       .chat-link {
         color:var(--c-theme); text-decoration:underline;
@@ -1044,18 +1054,19 @@
         ? `<img class="product-card-img" src="${esc(card.image_url)}" alt="${esc(card.title || '')}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="product-card-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
       const priceHtml = price ? `<div class="product-card-price">${esc(symbol)}${esc(price)}</div>` : "";
-      const btnHtml   = card.url
-        ? `<a class="product-card-btn" href="${esc(card.url)}" target="_blank" rel="noopener noreferrer">View Product</a>`
-        : "";
+      const productUrl = safeExternalUrl(card.url);
+      const openTag = productUrl
+        ? `<a class="product-card" href="${esc(productUrl)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(card.title || 'product')} in a new tab">`
+        : `<div class="product-card">`;
+      const closeTag = productUrl ? `</a>` : `</div>`;
       return `
-        <div class="product-card">
+        ${openTag}
           ${imgHtml}
           <div class="product-card-body">
             <div class="product-card-title">${esc(card.title || '')}</div>
             ${priceHtml}
-            ${btnHtml}
           </div>
-        </div>`;
+        ${closeTag}`;
     }).join("");
     return `<div class="product-cards-wrap"><div class="product-cards">${cardsHtml}</div></div>`;
   }
