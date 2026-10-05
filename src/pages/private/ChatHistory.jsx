@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar, Button, DatePicker, Empty, Input, Spin, Tag, message as antdMessage } from 'antd';
 import { ArrowLeftOutlined, ExportOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -28,7 +28,7 @@ const mapConversationMeta = (item) => ({
   title: item?.conversation_title || item?.title || `Conversation #${getConversationId(item) ?? 'Unknown'}`,
   customerId: item?.customer ?? item?.customer_id ?? null,
   customerLabel: item?.customer_email || item?.email || `Customer ${item?.customer ?? item?.customer_id ?? 'Unknown'}`,
-  updatedAt: item?.date || item?.updated_at || item?.created_at || item?.timestamp || null,
+  updatedAt: item?.last_message_at || item?.date || item?.updated_at || item?.created_at || item?.timestamp || null,
 });
 
 const mapMessageRows = (item, conversationId) => {
@@ -103,6 +103,7 @@ export default function ChatHistory() {
   const [messages, setMessages] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const messagesEndRef = useRef(null);
   const [filters, setFilters] = useState({
     search: '',
     date_after: '',
@@ -125,7 +126,7 @@ export default function ChatHistory() {
       const params = new URLSearchParams();
       params.set('agent', id);
       params.set('conversation', conversationId);
-      params.set('ordering', '-date');
+      params.set('ordering', 'date,id');
 
       const resolvedCustomerId = conversation?.customerId || conversation?.customer || conversation?.customer_id || customerId;
       if (resolvedCustomerId) params.set('customer', resolvedCustomerId);
@@ -135,7 +136,13 @@ export default function ChatHistory() {
 
       const res = await getData(`api/agent/messages/?${params.toString()}`);
       const rows = Array.isArray(res?.results) ? res.results : Array.isArray(res) ? res : [];
-      setMessages(rows);
+      const chronologicalRows = [...rows].sort((left, right) => {
+        const leftTime = new Date(left?.date || left?.created_at || left?.timestamp || 0).getTime();
+        const rightTime = new Date(right?.date || right?.created_at || right?.timestamp || 0).getTime();
+        if (leftTime !== rightTime) return leftTime - rightTime;
+        return Number(left?.id || 0) - Number(right?.id || 0);
+      });
+      setMessages(chronologicalRows);
     } catch (error) {
       console.error('Error fetching messages:', error);
       antdMessage.error('Failed to load messages');
@@ -152,7 +159,7 @@ export default function ChatHistory() {
       setLoadingConversations(true);
       const params = new URLSearchParams();
       params.set('agent', id);
-      params.set('ordering', '-date');
+      params.set('ordering', '-last_message_at,-date,-id');
       if (customerId) params.set('customer', customerId);
 
       const res = await getData(`api/agent/conversations/?${params.toString()}`);
@@ -193,6 +200,12 @@ export default function ChatHistory() {
     fetchConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, customerId]);
+
+  useEffect(() => {
+    if (!loadingMessages && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    }
+  }, [loadingMessages, messages, selectedConversationId]);
 
   const handleSelectConversation = async (conversation) => {
     setSelectedConversation(conversation);
@@ -382,6 +395,7 @@ export default function ChatHistory() {
               </div>
             ))
           )}
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>
