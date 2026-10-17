@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import ShopifyBillingReturn from './pages/public/ShopifyBillingReturn';
 
 import ScrollToTop from './components/common/ScrollToTop.jsx';
 import UserProfile from './components/pages/profile/UserProfile.jsx';
@@ -72,6 +73,7 @@ export default function Routers() {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
+        <Route path="/api/integrations/shopify/billing/callback/" element={<ShopifyBillingReturn />} />
         {/* PUBLIC WEBSITE */}
         <Route path='/' element={<PublicLayout />}>
           <Route path='/' element={<Home />} />

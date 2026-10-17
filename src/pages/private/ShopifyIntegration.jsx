@@ -180,8 +180,9 @@ export default function ShopifyIntegration() {
     setError(null);
 
     try {
-      const [sourceRes, healthRes, webhookRes, plansRes] = await Promise.all([
-        getData(api.source(agentName)),
+      // Source setup creates webhooks. Do not race it with the health endpoint.
+      const sourceRes = await getData(api.source(agentName));
+      const [healthRes, webhookRes, plansRes] = await Promise.all([
         getData(api.health(agentName)),
         getData(api.webhookHealth(agentName)),
         getData(api.plans(), true),
@@ -653,7 +654,7 @@ export default function ShopifyIntegration() {
               Add Virtix through Shopify&apos;s Theme Editor app embed. No theme code changes, script copying, or manual installation are required.
             </Text>
             <div className="flex items-center gap-3 flex-wrap">
-              <Button type="primary" onClick={() => window.location.assign(themeEditorUrl)} disabled={!themeEditorUrl}>
+              <Button type="primary" href={themeEditorUrl || undefined} target="_blank" rel="noopener noreferrer" disabled={!themeEditorUrl}>
                 Enable Chat in Theme Editor
               </Button>
             </div>
