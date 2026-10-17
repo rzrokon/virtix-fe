@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Alert,
@@ -114,6 +114,7 @@ export default function ShopifyIntegration() {
   const [health, setHealth] = useState(null);
   const [webhookHealth, setWebhookHealth] = useState(null);
   const [billing, setBilling] = useState(null);
+  const sourceLoadInFlight = useRef(false);
   const [plans, setPlans] = useState([]);
   const [error, setError] = useState(null);
 
@@ -160,31 +161,33 @@ export default function ShopifyIntegration() {
   );
   const currentPlanCode = billing?.plan_code || "starter";
   const currentPlanName = billing?.plan_name || "Starter";
-  const isFreeStarter = currentPlanCode === "starter" && !billing?.shopify_subscription_gid;
+  const isFreeStarter = currentPlanCode === "starter" && billing?.shopify_billing_status !== "ACTIVE";
   const availablePlans = useMemo(
     () => (plans || []).filter((plan) => ["starter", "growth", "business"].includes(plan.code)),
     [plans]
   );
   const billingPeriodLabel = useMemo(() => {
-    if (!billing?.current_period_end) return "—";
+    if (isFreeStarter || !billing?.current_period_end) return "—";
     const start = billing?.current_period_start ? formatShortDate(billing.current_period_start) : "—";
     return `${start} – ${formatShortDate(billing.current_period_end)}`;
-  }, [billing]);
+  }, [billing, isFreeStarter]);
 
   const loadSource = useCallback(async () => {
-    if (!agentName) return;
+    if (!agentName || sourceLoadInFlight.current) return;
+    sourceLoadInFlight.current = true;
 
     setLoadingSource(true);
     setError(null);
 
     try {
-      const [sourceRes, healthRes, webhookRes, billingRes, plansRes] = await Promise.all([
+      const [sourceRes, healthRes, webhookRes, plansRes] = await Promise.all([
         getData(api.source(agentName)),
         getData(api.health(agentName)),
         getData(api.webhookHealth(agentName)),
-        getData(api.billingStatus(agentName)),
         getData(api.plans(), true),
       ]);
+      // Finish connection checks before the final authoritative billing read.
+      const billingRes = await getData(api.billingStatus(agentName));
       const merged = { ...(sourceRes || {}), ...(healthRes || {}), ...(webhookRes || {}), ...(billingRes || {}) };
       setSource(merged || null);
       setHealth(healthRes || null);
@@ -199,6 +202,7 @@ export default function ShopifyIntegration() {
       setBilling(null);
       setError(prettyErr(e));
     } finally {
+      sourceLoadInFlight.current = false;
       setLoadingSource(false);
     }
   }, [agentName]);
@@ -290,6 +294,20 @@ export default function ShopifyIntegration() {
     if (!agentName) return;
     loadSource();
   }, [agentName, loadSource]);
+
+  useEffect(() => {
+    const refreshOnReturn = () => {
+      if (document.visibilityState === "visible") loadSource();
+    };
+    window.addEventListener("focus", refreshOnReturn);
+    window.addEventListener("pageshow", refreshOnReturn);
+    document.addEventListener("visibilitychange", refreshOnReturn);
+    return () => {
+      window.removeEventListener("focus", refreshOnReturn);
+      window.removeEventListener("pageshow", refreshOnReturn);
+      document.removeEventListener("visibilitychange", refreshOnReturn);
+    };
+  }, [loadSource]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -498,6 +516,11 @@ export default function ShopifyIntegration() {
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
+      {new URLSearchParams(location.search).get("shopify_billing") === "error" ? (
+        <Alert type="warning" showIcon message="Shopify approval was not confirmed"
+          description="Your current plan is shown below after checking Shopify. If you cancelled approval, your previous plan remains in place. You can try the upgrade again." />
+      ) : null}
+
       {needsReconnect && hasHistoricalConnection ? (
         <Alert
           type="warning"
@@ -511,8 +534,8 @@ export default function ShopifyIntegration() {
         <Alert
           type="warning"
           showIcon
-          message="Verification Recommended"
-          description="Virtix detected Shopify lifecycle changes that should be verified before you rely on billing or product state."
+          message="Billing verification pending"
+          description="We could not confirm the latest Shopify billing state. The last saved plan is shown below. Use Refresh Billing to retry."
         />
       ) : null}
 
@@ -675,7 +698,7 @@ export default function ShopifyIntegration() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Next Renewal</div>
-                <div className="mt-1 text-base font-semibold text-[#0C0900]">{formatShortDate(billing?.current_period_end)}</div>
+                <div className="mt-1 text-base font-semibold text-[#0C0900]">{isFreeStarter ? "—" : formatShortDate(billing?.current_period_end)}</div>
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Shopify Subscription ID</div>

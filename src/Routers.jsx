@@ -170,6 +170,7 @@ export default function Routers() {
           <Route path="/:id/agent-dashboard/website" element={<WebsiteIntegration />} />
           <Route path="/:id/agent-dashboard/woocommerce" element={<WooCommerceIntegration />} />
           <Route path="/:id/agent-dashboard/shopify" element={<ShopifyIntegration />} />
+          <Route path="/:id/agent-dashboard/billing" element={<ShopifyIntegration />} />
           <Route path='/:id/agent-dashboard/support' element={<SupportInboxPage />} />
         </Route>
       </Routes>
